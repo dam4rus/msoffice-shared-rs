@@ -4,10 +4,10 @@ version = "0.1.0"
 authors = ["Kalmár Róbert <rfrostkalmar@gmail.com>"]
 edition = "2018"
 description = "Library shared by other MS OpenOffice file format libraries"
-keywords = ["office", "pptx", "ppt"]
+keywords = ["office", "pptx", "ppt", "word", "spreadsheet"]
 license = "MIT"
-repository = "https://github.com/dam4rus/msoffice-pptx-rs.git"
-homepage = "https://github.com/dam4rus/msoffice-pptx-rs"
+repository = "https://github.com/dam4rus/msoffice-shared-rs.git"
+homepage = "https://github.com/dam4rus/msoffice-shared-rs"
 readme = "README.md"
 
 [dependencies]
