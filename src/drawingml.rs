@@ -1,15 +1,14 @@
-// TODO: This module defines shared types between different OOX file formats. It should be refactored into a different crate, if these types are needed.
 use crate::error::{
-    AdjustParseError, Limit, LimitViolationError, MissingAttributeError, MissingChildNodeError, NotGroupMemberError,
-    ParseEnumError,
+    AdjustParseError, Limit, LimitViolationError, MissingAttributeError, MissingChildNodeError, NotGroupMemberError
 };
 use crate::relationship::RelationshipId;
 use crate::xml::{parse_xml_bool, XmlNode};
-use crate::decl_simple_type_enum;
 use std::io::Read;
 use std::str::FromStr;
 use zip::read::ZipFile;
 use log::{trace, error};
+use enum_from_str::ParseEnumVariantError;
+use enum_from_str_derive::FromStr;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
@@ -49,986 +48,1700 @@ pub type TextNonNegativePoint = i32; // TODO: 0 <= n <= 400000
 pub type TextPoint = i32; // TODO: -400000 <= n <= 400000
 pub type ShapeId = String;
 
-decl_simple_type_enum! {
-    pub enum TileFlipMode {
-        None = "none",
-        X = "x",
-        Y = "y",
-        XY = "xy",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum TileFlipMode {
+    #[from_str = "none"]
+    None,
+    #[from_str = "x"]
+    X,
+    #[from_str = "y"]
+    Y,
+    #[from_str = "xy"]
+    XY,
 }
 
-decl_simple_type_enum! {
-    pub enum RectAlignment {
-        L = "l",
-        T = "t",
-        R = "r",
-        B = "b",
-        Tl = "tl",
-        Tr = "tr",
-        Bl = "bl",
-        Br = "br",
-        Ctr = "ctr",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum RectAlignment {
+    #[from_str = "l"]
+    Left,
+    #[from_str = "t"]
+    Top,
+    #[from_str = "r"]
+    Right,
+    #[from_str = "b"]
+    Bottom,
+    #[from_str = "tl"]
+    TopLeft,
+    #[from_str = "tr"]
+    TopRight,
+    #[from_str = "bl"]
+    BottomLeft,
+    #[from_str = "br"]
+    BottomRight,
+    #[from_str = "ctr"]
+    Center,
 }
 
-decl_simple_type_enum! {
-    pub enum PathFillMode {
-        None = "none",
-        Norm = "norm",
-        Lighten = "lighten",
-        LightenLess = "lightenLess",
-        Darken = "darken",
-        DarkenLess = "darkenLess",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum PathFillMode {
+    #[from_str = "none"]
+    None,
+    #[from_str = "norm"]
+    Norm,
+    #[from_str = "lighten"]
+    Lighten,
+    #[from_str = "lightenLess"]
+    LightenLess,
+    #[from_str = "darken"]
+    Darken,
+    #[from_str = "darkenLess"]
+    DarkenLess,
 }
 
-decl_simple_type_enum! {
-    pub enum ShapeType {
-        Line = "line",
-        LineInv = "lineInv",
-        Triangle = "triangle",
-        RtTriangle = "rtTriangle",
-        Rect = "rect",
-        Diamond = "diamond",
-        Parallelogram = "parallelogram",
-        Trapezoid = "trapezoid",
-        NonIsoscelesTrapezoid = "nonIsoscelesTrapezoid",
-        Pentagon = "pentagon",
-        Hexagon = "hexagon",
-        Heptagon = "heptagon",
-        Octagon = "octagon",
-        Decagon = "decagon",
-        Dodecagon = "dodecagon",
-        Star4 = "star4",
-        Star5 = "star5",
-        Star6 = "star6",
-        Star7 = "star7",
-        Star8 = "star8",
-        Star10 = "star10",
-        Star12 = "star12",
-        Star16 = "star16",
-        Star24 = "star24",
-        Star32 = "star32",
-        RoundRect = "roundRect",
-        Round1Rect = "round1Rect",
-        Round2SameRect = "round2SameRect",
-        Round2DiagRect = "round2DiagRect",
-        SnipRoundRect = "snipRoundRect",
-        Snip1Rect = "snip1Rect",
-        Snip2SameRect = "snip2SameRect",
-        Snip2DiagRect = "snip2DiagRect",
-        Plaque = "plaque",
-        Ellipse = "ellipse",
-        Teardrop = "teardrop",
-        HomePlate = "homePlate",
-        Chevron = "chevron",
-        PieWedge = "pieWedge",
-        Pie = "pie",
-        BlockArc = "blockArc",
-        Donut = "donut",
-        NoSmoking = "noSmoking",
-        RightArrow = "rightArrow",
-        LeftArrow = "leftArrow",
-        UpArrow = "upArrow",
-        DownArrow = "downArrow",
-        StripedRightArrow = "stripedRightArrow",
-        NotchedRightArrow = "notchedRightArrow",
-        BentUpArrow = "bentUpArrow",
-        LeftRightArrow = "leftRightArrow",
-        UpDownArrow = "upDownArrow",
-        LeftUpArrow = "leftUpArrow",
-        LeftRightUpArrow = "leftRightUpArrow",
-        QuadArrow = "quadArrow",
-        LeftArrowCallout = "leftArrowCallout",
-        RightArrowCallout = "rightArrowCallout",
-        UpArrowCallout = "upArrowCallout",
-        DownArrowCallout = "downArrowCallout",
-        LeftRightArrowCallout = "leftRightArrowCallout",
-        UpDownArrowCallout = "upDownArrowCallout",
-        QuadArrowCallout = "quadArrowCallout",
-        BentArrow = "bentArrow",
-        UturnArrow = "uturnArrow",
-        CircularArrow = "circularArrow",
-        LeftCircularArrow = "leftCircularArrow",
-        LeftRightCircularArrow = "leftRightCircularArrow",
-        CurvedRightArrow = "curvedRightArrow",
-        CurvedLeftArrow = "curvedLeftArrow",
-        CurvedUpArrow = "curvedUpArrow",
-        CurvedDownArrow = "curvedDownArrow",
-        SwooshArrow = "swooshArrow",
-        Cube = "cube",
-        Can = "can",
-        LightningBolt = "lightningBolt",
-        Heart = "heart",
-        Sun = "sun",
-        Moon = "moon",
-        SmileyFace = "smileyFace",
-        IrregularSeal1 = "irregularSeal1",
-        IrregularSeal2 = "irregularSeal2",
-        FoldedCorner = "foldedCorner",
-        Bevel = "bevel",
-        Frame = "frame",
-        HalfFrame = "halfFrame",
-        Corner = "corner",
-        DiagStripe = "diagStripe",
-        Chord = "chord",
-        Arc = "arc",
-        LeftBracket = "leftBracket",
-        RightBracket = "rightBracket",
-        LeftBrace = "leftBrace",
-        RightBrace = "rightBrace",
-        BracketPair = "bracketPair",
-        BracePair = "bracePair",
-        StraightConnector1 = "straightConnector1",
-        BentConnector2 = "bentConnector2",
-        BentConnector3 = "bentConnector3",
-        BentConnector4 = "bentConnector4",
-        BentConnector5 = "bentConnector5",
-        CurvedConnector2 = "curvedConnector2",
-        CurvedConnector3 = "curvedConnector3",
-        CurvedConnector4 = "curvedConnector4",
-        CurvedConnector5 = "curvedConnector5",
-        Callout1 = "callout1",
-        Callout2 = "callout2",
-        Callout3 = "callout3",
-        AccentCallout1 = "accentCallout1",
-        AccentCallout2 = "accentCallout2",
-        AccentCallout3 = "accentCallout3",
-        BorderCallout1 = "borderCallout1",
-        BorderCallout2 = "borderCallout2",
-        BorderCallout3 = "borderCallout3",
-        AccentBorderCallout1 = "accentBorderCallout1",
-        AccentBorderCallout2 = "accentBorderCallout2",
-        AccentBorderCallout3 = "accentBorderCallout3",
-        WedgeRectCallout = "wedgeRectCallout",
-        WedgeRoundRectCallout = "wedgeRoundRectCallout",
-        WedgeEllipseCallout = "wedgeEllipseCallout",
-        CloudCallout = "cloudCallout",
-        Cloud = "cloud",
-        Ribbon = "ribbon",
-        Ribbon2 = "ribbon2",
-        EllipseRibbon = "ellipseRibbon",
-        EllipseRibbon2 = "ellipseRibbon2",
-        LeftRightRibbon = "leftRightRibbon",
-        VerticalScroll = "verticalScroll",
-        HorizontalScroll = "horizontalScroll",
-        Wave = "wave",
-        DoubleWave = "doubleWave",
-        Plus = "plus",
-        FlowChartProcess = "flowChartProcess",
-        FlowChartDecision = "flowChartDecision",
-        FlowChartInputOutput = "flowChartInputOutput",
-        FlowChartPredefinedProcess = "flowChartPredefinedProcess",
-        FlowChartInternalStorage = "flowChartInternalStorage",
-        FlowChartDocument = "flowChartDocument",
-        FlowChartMultidocument = "flowChartMultidocument",
-        FlowChartTerminator = "flowChartTerminator",
-        FlowChartPreparation = "flowChartPreparation",
-        FlowChartManualInput = "flowChartManualInput",
-        FlowChartManualOperation = "flowChartOperation",
-        FlowChartConnector = "flowChartConnector",
-        FlowChartPunchedCard = "flowChartPunchedCard",
-        FlowChartPunchedTape = "flowChartPunchedTape",
-        FlowChartSummingJunction = "flowChartSummingJunction",
-        FlowChartOr = "flowChartOr",
-        FlowChartCollate = "flowChartCollate",
-        FlowChartSort = "flowChartSort",
-        FlowChartExtract = "flowChartExtract",
-        FlowChartMerge = "flowChartMerge",
-        FlowChartOfflineStorage = "flowChartOfflineStorage",
-        FlowChartOnlineStorage = "flowChartOnlineStorage",
-        FlowChartMagneticTape = "flowChartMagneticTape",
-        FlowChartMagneticDisk = "flowChartMagneticDisk",
-        FlowChartMagneticDrum = "flowChartMagneticDrum",
-        FlowChartDisplay = "flowChartDisplay",
-        FlowChartDelay = "flowChartDelay",
-        FlowChartAlternateProcess = "flowChartAlternateProcess",
-        FlowChartOffpageConnector = "flowChartOffpageConnector",
-        ActionButtonBlank = "actionButtonBlank",
-        ActionButtonHome = "actionButtonHome",
-        ActionButtonHelp = "actionButtonHelp",
-        ActionButtonInformation = "actionButtonInformation",
-        ActionButtonForwardNext = "actionButtonForwardNext",
-        ActionButtonBackPrevious = "actionButtonBackPrevious",
-        ActionButtonEnd = "actionButtonEnd",
-        ActionButtonBeginning = "actionButtonBeginning",
-        ActionButtonReturn = "actionButtonReturn",
-        ActionButtonDocument = "actionButtonDocument",
-        ActionButtonSound = "actionButtonSound",
-        ActionButtonMovie = "actionButtonMovie",
-        Gear6 = "gear6",
-        Gear9 = "gear9",
-        Funnel = "funnel",
-        MathPlus = "mathPlus",
-        MathMinus = "mathMinus",
-        MathMultiply = "mathMultiply",
-        MathDivide = "mathDivide",
-        MathEqual = "mathEqual",
-        MathNotEqual = "mathNotEqual",
-        CornerTabs = "cornerTabs",
-        SquareTabs = "squareTabs",
-        PlaqueTabs = "plaqueTabs",
-        ChartX = "chartX",
-        ChartStar = "chartStar",
-        ChartPlus = "chartPlus",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum ShapeType {
+    #[from_str = "line"]
+    Line,
+    #[from_str = "lineInv"]
+    LineInverse,
+    #[from_str = "triangle"]
+    Triangle,
+    #[from_str = "rtTriangle"]
+    RightTriangle,
+    #[from_str = "rect"]
+    Rect,
+    #[from_str = "diamond"]
+    Diamond,
+    #[from_str = "parallelogram"]
+    Parallelogram,
+    #[from_str = "trapezoid"]
+    Trapezoid,
+    #[from_str = "nonIsoscelesTrapezoid"]
+    NonIsoscelesTrapezoid,
+    #[from_str = "pentagon"]
+    Pentagon,
+    #[from_str = "hexagon"]
+    Hexagon,
+    #[from_str = "heptagon"]
+    Heptagon,
+    #[from_str = "octagon"]
+    Octagon,
+    #[from_str = "decagon"]
+    Decagon,
+    #[from_str = "dodecagon"]
+    Dodecagon,
+    #[from_str = "star4"]
+    Star4,
+    #[from_str = "star5"]
+    Star5,
+    #[from_str = "star6"]
+    Star6,
+    #[from_str = "star7"]
+    Star7,
+    #[from_str = "star8"]
+    Star8,
+    #[from_str = "star10"]
+    Star10,
+    #[from_str = "star12"]
+    Star12,
+    #[from_str = "star16"]
+    Star16,
+    #[from_str = "star24"]
+    Star24,
+    #[from_str = "star32"]
+    Star32,
+    #[from_str = "roundRect"]
+    RoundRect,
+    #[from_str = "round1Rect"]
+    Round1Rect,
+    #[from_str = "round2SameRect"]
+    Round2SameRect,
+    #[from_str = "round2DiagRect"]
+    Round2DiagRect,
+    #[from_str = "snipRoundRect"]
+    SnipRoundRect,
+    #[from_str = "snip1Rect"]
+    Snip1Rect,
+    #[from_str = "snip2SameRect"]
+    Snip2SameRect,
+    #[from_str = "snip2DiagRect"]
+    Snip2DiagRect,
+    #[from_str = "plaque"]
+    Plaque,
+    #[from_str = "ellipse"]
+    Ellipse,
+    #[from_str = "teardrop"]
+    Teardrop,
+    #[from_str = "homePlate"]
+    HomePlate,
+    #[from_str = "chevron"]
+    Chevron,
+    #[from_str = "pieWedge"]
+    PieWedge,
+    #[from_str = "pie"]
+    Pie,
+    #[from_str = "blockArc"]
+    BlockArc,
+    #[from_str = "donut"]
+    Donut,
+    #[from_str = "noSmoking"]
+    NoSmoking,
+    #[from_str = "rightArrow"]
+    RightArrow,
+    #[from_str = "leftArrow"]
+    LeftArrow,
+    #[from_str = "upArrow"]
+    UpArrow,
+    #[from_str = "downArrow"]
+    DownArrow,
+    #[from_str = "stripedRightArrow"]
+    StripedRightArrow,
+    #[from_str = "notchedRightArrow"]
+    NotchedRightArrow,
+    #[from_str = "bentUpArrow"]
+    BentUpArrow,
+    #[from_str = "leftRightArrow"]
+    LeftRightArrow,
+    #[from_str = "upDownArrow"]
+    UpDownArrow,
+    #[from_str = "leftUpArrow"]
+    LeftUpArrow,
+    #[from_str = "leftRightUpArrow"]
+    LeftRightUpArrow,
+    #[from_str = "quadArrow"]
+    QuadArrow,
+    #[from_str = "leftArrowCallout"]
+    LeftArrowCallout,
+    #[from_str = "rightArrowCallout"]
+    RightArrowCallout,
+    #[from_str = "upArrowCallout"]
+    UpArrowCallout,
+    #[from_str = "downArrowCallout"]
+    DownArrowCallout,
+    #[from_str = "leftRightArrowCallout"]
+    LeftRightArrowCallout,
+    #[from_str = "upDownArrowCallout"]
+    UpDownArrowCallout,
+    #[from_str = "quadArrowCallout"]
+    QuadArrowCallout,
+    #[from_str = "bentArrow"]
+    BentArrow,
+    #[from_str = "uturnArrow"]
+    UturnArrow,
+    #[from_str = "circularArrow"]
+    CircularArrow,
+    #[from_str = "leftCircularArrow"]
+    LeftCircularArrow,
+    #[from_str = "leftRightCircularArrow"]
+    LeftRightCircularArrow,
+    #[from_str = "curvedRightArrow"]
+    CurvedRightArrow,
+    #[from_str = "curvedLeftArrow"]
+    CurvedLeftArrow,
+    #[from_str = "curvedUpArrow"]
+    CurvedUpArrow,
+    #[from_str = "curvedDownArrow"]
+    CurvedDownArrow,
+    #[from_str = "swooshArrow"]
+    SwooshArrow,
+    #[from_str = "cube"]
+    Cube,
+    #[from_str = "can"]
+    Can,
+    #[from_str = "lightningBolt"]
+    LightningBolt,
+    #[from_str = "heart"]
+    Heart,
+    #[from_str = "sun"]
+    Sun,
+    #[from_str = "moon"]
+    Moon,
+    #[from_str = "smileyFace"]
+    SmileyFace,
+    #[from_str = "irregularSeal1"]
+    IrregularSeal1,
+    #[from_str = "irregularSeal2"]
+    IrregularSeal2,
+    #[from_str = "foldedCorner"]
+    FoldedCorner,
+    #[from_str = "bevel"]
+    Bevel,
+    #[from_str = "frame"]
+    Frame,
+    #[from_str = "halfFrame"]
+    HalfFrame,
+    #[from_str = "corner"]
+    Corner,
+    #[from_str = "diagStripe"]
+    DiagStripe,
+    #[from_str = "chord"]
+    Chord,
+    #[from_str = "arc"]
+    Arc,
+    #[from_str = "leftBracket"]
+    LeftBracket,
+    #[from_str = "rightBracket"]
+    RightBracket,
+    #[from_str = "leftBrace"]
+    LeftBrace,
+    #[from_str = "rightBrace"]
+    RightBrace,
+    #[from_str = "bracketPair"]
+    BracketPair,
+    #[from_str = "bracePair"]
+    BracePair,
+    #[from_str = "straightConnector1"]
+    StraightConnector1,
+    #[from_str = "bentConnector2"]
+    BentConnector2,
+    #[from_str = "bentConnector3"]
+    BentConnector3,
+    #[from_str = "bentConnector4"]
+    BentConnector4,
+    #[from_str = "bentConnector5"]
+    BentConnector5,
+    #[from_str = "curvedConnector2"]
+    CurvedConnector2,
+    #[from_str = "curvedConnector3"]
+    CurvedConnector3,
+    #[from_str = "curvedConnector4"]
+    CurvedConnector4,
+    #[from_str = "curvedConnector5"]
+    CurvedConnector5,
+    #[from_str = "callout1"]
+    Callout1,
+    #[from_str = "callout2"]
+    Callout2,
+    #[from_str = "callout3"]
+    Callout3,
+    #[from_str = "accentCallout1"]
+    AccentCallout1,
+    #[from_str = "accentCallout2"]
+    AccentCallout2,
+    #[from_str = "accentCallout3"]
+    AccentCallout3,
+    #[from_str = "borderCallout1"]
+    BorderCallout1,
+    #[from_str = "borderCallout2"]
+    BorderCallout2,
+    #[from_str = "borderCallout3"]
+    BorderCallout3,
+    #[from_str = "accentBorderCallout1"]
+    AccentBorderCallout1,
+    #[from_str = "accentBorderCallout2"]
+    AccentBorderCallout2,
+    #[from_str = "accentBorderCallout3"]
+    AccentBorderCallout3,
+    #[from_str = "wedgeRectCallout"]
+    WedgeRectCallout,
+    #[from_str = "wedgeRoundRectCallout"]
+    WedgeRoundRectCallout,
+    #[from_str = "wedgeEllipseCallout"]
+    WedgeEllipseCallout,
+    #[from_str = "cloudCallout"]
+    CloudCallout,
+    #[from_str = "cloud"]
+    Cloud,
+    #[from_str = "ribbon"]
+    Ribbon,
+    #[from_str = "ribbon2"]
+    Ribbon2,
+    #[from_str = "ellipseRibbon"]
+    EllipseRibbon,
+    #[from_str = "ellipseRibbon2"]
+    EllipseRibbon2,
+    #[from_str = "leftRightRibbon"]
+    LeftRightRibbon,
+    #[from_str = "verticalScroll"]
+    VerticalScroll,
+    #[from_str = "horizontalScroll"]
+    HorizontalScroll,
+    #[from_str = "wave"]
+    Wave,
+    #[from_str = "doubleWave"]
+    DoubleWave,
+    #[from_str = "plus"]
+    Plus,
+    #[from_str = "flowChartProcess"]
+    FlowChartProcess,
+    #[from_str = "flowChartDecision"]
+    FlowChartDecision,
+    #[from_str = "flowChartInputOutput"]
+    FlowChartInputOutput,
+    #[from_str = "flowChartPredefinedProcess"]
+    FlowChartPredefinedProcess,
+    #[from_str = "flowChartInternalStorage"]
+    FlowChartInternalStorage,
+    #[from_str = "flowChartDocument"]
+    FlowChartDocument,
+    #[from_str = "flowChartMultidocument"]
+    FlowChartMultidocument,
+    #[from_str = "flowChartTerminator"]
+    FlowChartTerminator,
+    #[from_str = "flowChartPreparation"]
+    FlowChartPreparation,
+    #[from_str = "flowChartManualInput"]
+    FlowChartManualInput,
+    #[from_str = "flowChartOperation"]
+    FlowChartManualOperation,
+    #[from_str = "flowChartConnector"]
+    FlowChartConnector,
+    #[from_str = "flowChartPunchedCard"]
+    FlowChartPunchedCard,
+    #[from_str = "flowChartPunchedTape"]
+    FlowChartPunchedTape,
+    #[from_str = "flowChartSummingJunction"]
+    FlowChartSummingJunction,
+    #[from_str = "flowChartOr"]
+    FlowChartOr,
+    #[from_str = "flowChartCollate"]
+    FlowChartCollate,
+    #[from_str = "flowChartSort"]
+    FlowChartSort,
+    #[from_str = "flowChartExtract"]
+    FlowChartExtract,
+    #[from_str = "flowChartMerge"]
+    FlowChartMerge,
+    #[from_str = "flowChartOfflineStorage"]
+    FlowChartOfflineStorage,
+    #[from_str = "flowChartOnlineStorage"]
+    FlowChartOnlineStorage,
+    #[from_str = "flowChartMagneticTape"]
+    FlowChartMagneticTape,
+    #[from_str = "flowChartMagneticDisk"]
+    FlowChartMagneticDisk,
+    #[from_str = "flowChartMagneticDrum"]
+    FlowChartMagneticDrum,
+    #[from_str = "flowChartDisplay"]
+    FlowChartDisplay,
+    #[from_str = "flowChartDelay"]
+    FlowChartDelay,
+    #[from_str = "flowChartAlternateProcess"]
+    FlowChartAlternateProcess,
+    #[from_str = "flowChartOffpageConnector"]
+    FlowChartOffpageConnector,
+    #[from_str = "actionButtonBlank"]
+    ActionButtonBlank,
+    #[from_str = "actionButtonHome"]
+    ActionButtonHome,
+    #[from_str = "actionButtonHelp"]
+    ActionButtonHelp,
+    #[from_str = "actionButtonInformation"]
+    ActionButtonInformation,
+    #[from_str = "actionButtonForwardNext"]
+    ActionButtonForwardNext,
+    #[from_str = "actionButtonBackPrevious"]
+    ActionButtonBackPrevious,
+    #[from_str = "actionButtonEnd"]
+    ActionButtonEnd,
+    #[from_str = "actionButtonBeginning"]
+    ActionButtonBeginning,
+    #[from_str = "actionButtonReturn"]
+    ActionButtonReturn,
+    #[from_str = "actionButtonDocument"]
+    ActionButtonDocument,
+    #[from_str = "actionButtonSound"]
+    ActionButtonSound,
+    #[from_str = "actionButtonMovie"]
+    ActionButtonMovie,
+    #[from_str = "gear6"]
+    Gear6,
+    #[from_str = "gear9"]
+    Gear9,
+    #[from_str = "funnel"]
+    Funnel,
+    #[from_str = "mathPlus"]
+    MathPlus,
+    #[from_str = "mathMinus"]
+    MathMinus,
+    #[from_str = "mathMultiply"]
+    MathMultiply,
+    #[from_str = "mathDivide"]
+    MathDivide,
+    #[from_str = "mathEqual"]
+    MathEqual,
+    #[from_str = "mathNotEqual"]
+    MathNotEqual,
+    #[from_str = "cornerTabs"]
+    CornerTabs,
+    #[from_str = "squareTabs"]
+    SquareTabs,
+    #[from_str = "plaqueTabs"]
+    PlaqueTabs,
+    #[from_str = "chartX"]
+    ChartX,
+    #[from_str = "chartStar"]
+    ChartStar,
+    #[from_str = "chartPlus"]
+    ChartPlus,
 }
 
-decl_simple_type_enum! {
-    pub enum LineCap {
-        Round = "rnd",
-        Square = "sq",
-        Flat = "flat",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum LineCap {
+    #[from_str = "rnd"]
+    Round,
+    #[from_str = "sq"]
+    Square,
+    #[from_str = "flat"]
+    Flat,
 }
 
-decl_simple_type_enum! {
-    pub enum CompoundLine {
-        Single = "sng",
-        Double = "dbl",
-        ThickThin = "thickThin",
-        ThinThick = "thinThick",
-        Triple = "tri",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum CompoundLine {
+    #[from_str = "sng"]
+    Single,
+    #[from_str = "dbl"]
+    Double,
+    #[from_str = "thickThin"]
+    ThickThin,
+    #[from_str = "thinThick"]
+    ThinThick,
+    #[from_str = "tri"]
+    Triple,
 }
 
-decl_simple_type_enum! {
-    pub enum PenAlignment {
-        Center = "ctr",
-        Inset = "in",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum PenAlignment {
+    #[from_str = "ctr"]
+    Center,
+    #[from_str = "in"]
+    Inset,
 }
 
-decl_simple_type_enum! {
-    pub enum PresetLineDashVal {
-        Solid = "solid",
-        Dot = "dot",
-        Dash = "dash",
-        LgDash = "lgDash",
-        DashDot = "dashDot",
-        LgDashDot = "lgDashDot",
-        LgDashDotDot = "ldDashDotDot",
-        SysDash = "sysDash",
-        SysDot = "sysDot",
-        SysDashDot = "sysDashDot",
-        SysDashDotDot = "sysDashDotDot",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum PresetLineDashVal {
+    #[from_str = "solid"]
+    Solid,
+    #[from_str = "dot"]
+    Dot,
+    #[from_str = "dash"]
+    Dash,
+    #[from_str = "lgDash"]
+    LgDash,
+    #[from_str = "dashDot"]
+    DashDot,
+    #[from_str = "lgDashDot"]
+    LgDashDot,
+    #[from_str = "ldDashDotDot"]
+    LgDashDotDot,
+    #[from_str = "sysDash"]
+    SysDash,
+    #[from_str = "sysDot"]
+    SysDot,
+    #[from_str = "sysDashDot"]
+    SysDashDot,
+    #[from_str = "sysDashDotDot"]
+    SysDashDotDot,
 }
 
-decl_simple_type_enum! {
-    pub enum LineEndType {
-        None = "none",
-        Triangle = "triangle",
-        Stealth = "stealth",
-        Diamond = "diamond",
-        Oval = "oval",
-        Arrow = "arrow",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum LineEndType {
+    #[from_str = "none"]
+    None,
+    #[from_str = "triangle"]
+    Triangle,
+    #[from_str = "stealth"]
+    Stealth,
+    #[from_str = "diamond"]
+    Diamond,
+    #[from_str = "oval"]
+    Oval,
+    #[from_str = "arrow"]
+    Arrow,
 }
 
-decl_simple_type_enum! {
-    pub enum LineEndWidth {
-        Small = "sm",
-        Medium = "med",
-        Large = "lg",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum LineEndWidth {
+    #[from_str = "sm"]
+    Small,
+    #[from_str = "med"]
+    Medium,
+    #[from_str = "lg"]
+    Large,
 }
 
-decl_simple_type_enum! {
-    pub enum LineEndLength {
-        Small = "sm",
-        Medium = "med",
-        Large = "lg",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum LineEndLength {
+    #[from_str = "sm"]
+    Small,
+    #[from_str = "med"]
+    Medium,
+    #[from_str = "lg"]
+    Large,
 }
 
-decl_simple_type_enum! {
-    pub enum PresetShadowVal {
-        Shdw1 = "shdw1",
-        Shdw2 = "shdw2",
-        Shdw3 = "shdw3",
-        Shdw4 = "shdw4",
-        Shdw5 = "shdw5",
-        Shdw6 = "shdw6",
-        Shdw7 = "shdw7",
-        Shdw8 = "shdw8",
-        Shdw9 = "shdw9",
-        Shdw10 = "shdw10",
-        Shdw11 = "shdw11",
-        Shdw12 = "shdw12",
-        Shdw13 = "shdw13",
-        Shdw14 = "shdw14",
-        Shdw15 = "shdw15",
-        Shdw16 = "shdw16",
-        Shdw17 = "shdw17",
-        Shdw18 = "shdw18",
-        Shdw19 = "shdw19",
-        Shdw20 = "shdw20",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum PresetShadowVal {
+    #[from_str = "shdw1"]
+    Shdw1,
+    #[from_str = "shdw2"]
+    Shdw2,
+    #[from_str = "shdw3"]
+    Shdw3,
+    #[from_str = "shdw4"]
+    Shdw4,
+    #[from_str = "shdw5"]
+    Shdw5,
+    #[from_str = "shdw6"]
+    Shdw6,
+    #[from_str = "shdw7"]
+    Shdw7,
+    #[from_str = "shdw8"]
+    Shdw8,
+    #[from_str = "shdw9"]
+    Shdw9,
+    #[from_str = "shdw10"]
+    Shdw10,
+    #[from_str = "shdw11"]
+    Shdw11,
+    #[from_str = "shdw12"]
+    Shdw12,
+    #[from_str = "shdw13"]
+    Shdw13,
+    #[from_str = "shdw14"]
+    Shdw14,
+    #[from_str = "shdw15"]
+    Shdw15,
+    #[from_str = "shdw16"]
+    Shdw16,
+    #[from_str = "shdw17"]
+    Shdw17,
+    #[from_str = "shdw18"]
+    Shdw18,
+    #[from_str = "shdw19"]
+    Shdw19,
+    #[from_str = "shdw20"]
+    Shdw20,
 }
 
-decl_simple_type_enum! {
-    pub enum EffectContainerType {
-        Sib = "sib",
-        Tree = "tree",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum EffectContainerType {
+    #[from_str = "sib"]
+    Sib,
+    #[from_str = "tree"]
+    Tree,
 }
 
-decl_simple_type_enum! {
-    pub enum FontCollectionIndex {
-        Major = "major",
-        Minor = "minor",
-        None = "none",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum FontCollectionIndex {
+    #[from_str = "major"]
+    Major,
+    #[from_str = "minor"]
+    Minor,
+    #[from_str = "none"]
+    None,
 }
 
-decl_simple_type_enum! {
-    pub enum DgmBuildStep {
-        Sp = "sp",
-        Bg = "bg",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum DgmBuildStep {
+    #[from_str = "sp"]
+    Sp,
+    #[from_str = "bg"]
+    Bg,
 }
 
-decl_simple_type_enum! {
-    pub enum ChartBuildStep {
-        Category = "category",
-        PtInCategory = "ptInCategory",
-        Series = "series",
-        PtInSeries = "ptInSeries",
-        AllPts = "allPts",
-        GridLegend = "gridLegend",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum ChartBuildStep {
+    #[from_str = "category"]
+    Category,
+    #[from_str = "ptInCategory"]
+    PtInCategory,
+    #[from_str = "series"]
+    Series,
+    #[from_str = "ptInSeries"]
+    PtInSeries,
+    #[from_str = "allPts"]
+    AllPts,
+    #[from_str = "gridLegend"]
+    GridLegend,
 }
 
-decl_simple_type_enum! {
-    pub enum OnOffStyleType {
-        On = "on",
-        Off = "off",
-        Def = "def",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum OnOffStyleType {
+    #[from_str = "on"]
+    On,
+    #[from_str = "off"]
+    Off,
+    #[from_str = "def"]
+    Def,
 }
 
-decl_simple_type_enum! {
-    pub enum SystemColorVal {
-        ScrollBar = "scrollBar",
-        Background = "background",
-        ActiveCaption = "activeCaption",
-        InactiveCaption = "inactiveCaption",
-        Menu = "menu",
-        Window = "window",
-        WindowFrame = "windowFrame",
-        MenuText = "menuText",
-        WindowText = "windowText",
-        CaptionText = "captionText",
-        ActiveBorder = "activeBorder",
-        InactiveBorder = "inactiveBorder",
-        AppWorkspace = "appWorkspace",
-        Highlight = "highlight",
-        HighlightText = "highlightText",
-        BtnFace = "btnFace",
-        BtnShadow = "btnShadow",
-        GrayText = "grayText",
-        BtnText = "btnText",
-        InactiveCaptionText = "inactiveCaptionText",
-        BtnHighlight = "btnHighlight",
-        DkShadow3d = "3dDkShadow",
-        Light3d = "3dLight",
-        InfoText = "infoText",
-        InfoBk = "infoBk",
-        HotLight = "hotLight",
-        GradientActiveCaption = "gradientActiveCaption",
-        GradientInactiveCaption = "gradientInactiveCaption",
-        MenuHighlight = "menuHighlight",
-        MenuBar = "menubar",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum SystemColorVal {
+    #[from_str = "scrollBar"]
+    ScrollBar,
+    #[from_str = "background"]
+    Background,
+    #[from_str = "activeCaption"]
+    ActiveCaption,
+    #[from_str = "inactiveCaption"]
+    InactiveCaption,
+    #[from_str = "menu"]
+    Menu,
+    #[from_str = "window"]
+    Window,
+    #[from_str = "windowFrame"]
+    WindowFrame,
+    #[from_str = "menuText"]
+    MenuText,
+    #[from_str = "windowText"]
+    WindowText,
+    #[from_str = "captionText"]
+    CaptionText,
+    #[from_str = "activeBorder"]
+    ActiveBorder,
+    #[from_str = "inactiveBorder"]
+    InactiveBorder,
+    #[from_str = "appWorkspace"]
+    AppWorkspace,
+    #[from_str = "highlight"]
+    Highlight,
+    #[from_str = "highlightText"]
+    HighlightText,
+    #[from_str = "btnFace"]
+    BtnFace,
+    #[from_str = "btnShadow"]
+    BtnShadow,
+    #[from_str = "grayText"]
+    GrayText,
+    #[from_str = "btnText"]
+    BtnText,
+    #[from_str = "inactiveCaptionText"]
+    InactiveCaptionText,
+    #[from_str = "btnHighlight"]
+    BtnHighlight,
+    #[from_str = "3dDkShadow"]
+    DkShadow3d,
+    #[from_str = "3dLight"]
+    Light3d,
+    #[from_str = "infoText"]
+    InfoText,
+    #[from_str = "infoBk"]
+    InfoBk,
+    #[from_str = "hotLight"]
+    HotLight,
+    #[from_str = "gradientActiveCaption"]
+    GradientActiveCaption,
+    #[from_str = "gradientInactiveCaption"]
+    GradientInactiveCaption,
+    #[from_str = "menuHighlight"]
+    MenuHighlight,
+    #[from_str = "menubar"]
+    MenuBar,
 }
 
-decl_simple_type_enum! {
-    pub enum PresetColorVal {
-        AliceBlue = "aliceBlue",
-        AntiqueWhite = "antiqueWhite",
-        Aqua = "aqua",
-        Aquamarine = "aquamarine",
-        Azure = "azure",
-        Beige = "beige",
-        Bisque = "bisque",
-        Black = "black",
-        BlanchedAlmond = "blanchedAlmond",
-        Blue = "blue",
-        BlueViolet = "blueViolet",
-        Brown = "brown",
-        BurlyWood = "burlyWood",
-        CadetBlue = "cadetBlue",
-        Chartreuse = "chartreuse",
-        Chocolate = "chocolate",
-        Coral = "coral",
-        CornflowerBlue = "cornflowerBlue",
-        Cornsilk = "cornsilk",
-        Crimson = "crimson",
-        Cyan = "cyan",
-        DarkBlue = "darkBlue",
-        DarkCyan = "darkCyan",
-        DarkGoldenrod = "darkGoldenrod",
-        DarkGray = "darkGray",
-        DarkGrey = "darkGrey",
-        DarkGreen = "darkGreen",
-        DarkKhaki = "darkKhaki",
-        DarkMagenta = "darkMagenta",
-        DarkOliveGreen = "darkOliveGreen",
-        DarkOrange = "darkOrange",
-        DarkOrchid = "darkOrchid",
-        DarkRed = "darkRed",
-        DarkSalmon = "darkSalmon",
-        DarkSeaGreen = "darkSeaGreen",
-        DarkSlateBlue = "darkSlateBlue",
-        DarkSlateGray = "darkSlateGray",
-        DarkSlateGrey = "darkSlateGrey",
-        DarkTurqoise = "darkTurquoise",
-        DarkViolet = "darkViolet",
-        DkBlue = "dkBlue",
-        DkCyan = "dkCyan",
-        DkGoldenrod = "dkGoldenrod",
-        DkGray = "dkGray",
-        DkGrey = "dkGrey",
-        DkGreen = "dkGreen",
-        DkKhaki = "dkKhaki",
-        DkMagenta = "dkMagenta",
-        DkOliveGreen = "dkOliveGreen",
-        DkOrange = "dkOrange",
-        DkOrchid = "dkOrchid",
-        DkRed = "dkRed",
-        DkSalmon = "dkSalmon",
-        DkSeaGreen = "dkSeaGreen",
-        DkSlateBlue = "dkSlateBlue",
-        DkSlateGray = "dkSlateGray",
-        DkSlateGrey = "dkSlateGrey",
-        DkTurquoise = "dkTurquoise",
-        DkViolet = "dkViolet",
-        DeepPink = "deepPink",
-        DeepSkyBlue = "deepSkyBlue",
-        DimGray = "dimGray",
-        DimGrey = "dimGrey",
-        DodgerBluet = "dodgerBlue",
-        Firebrick = "firebrick",
-        FloralWhite = "floralWhite",
-        ForestGreen = "forestGreen",
-        Fuchsia = "fuchsia",
-        Gainsboro = "gainsboro",
-        GhostWhite = "ghostWhite",
-        Gold = "gold",
-        Goldenrod = "goldenrod",
-        Gray = "gray",
-        Grey = "grey",
-        Green = "green",
-        GreenYellow = "greenYellow",
-        Honeydew = "honeydew",
-        HotPink = "hotPink",
-        IndianRed = "indianRed",
-        Indigo = "indigo",
-        Ivory = "ivory",
-        Khaki = "khaki",
-        Lavender = "lavender",
-        LavenderBlush = "lavenderBlush",
-        LawnGreen = "lawnGreen",
-        LemonChiffon = "lemonChiffon",
-        LightBlue = "lightBlue",
-        LightCoral = "lightCoral",
-        LightCyan = "lightCyan",
-        LightGoldenrodYellow = "lightGoldenrodYellow",
-        LightGray = "lightGray",
-        LightGrey = "lightGrey",
-        LightGreen = "lightGreen",
-        LightPink = "lightPink",
-        LightSalmon = "lightSalmon",
-        LightSeaGreen = "lightSeaGreen",
-        LightSkyBlue = "lightSkyBlue",
-        LightSlateGray = "lightSlateGray",
-        LightSlateGrey = "lightSlateGrey",
-        LightSteelBlue = "lightSteelBlue",
-        LightYellow = "lightYellow",
-        LtBlue = "ltBlue",
-        LtCoral = "ltCoral",
-        LtCyan = "ltCyan",
-        LtGoldenrodYellow = "ltGoldenrodYellow",
-        LtGray = "ltGray",
-        LtGrey = "ltGrey",
-        LtGreen = "ltGreen",
-        LtPink = "ltPink",
-        LtSalmon = "ltSalmon",
-        LtSeaGreen = "ltSeaGreen",
-        LtSkyBlue = "ltSkyBlue",
-        LtSlateGray = "ltSlateGray",
-        LtSlateGrey = "ltSlateGrey",
-        LtSteelBlue = "ltSteelBlue",
-        LtYellow = "ltYellow",
-        Lime = "lime",
-        LimeGreen = "limeGreen",
-        Linen = "linen",
-        Magenta = "magenta",
-        Maroon = "maroon",
-        MedAquamarine = "medAquamarine",
-        MedBlue = "medBlue",
-        MedOrchid = "medOrchid",
-        MedPurple = "medPurple",
-        MedSeaGreen = "medSeaGreen",
-        MedSlateBlue = "medSlateBlue",
-        MedSpringGreen = "medSpringGreen",
-        MedTurquoise = "medTurquoise",
-        MedVioletRed = "medVioletRed",
-        MediumAquamarine = "mediumAquamarine",
-        MediumBlue = "mediumBlue",
-        MediumOrchid = "mediumOrchid",
-        MediumPurple = "mediumPurple",
-        MediumSeaGreen = "mediumSeaGreen",
-        MediumSlateBlue = "mediumSlateBlue",
-        MediumSpringGreen = "mediumSpringGreen",
-        MediumTurquoise = "mediumTurquoise",
-        MediumVioletRed = "mediumVioletRed",
-        MidnightBlue = "midnightBlue",
-        MintCream = "mintCream",
-        MistyRose = "mistyRose",
-        Moccasin = "moccasin",
-        NavajoWhite = "navajoWhite",
-        Navy = "navy",
-        OldLace = "oldLace",
-        Olive = "olive",
-        OliveDrab = "oliveDrab",
-        Orange = "orange",
-        OrangeRed = "orangeRed",
-        Orchid = "orchid",
-        PaleGoldenrod = "paleGoldenrod",
-        PaleGreen = "paleGreen",
-        PaleTurquoise = "paleTurquoise",
-        PaleVioletRed = "paleVioletRed",
-        PapayaWhip = "papayaWhip",
-        PeachPuff = "peachPuff",
-        Peru = "peru",
-        Pink = "pink",
-        Plum = "plum",
-        PowderBlue = "powderBlue",
-        Purple = "purple",
-        Red = "red",
-        RosyBrown = "rosyBrown",
-        RoyalBlue = "royalBlue",
-        SaddleBrown = "saddleBrown",
-        Salmon = "salmon",
-        SandyBrown = "sandyBrown",
-        SeaGreen = "seaGreen",
-        SeaShell = "seaShell",
-        Sienna = "sienna",
-        Silver = "silver",
-        SkyBlue = "skyBlue",
-        SlateBlue = "slateBlue",
-        SlateGray = "slateGray",
-        SlateGrey = "slateGrey",
-        Snow = "snow",
-        SpringGreen = "springGreen",
-        SteelBlue = "steelBlue",
-        Tan = "tan",
-        Teal = "teal",
-        Thistle = "thistle",
-        Tomato = "tomato",
-        Turquoise = "turquoise",
-        Violet = "violet",
-        Wheat = "wheat",
-        White = "white",
-        WhiteSmoke = "whiteSmoke",
-        Yellow = "yellow",
-        YellowGreen = "yellowGreen",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum PresetColorVal {
+    #[from_str = "aliceBlue"]
+    AliceBlue,
+    #[from_str = "antiqueWhite"]
+    AntiqueWhite,
+    #[from_str = "aqua"]
+    Aqua,
+    #[from_str = "aquamarine"]
+    Aquamarine,
+    #[from_str = "azure"]
+    Azure,
+    #[from_str = "beige"]
+    Beige,
+    #[from_str = "bisque"]
+    Bisque,
+    #[from_str = "black"]
+    Black,
+    #[from_str = "blanchedAlmond"]
+    BlanchedAlmond,
+    #[from_str = "blue"]
+    Blue,
+    #[from_str = "blueViolet"]
+    BlueViolet,
+    #[from_str = "brown"]
+    Brown,
+    #[from_str = "burlyWood"]
+    BurlyWood,
+    #[from_str = "cadetBlue"]
+    CadetBlue,
+    #[from_str = "chartreuse"]
+    Chartreuse,
+    #[from_str = "chocolate"]
+    Chocolate,
+    #[from_str = "coral"]
+    Coral,
+    #[from_str = "cornflowerBlue"]
+    CornflowerBlue,
+    #[from_str = "cornsilk"]
+    Cornsilk,
+    #[from_str = "crimson"]
+    Crimson,
+    #[from_str = "cyan"]
+    Cyan,
+    #[from_str = "darkBlue"]
+    DarkBlue,
+    #[from_str = "darkCyan"]
+    DarkCyan,
+    #[from_str = "darkGoldenrod"]
+    DarkGoldenrod,
+    #[from_str = "darkGray"]
+    DarkGray,
+    #[from_str = "darkGrey"]
+    DarkGrey,
+    #[from_str = "darkGreen"]
+    DarkGreen,
+    #[from_str = "darkKhaki"]
+    DarkKhaki,
+    #[from_str = "darkMagenta"]
+    DarkMagenta,
+    #[from_str = "darkOliveGreen"]
+    DarkOliveGreen,
+    #[from_str = "darkOrange"]
+    DarkOrange,
+    #[from_str = "darkOrchid"]
+    DarkOrchid,
+    #[from_str = "darkRed"]
+    DarkRed,
+    #[from_str = "darkSalmon"]
+    DarkSalmon,
+    #[from_str = "darkSeaGreen"]
+    DarkSeaGreen,
+    #[from_str = "darkSlateBlue"]
+    DarkSlateBlue,
+    #[from_str = "darkSlateGray"]
+    DarkSlateGray,
+    #[from_str = "darkSlateGrey"]
+    DarkSlateGrey,
+    #[from_str = "darkTurquoise"]
+    DarkTurqoise,
+    #[from_str = "darkViolet"]
+    DarkViolet,
+    #[from_str = "dkBlue"]
+    DkBlue,
+    #[from_str = "dkCyan"]
+    DkCyan,
+    #[from_str = "dkGoldenrod"]
+    DkGoldenrod,
+    #[from_str = "dkGray"]
+    DkGray,
+    #[from_str = "dkGrey"]
+    DkGrey,
+    #[from_str = "dkGreen"]
+    DkGreen,
+    #[from_str = "dkKhaki"]
+    DkKhaki,
+    #[from_str = "dkMagenta"]
+    DkMagenta,
+    #[from_str = "dkOliveGreen"]
+    DkOliveGreen,
+    #[from_str = "dkOrange"]
+    DkOrange,
+    #[from_str = "dkOrchid"]
+    DkOrchid,
+    #[from_str = "dkRed"]
+    DkRed,
+    #[from_str = "dkSalmon"]
+    DkSalmon,
+    #[from_str = "dkSeaGreen"]
+    DkSeaGreen,
+    #[from_str = "dkSlateBlue"]
+    DkSlateBlue,
+    #[from_str = "dkSlateGray"]
+    DkSlateGray,
+    #[from_str = "dkSlateGrey"]
+    DkSlateGrey,
+    #[from_str = "dkTurquoise"]
+    DkTurquoise,
+    #[from_str = "dkViolet"]
+    DkViolet,
+    #[from_str = "deepPink"]
+    DeepPink,
+    #[from_str = "deepSkyBlue"]
+    DeepSkyBlue,
+    #[from_str = "dimGray"]
+    DimGray,
+    #[from_str = "dimGrey"]
+    DimGrey,
+    #[from_str = "dodgerBlue"]
+    DodgerBluet,
+    #[from_str = "firebrick"]
+    Firebrick,
+    #[from_str = "floralWhite"]
+    FloralWhite,
+    #[from_str = "forestGreen"]
+    ForestGreen,
+    #[from_str = "fuchsia"]
+    Fuchsia,
+    #[from_str = "gainsboro"]
+    Gainsboro,
+    #[from_str = "ghostWhite"]
+    GhostWhite,
+    #[from_str = "gold"]
+    Gold,
+    #[from_str = "goldenrod"]
+    Goldenrod,
+    #[from_str = "gray"]
+    Gray,
+    #[from_str = "grey"]
+    Grey,
+    #[from_str = "green"]
+    Green,
+    #[from_str = "greenYellow"]
+    GreenYellow,
+    #[from_str = "honeydew"]
+    Honeydew,
+    #[from_str = "hotPink"]
+    HotPink,
+    #[from_str = "indianRed"]
+    IndianRed,
+    #[from_str = "indigo"]
+    Indigo,
+    #[from_str = "ivory"]
+    Ivory,
+    #[from_str = "khaki"]
+    Khaki,
+    #[from_str = "lavender"]
+    Lavender,
+    #[from_str = "lavenderBlush"]
+    LavenderBlush,
+    #[from_str = "lawnGreen"]
+    LawnGreen,
+    #[from_str = "lemonChiffon"]
+    LemonChiffon,
+    #[from_str = "lightBlue"]
+    LightBlue,
+    #[from_str = "lightCoral"]
+    LightCoral,
+    #[from_str = "lightCyan"]
+    LightCyan,
+    #[from_str = "lightGoldenrodYellow"]
+    LightGoldenrodYellow,
+    #[from_str = "lightGray"]
+    LightGray,
+    #[from_str = "lightGrey"]
+    LightGrey,
+    #[from_str = "lightGreen"]
+    LightGreen,
+    #[from_str = "lightPink"]
+    LightPink,
+    #[from_str = "lightSalmon"]
+    LightSalmon,
+    #[from_str = "lightSeaGreen"]
+    LightSeaGreen,
+    #[from_str = "lightSkyBlue"]
+    LightSkyBlue,
+    #[from_str = "lightSlateGray"]
+    LightSlateGray,
+    #[from_str = "lightSlateGrey"]
+    LightSlateGrey,
+    #[from_str = "lightSteelBlue"]
+    LightSteelBlue,
+    #[from_str = "lightYellow"]
+    LightYellow,
+    #[from_str = "ltBlue"]
+    LtBlue,
+    #[from_str = "ltCoral"]
+    LtCoral,
+    #[from_str = "ltCyan"]
+    LtCyan,
+    #[from_str = "ltGoldenrodYellow"]
+    LtGoldenrodYellow,
+    #[from_str = "ltGray"]
+    LtGray,
+    #[from_str = "ltGrey"]
+    LtGrey,
+    #[from_str = "ltGreen"]
+    LtGreen,
+    #[from_str = "ltPink"]
+    LtPink,
+    #[from_str = "ltSalmon"]
+    LtSalmon,
+    #[from_str = "ltSeaGreen"]
+    LtSeaGreen,
+    #[from_str = "ltSkyBlue"]
+    LtSkyBlue,
+    #[from_str = "ltSlateGray"]
+    LtSlateGray,
+    #[from_str = "ltSlateGrey"]
+    LtSlateGrey,
+    #[from_str = "ltSteelBlue"]
+    LtSteelBlue,
+    #[from_str = "ltYellow"]
+    LtYellow,
+    #[from_str = "lime"]
+    Lime,
+    #[from_str = "limeGreen"]
+    LimeGreen,
+    #[from_str = "linen"]
+    Linen,
+    #[from_str = "magenta"]
+    Magenta,
+    #[from_str = "maroon"]
+    Maroon,
+    #[from_str = "medAquamarine"]
+    MedAquamarine,
+    #[from_str = "medBlue"]
+    MedBlue,
+    #[from_str = "medOrchid"]
+    MedOrchid,
+    #[from_str = "medPurple"]
+    MedPurple,
+    #[from_str = "medSeaGreen"]
+    MedSeaGreen,
+    #[from_str = "medSlateBlue"]
+    MedSlateBlue,
+    #[from_str = "medSpringGreen"]
+    MedSpringGreen,
+    #[from_str = "medTurquoise"]
+    MedTurquoise,
+    #[from_str = "medVioletRed"]
+    MedVioletRed,
+    #[from_str = "mediumAquamarine"]
+    MediumAquamarine,
+    #[from_str = "mediumBlue"]
+    MediumBlue,
+    #[from_str = "mediumOrchid"]
+    MediumOrchid,
+    #[from_str = "mediumPurple"]
+    MediumPurple,
+    #[from_str = "mediumSeaGreen"]
+    MediumSeaGreen,
+    #[from_str = "mediumSlateBlue"]
+    MediumSlateBlue,
+    #[from_str = "mediumSpringGreen"]
+    MediumSpringGreen,
+    #[from_str = "mediumTurquoise"]
+    MediumTurquoise,
+    #[from_str = "mediumVioletRed"]
+    MediumVioletRed,
+    #[from_str = "midnightBlue"]
+    MidnightBlue,
+    #[from_str = "mintCream"]
+    MintCream,
+    #[from_str = "mistyRose"]
+    MistyRose,
+    #[from_str = "moccasin"]
+    Moccasin,
+    #[from_str = "navajoWhite"]
+    NavajoWhite,
+    #[from_str = "navy"]
+    Navy,
+    #[from_str = "oldLace"]
+    OldLace,
+    #[from_str = "olive"]
+    Olive,
+    #[from_str = "oliveDrab"]
+    OliveDrab,
+    #[from_str = "orange"]
+    Orange,
+    #[from_str = "orangeRed"]
+    OrangeRed,
+    #[from_str = "orchid"]
+    Orchid,
+    #[from_str = "paleGoldenrod"]
+    PaleGoldenrod,
+    #[from_str = "paleGreen"]
+    PaleGreen,
+    #[from_str = "paleTurquoise"]
+    PaleTurquoise,
+    #[from_str = "paleVioletRed"]
+    PaleVioletRed,
+    #[from_str = "papayaWhip"]
+    PapayaWhip,
+    #[from_str = "peachPuff"]
+    PeachPuff,
+    #[from_str = "peru"]
+    Peru,
+    #[from_str = "pink"]
+    Pink,
+    #[from_str = "plum"]
+    Plum,
+    #[from_str = "powderBlue"]
+    PowderBlue,
+    #[from_str = "purple"]
+    Purple,
+    #[from_str = "red"]
+    Red,
+    #[from_str = "rosyBrown"]
+    RosyBrown,
+    #[from_str = "royalBlue"]
+    RoyalBlue,
+    #[from_str = "saddleBrown"]
+    SaddleBrown,
+    #[from_str = "salmon"]
+    Salmon,
+    #[from_str = "sandyBrown"]
+    SandyBrown,
+    #[from_str = "seaGreen"]
+    SeaGreen,
+    #[from_str = "seaShell"]
+    SeaShell,
+    #[from_str = "sienna"]
+    Sienna,
+    #[from_str = "silver"]
+    Silver,
+    #[from_str = "skyBlue"]
+    SkyBlue,
+    #[from_str = "slateBlue"]
+    SlateBlue,
+    #[from_str = "slateGray"]
+    SlateGray,
+    #[from_str = "slateGrey"]
+    SlateGrey,
+    #[from_str = "snow"]
+    Snow,
+    #[from_str = "springGreen"]
+    SpringGreen,
+    #[from_str = "steelBlue"]
+    SteelBlue,
+    #[from_str = "tan"]
+    Tan,
+    #[from_str = "teal"]
+    Teal,
+    #[from_str = "thistle"]
+    Thistle,
+    #[from_str = "tomato"]
+    Tomato,
+    #[from_str = "turquoise"]
+    Turquoise,
+    #[from_str = "violet"]
+    Violet,
+    #[from_str = "wheat"]
+    Wheat,
+    #[from_str = "white"]
+    White,
+    #[from_str = "whiteSmoke"]
+    WhiteSmoke,
+    #[from_str = "yellow"]
+    Yellow,
+    #[from_str = "yellowGreen"]
+    YellowGreen,
 }
 
-decl_simple_type_enum! {
-    pub enum SchemeColorVal {
-        Background1 = "bg1",
-        Text1 = "tx1",
-        Background2 = "bg2",
-        Text2 = "tx2",
-        Accent1 = "accent1",
-        Accent2 = "accent2",
-        Accent3 = "accent3",
-        Accent4 = "accent4",
-        Accent5 = "accent5",
-        Hypelinglink = "hlink",
-        FollowedHyperlink = "folHlink",
-        PlaceholderColor = "phClr",
-        Dark1 = "dk1",
-        Light1 = "lt1",
-        Dark2 = "dk2",
-        Light2 = "lt2",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum SchemeColorVal {
+    #[from_str = "bg1"]
+    Background1,
+    #[from_str = "tx1"]
+    Text1,
+    #[from_str = "bg2"]
+    Background2,
+    #[from_str = "tx2"]
+    Text2,
+    #[from_str = "accent1"]
+    Accent1,
+    #[from_str = "accent2"]
+    Accent2,
+    #[from_str = "accent3"]
+    Accent3,
+    #[from_str = "accent4"]
+    Accent4,
+    #[from_str = "accent5"]
+    Accent5,
+    #[from_str = "hlink"]
+    Hypelinglink,
+    #[from_str = "folHlink"]
+    FollowedHyperlink,
+    #[from_str = "phClr"]
+    PlaceholderColor,
+    #[from_str = "dk1"]
+    Dark1,
+    #[from_str = "lt1"]
+    Light1,
+    #[from_str = "dk2"]
+    Dark2,
+    #[from_str = "lt2"]
+    Light2,
 }
 
-decl_simple_type_enum! {
-    pub enum ColorSchemeIndex {
-        Dark1 = "dk1",
-        Light1 = "lt1",
-        Dark2 = "dk2",
-        Light2 = "lt2",
-        Accent1 = "accent1",
-        Accent2 = "accent2",
-        Accent3 = "accent3",
-        Accent4 = "accent4",
-        Accent5 = "accent5",
-        Accent6 = "accent6",
-        Hyperlink = "hlink",
-        FollowedHyperlink = "folHlink",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum ColorSchemeIndex {
+    #[from_str = "dk1"]
+    Dark1,
+    #[from_str = "lt1"]
+    Light1,
+    #[from_str = "dk2"]
+    Dark2,
+    #[from_str = "lt2"]
+    Light2,
+    #[from_str = "accent1"]
+    Accent1,
+    #[from_str = "accent2"]
+    Accent2,
+    #[from_str = "accent3"]
+    Accent3,
+    #[from_str = "accent4"]
+    Accent4,
+    #[from_str = "accent5"]
+    Accent5,
+    #[from_str = "accent6"]
+    Accent6,
+    #[from_str = "hlink"]
+    Hyperlink,
+    #[from_str = "folHlink"]
+    FollowedHyperlink,
 }
 
-decl_simple_type_enum! {
-    pub enum TextAlignType {
-        Left = "l",
-        Center = "ctr",
-        Right = "r",
-        Justified = "just",
-        JustifiedLow = "justLow",
-        Distritbuted = "dist",
-        ThaiDistributed = "thaiDist",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum TextAlignType {
+    #[from_str = "l"]
+    Left,
+    #[from_str = "ctr"]
+    Center,
+    #[from_str = "r"]
+    Right,
+    #[from_str = "just"]
+    Justified,
+    #[from_str = "justLow"]
+    JustifiedLow,
+    #[from_str = "dist"]
+    Distritbuted,
+    #[from_str = "thaiDist"]
+    ThaiDistributed,
 }
 
-decl_simple_type_enum! {
-    pub enum TextFontAlignType {
-        Auto = "auto",
-        Top = "t",
-        Center = "ctr",
-        Baseline = "base",
-        Bottom = "b",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum TextFontAlignType {
+    #[from_str = "auto"]
+    Auto,
+    #[from_str = "t"]
+    Top,
+    #[from_str = "ctr"]
+    Center,
+    #[from_str = "base"]
+    Baseline,
+    #[from_str = "b"]
+    Bottom,
 }
 
-decl_simple_type_enum! {
-    pub enum TextAutonumberScheme {
-        AlphaLcParenBoth = "alphaLcParenBoth",
-        AlphaUcParenBoth = "alphaUcParenBoth",
-        AlphaLcParenR = "alphaLcParenR",
-        AlphaUcParenR = "alphaUcParenR",
-        AlphaLcPeriod = "alphaLcPeriod",
-        AlphaUcPeriod = "alphaUcPeriod",
-        ArabicParenBoth = "arabicParenBoth",
-        ArabicParenR = "arabicParenR",
-        ArabicPeriod = "arabicPeriod",
-        ArabicPlain = "arabicPlain",
-        RomanLcParenBoth = "romanLcParenBoth",
-        RomanUcParenBoth = "romanUcParenBoth",
-        RomanLcParenR = "romanLcParenR",
-        RomanUcParenR = "romanUcParenR",
-        RomanLcPeriod = "romanLcPeriod",
-        RomanUcPeriod = "romanUcPeriod",
-        CircleNumDbPlain = "circleNumDbPlain",
-        CircleNumWdBlackPlain = "circleNumWdBlackPlain",
-        CircleNumWdWhitePlain = "circleNumWdWhitePlain",
-        ArabicDbPeriod = "arabicDbPeriod",
-        ArabicDbPlain = "arabicDbPlain",
-        Ea1ChsPeriod = "ea1ChsPeriod",
-        Ea1ChsPlain = "ea1ChsPlain",
-        Ea1ChtPeriod = "ea1ChtPeriod",
-        Ea1ChtPlain = "ea1ChtPlain",
-        Ea1JpnChsDbPeriod = "ea1JpnChsDbPeriod",
-        Ea1JpnKorPlain = "ea1JpnKorPlain",
-        Ea1JpnKorPeriod = "ea1JpnKorPeriod",
-        Arabic1Minus = "arabic1Minus",
-        Arabic2Minus = "arabic2Minus",
-        Hebrew2Minus = "hebrew2Minus",
-        ThaiAlphaPeriod = "thaiAlphaPeriod",
-        ThaiAlphaParenR = "thaiAlphaParenR",
-        ThaiAlphaParenBoth = "thaiAlphaParenBoth",
-        ThaiNumPeriod = "thaiNumPeriod",
-        ThaiNumParenR = "thaiNumParenR",
-        ThaiNumParenBoth = "thaiNumParenBoth",
-        HindiAlphaPeriod = "hindiAlphaPeriod",
-        HindiNumPeriod = "hindiNumPeriod",
-        HindiNumParenR = "hindiNumParenR",
-        HindiAlpha1Period = "hindiAlpha1Period",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum TextAutonumberScheme {
+    #[from_str = "alphaLcParenBoth"]
+    AlphaLcParenBoth,
+    #[from_str = "alphaUcParenBoth"]
+    AlphaUcParenBoth,
+    #[from_str = "alphaLcParenR"]
+    AlphaLcParenR,
+    #[from_str = "alphaUcParenR"]
+    AlphaUcParenR,
+    #[from_str = "alphaLcPeriod"]
+    AlphaLcPeriod,
+    #[from_str = "alphaUcPeriod"]
+    AlphaUcPeriod,
+    #[from_str = "arabicParenBoth"]
+    ArabicParenBoth,
+    #[from_str = "arabicParenR"]
+    ArabicParenR,
+    #[from_str = "arabicPeriod"]
+    ArabicPeriod,
+    #[from_str = "arabicPlain"]
+    ArabicPlain,
+    #[from_str = "romanLcParenBoth"]
+    RomanLcParenBoth,
+    #[from_str = "romanUcParenBoth"]
+    RomanUcParenBoth,
+    #[from_str = "romanLcParenR"]
+    RomanLcParenR,
+    #[from_str = "romanUcParenR"]
+    RomanUcParenR,
+    #[from_str = "romanLcPeriod"]
+    RomanLcPeriod,
+    #[from_str = "romanUcPeriod"]
+    RomanUcPeriod,
+    #[from_str = "circleNumDbPlain"]
+    CircleNumDbPlain,
+    #[from_str = "circleNumWdBlackPlain"]
+    CircleNumWdBlackPlain,
+    #[from_str = "circleNumWdWhitePlain"]
+    CircleNumWdWhitePlain,
+    #[from_str = "arabicDbPeriod"]
+    ArabicDbPeriod,
+    #[from_str = "arabicDbPlain"]
+    ArabicDbPlain,
+    #[from_str = "ea1ChsPeriod"]
+    Ea1ChsPeriod,
+    #[from_str = "ea1ChsPlain"]
+    Ea1ChsPlain,
+    #[from_str = "ea1ChtPeriod"]
+    Ea1ChtPeriod,
+    #[from_str = "ea1ChtPlain"]
+    Ea1ChtPlain,
+    #[from_str = "ea1JpnChsDbPeriod"]
+    Ea1JpnChsDbPeriod,
+    #[from_str = "ea1JpnKorPlain"]
+    Ea1JpnKorPlain,
+    #[from_str = "ea1JpnKorPeriod"]
+    Ea1JpnKorPeriod,
+    #[from_str = "arabic1Minus"]
+    Arabic1Minus,
+    #[from_str = "arabic2Minus"]
+    Arabic2Minus,
+    #[from_str = "hebrew2Minus"]
+    Hebrew2Minus,
+    #[from_str = "thaiAlphaPeriod"]
+    ThaiAlphaPeriod,
+    #[from_str = "thaiAlphaParenR"]
+    ThaiAlphaParenR,
+    #[from_str = "thaiAlphaParenBoth"]
+    ThaiAlphaParenBoth,
+    #[from_str = "thaiNumPeriod"]
+    ThaiNumPeriod,
+    #[from_str = "thaiNumParenR"]
+    ThaiNumParenR,
+    #[from_str = "thaiNumParenBoth"]
+    ThaiNumParenBoth,
+    #[from_str = "hindiAlphaPeriod"]
+    HindiAlphaPeriod,
+    #[from_str = "hindiNumPeriod"]
+    HindiNumPeriod,
+    #[from_str = "hindiNumParenR"]
+    HindiNumParenR,
+    #[from_str = "hindiAlpha1Period"]
+    HindiAlpha1Period,
 }
 
-decl_simple_type_enum! {
-    pub enum PathShadeType {
-        Shape = "shape",
-        Circle = "circle",
-        Rect = "rect",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum PathShadeType {
+    #[from_str = "shape"]
+    Shape,
+    #[from_str = "circle"]
+    Circle,
+    #[from_str = "rect"]
+    Rect,
 }
 
-decl_simple_type_enum! {
-    pub enum PresetPatternVal {
-        Percent5 = "pct5",
-        Percent10 = "pct10",
-        Percent20 = "pct20",
-        Percent25 = "pct25",
-        Percent30 = "pct30",
-        Percent40 = "pct40",
-        Percent50 = "pct50",
-        Percent60 = "pct60",
-        Percent70 = "pct70",
-        Percent75 = "pct75",
-        Percent80 = "pct80",
-        Percent90 = "pct90",
-        Horizontal = "horz",
-        Vertical = "vert",
-        LightHorizontal = "ltHorz",
-        LightVertical = "ltVert",
-        DarkHorizontal = "dkHorz",
-        DarkVertical = "dkVert",
-        NarrowHorizontal = "narHorz",
-        NarrowVertical = "narVert",
-        DashedHorizontal = "dashHorz",
-        DashedVertical = "dashVert",
-        Cross = "cross",
-        DownwardDiagonal = "dnDiag",
-        UpwardDiagonal = "upDiag",
-        LightDownwardDiagonal = "ltDnDiag",
-        LightUpwardDiagonal = "ltUpDiag",
-        DarkDownwardDiagonal = "dkDnDiag",
-        DarkUpwardDiagonal = "dkUpDiag",
-        WideDownwardDiagonal = "wdDnDiag",
-        WideUpwardDiagonal = "wdUpDiag",
-        DashedDownwardDiagonal = "dashDnDiag",
-        DashedUpwardDiagonal = "dashUpDiag",
-        DiagonalCross = "diagCross",
-        SmallCheckerBoard = "smCheck",
-        LargeCheckerBoard = "lgCheck",
-        SmallGrid = "smGrid",
-        LargeGrid = "lgGrid",
-        DottedGrid = "dotGrid",
-        SmallConfetti = "smConfetti",
-        LargeConfetti = "lgConfetti",
-        HorizontalBrick = "horzBrick",
-        DiagonalBrick = "diagBrick",
-        SolidDiamond = "solidDmnd",
-        OpenDiamond = "openDmnd",
-        DottedDiamond = "dotDmnd",
-        Plaid = "plaid",
-        Sphere = "sphere",
-        Weave = "weave",
-        Divot = "divot",
-        Shingle = "shingle",
-        Wave = "wave",
-        Trellis = "trellis",
-        ZigZag = "zigzag",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum PresetPatternVal {
+    #[from_str = "pct5"]
+    Percent5,
+    #[from_str = "pct10"]
+    Percent10,
+    #[from_str = "pct20"]
+    Percent20,
+    #[from_str = "pct25"]
+    Percent25,
+    #[from_str = "pct30"]
+    Percent30,
+    #[from_str = "pct40"]
+    Percent40,
+    #[from_str = "pct50"]
+    Percent50,
+    #[from_str = "pct60"]
+    Percent60,
+    #[from_str = "pct70"]
+    Percent70,
+    #[from_str = "pct75"]
+    Percent75,
+    #[from_str = "pct80"]
+    Percent80,
+    #[from_str = "pct90"]
+    Percent90,
+    #[from_str = "horz"]
+    Horizontal,
+    #[from_str = "vert"]
+    Vertical,
+    #[from_str = "ltHorz"]
+    LightHorizontal,
+    #[from_str = "ltVert"]
+    LightVertical,
+    #[from_str = "dkHorz"]
+    DarkHorizontal,
+    #[from_str = "dkVert"]
+    DarkVertical,
+    #[from_str = "narHorz"]
+    NarrowHorizontal,
+    #[from_str = "narVert"]
+    NarrowVertical,
+    #[from_str = "dashHorz"]
+    DashedHorizontal,
+    #[from_str = "dashVert"]
+    DashedVertical,
+    #[from_str = "cross"]
+    Cross,
+    #[from_str = "dnDiag"]
+    DownwardDiagonal,
+    #[from_str = "upDiag"]
+    UpwardDiagonal,
+    #[from_str = "ltDnDiag"]
+    LightDownwardDiagonal,
+    #[from_str = "ltUpDiag"]
+    LightUpwardDiagonal,
+    #[from_str = "dkDnDiag"]
+    DarkDownwardDiagonal,
+    #[from_str = "dkUpDiag"]
+    DarkUpwardDiagonal,
+    #[from_str = "wdDnDiag"]
+    WideDownwardDiagonal,
+    #[from_str = "wdUpDiag"]
+    WideUpwardDiagonal,
+    #[from_str = "dashDnDiag"]
+    DashedDownwardDiagonal,
+    #[from_str = "dashUpDiag"]
+    DashedUpwardDiagonal,
+    #[from_str = "diagCross"]
+    DiagonalCross,
+    #[from_str = "smCheck"]
+    SmallCheckerBoard,
+    #[from_str = "lgCheck"]
+    LargeCheckerBoard,
+    #[from_str = "smGrid"]
+    SmallGrid,
+    #[from_str = "lgGrid"]
+    LargeGrid,
+    #[from_str = "dotGrid"]
+    DottedGrid,
+    #[from_str = "smConfetti"]
+    SmallConfetti,
+    #[from_str = "lgConfetti"]
+    LargeConfetti,
+    #[from_str = "horzBrick"]
+    HorizontalBrick,
+    #[from_str = "diagBrick"]
+    DiagonalBrick,
+    #[from_str = "solidDmnd"]
+    SolidDiamond,
+    #[from_str = "openDmnd"]
+    OpenDiamond,
+    #[from_str = "dotDmnd"]
+    DottedDiamond,
+    #[from_str = "plaid"]
+    Plaid,
+    #[from_str = "sphere"]
+    Sphere,
+    #[from_str = "weave"]
+    Weave,
+    #[from_str = "divot"]
+    Divot,
+    #[from_str = "shingle"]
+    Shingle,
+    #[from_str = "wave"]
+    Wave,
+    #[from_str = "trellis"]
+    Trellis,
+    #[from_str = "zigzag"]
+    ZigZag,
 }
 
-decl_simple_type_enum! {
-    pub enum BlendMode {
-        Overlay = "over",
-        Multiply = "mult",
-        Screen = "screen",
-        Lighten = "lighten",
-        Darken = "darken",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum BlendMode {
+    #[from_str = "over"]
+    Overlay,
+    #[from_str = "mult"]
+    Multiply,
+    #[from_str = "screen"]
+    Screen,
+    #[from_str = "lighten"]
+    Lighten,
+    #[from_str = "darken"]
+    Darken,
 }
 
-decl_simple_type_enum! {
-    pub enum TextTabAlignType {
-        Left = "l",
-        Center = "ctr",
-        Right = "r",
-        Decimal = "dec",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum TextTabAlignType {
+    #[from_str = "l"]
+    Left,
+    #[from_str = "ctr"]
+    Center,
+    #[from_str = "r"]
+    Right,
+    #[from_str = "dec"]
+    Decimal,
 }
 
-decl_simple_type_enum! {
-    pub enum TextUnderlineType {
-        None = "none",
-        Words = "words",
-        Single = "sng",
-        Double = "dbl",
-        Heavy = "heavy",
-        Dotted = "dotted",
-        DottedHeavy = "dottedHeavy",
-        Dash = "dash",
-        DashHeavy = "dashHeavy",
-        DashLong = "dashLong",
-        DashLongHeavy = "dashLongHeavy",
-        DotDash = "dotDash",
-        DotDashHeavy = "dotDashHeavy",
-        DotDotDash = "dotDotDash",
-        DotDotDashHeavy = "dotDotDashHeavy",
-        Wavy = "wavy",
-        WavyHeavy = "wavyHeavy",
-        WavyDouble = "wavyDbl",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum TextUnderlineType {
+    #[from_str = "none"]
+    None,
+    #[from_str = "words"]
+    Words,
+    #[from_str = "sng"]
+    Single,
+    #[from_str = "dbl"]
+    Double,
+    #[from_str = "heavy"]
+    Heavy,
+    #[from_str = "dotted"]
+    Dotted,
+    #[from_str = "dottedHeavy"]
+    DottedHeavy,
+    #[from_str = "dash"]
+    Dash,
+    #[from_str = "dashHeavy"]
+    DashHeavy,
+    #[from_str = "dashLong"]
+    DashLong,
+    #[from_str = "dashLongHeavy"]
+    DashLongHeavy,
+    #[from_str = "dotDash"]
+    DotDash,
+    #[from_str = "dotDashHeavy"]
+    DotDashHeavy,
+    #[from_str = "dotDotDash"]
+    DotDotDash,
+    #[from_str = "dotDotDashHeavy"]
+    DotDotDashHeavy,
+    #[from_str = "wavy"]
+    Wavy,
+    #[from_str = "wavyHeavy"]
+    WavyHeavy,
+    #[from_str = "wavyDbl"]
+    WavyDouble,
 }
 
-decl_simple_type_enum! {
-    pub enum TextStrikeType {
-        NoStrike = "noStrike",
-        SingleStrike = "sngStrike",
-        DoubleStrike = "dblStrike",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum TextStrikeType {
+    #[from_str = "noStrike"]
+    NoStrike,
+    #[from_str = "sngStrike"]
+    SingleStrike,
+    #[from_str = "dblStrike"]
+    DoubleStrike,
 }
 
-decl_simple_type_enum! {
-    pub enum TextCapsType {
-        None = "none",
-        Small = "small",
-        All = "all",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum TextCapsType {
+    #[from_str = "none"]
+    None,
+    #[from_str = "small"]
+    Small,
+    #[from_str = "all"]
+    All,
 }
 
-decl_simple_type_enum! {
-    pub enum TextShapeType {
-        NoShape = "textNoShape",
-        Plain = "textPlain",
-        Stop = "textStop",
-        Triangle = "textTriangle",
-        TriangleInverted = "textTriangleInverted",
-        Chevron = "textChevron",
-        ChevronInverted = "textChevronInverted",
-        RingInside = "textRingInside",
-        RingOutside = "textRingOutside",
-        ArchUp = "textArchUp",
-        ArchDown = "textArchDown",
-        Circle = "textCircle",
-        Button = "textButton",
-        ArchUpPour = "textArchUpPour",
-        ArchDownPour = "textArchDownPour",
-        CirclePour = "textCirclePour",
-        ButtonPour = "textButtonPour",
-        CurveUp = "textCurveUp",
-        CurveDown = "textCurveDown",
-        CanUp = "textCanUp",
-        CanDown = "textCanDown",
-        Wave1 = "textWave1",
-        Wave2 = "textWave2",
-        Wave4 = "textWave4",
-        DoubleWave1 = "textDoubleWave1",
-        Inflate = "textInflate",
-        Deflate = "textDeflate",
-        InflateBottom = "textInflateBottom",
-        DeflateBottom = "textDeflateBottom",
-        InflateTop = "textInflateTop",
-        DeflateTop = "textDeflateTop",
-        DeflateInflate = "textDeflateInflate",
-        DeflateInflateDeflate = "textDeflateInflateDeflate",
-        FadeLeft = "textFadeLeft",
-        FadeUp = "textFadeUp",
-        FadeRight = "textFadeRight",
-        FadeDown = "textFadeDown",
-        SlantUp = "textSlantUp",
-        SlantDown = "textSlantDown",
-        CascadeUp = "textCascadeUp",
-        CascadeDown = "textCascadeDown",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum TextShapeType {
+    #[from_str = "textNoShape"]
+    NoShape,
+    #[from_str = "textPlain"]
+    Plain,
+    #[from_str = "textStop"]
+    Stop,
+    #[from_str = "textTriangle"]
+    Triangle,
+    #[from_str = "textTriangleInverted"]
+    TriangleInverted,
+    #[from_str = "textChevron"]
+    Chevron,
+    #[from_str = "textChevronInverted"]
+    ChevronInverted,
+    #[from_str = "textRingInside"]
+    RingInside,
+    #[from_str = "textRingOutside"]
+    RingOutside,
+    #[from_str = "textArchUp"]
+    ArchUp,
+    #[from_str = "textArchDown"]
+    ArchDown,
+    #[from_str = "textCircle"]
+    Circle,
+    #[from_str = "textButton"]
+    Button,
+    #[from_str = "textArchUpPour"]
+    ArchUpPour,
+    #[from_str = "textArchDownPour"]
+    ArchDownPour,
+    #[from_str = "textCirclePour"]
+    CirclePour,
+    #[from_str = "textButtonPour"]
+    ButtonPour,
+    #[from_str = "textCurveUp"]
+    CurveUp,
+    #[from_str = "textCurveDown"]
+    CurveDown,
+    #[from_str = "textCanUp"]
+    CanUp,
+    #[from_str = "textCanDown"]
+    CanDown,
+    #[from_str = "textWave1"]
+    Wave1,
+    #[from_str = "textWave2"]
+    Wave2,
+    #[from_str = "textWave4"]
+    Wave4,
+    #[from_str = "textDoubleWave1"]
+    DoubleWave1,
+    #[from_str = "textInflate"]
+    Inflate,
+    #[from_str = "textDeflate"]
+    Deflate,
+    #[from_str = "textInflateBottom"]
+    InflateBottom,
+    #[from_str = "textDeflateBottom"]
+    DeflateBottom,
+    #[from_str = "textInflateTop"]
+    InflateTop,
+    #[from_str = "textDeflateTop"]
+    DeflateTop,
+    #[from_str = "textDeflateInflate"]
+    DeflateInflate,
+    #[from_str = "textDeflateInflateDeflate"]
+    DeflateInflateDeflate,
+    #[from_str = "textFadeLeft"]
+    FadeLeft,
+    #[from_str = "textFadeUp"]
+    FadeUp,
+    #[from_str = "textFadeRight"]
+    FadeRight,
+    #[from_str = "textFadeDown"]
+    FadeDown,
+    #[from_str = "textSlantUp"]
+    SlantUp,
+    #[from_str = "textSlantDown"]
+    SlantDown,
+    #[from_str = "textCascadeUp"]
+    CascadeUp,
+    #[from_str = "textCascadeDown"]
+    CascadeDown,
 }
 
-decl_simple_type_enum! {
-    pub enum TextVertOverflowType {
-        Overflow = "overflow",
-        Ellipsis = "ellipsis",
-        Clip = "clip",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum TextVertOverflowType {
+    #[from_str = "overflow"]
+    Overflow,
+    #[from_str = "ellipsis"]
+    Ellipsis,
+    #[from_str = "clip"]
+    Clip,
 }
 
-decl_simple_type_enum! {
-    pub enum TextHorzOverflowType {
-        Overflow = "overflow",
-        Clip = "clip",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum TextHorzOverflowType {
+    #[from_str = "overflow"]
+    Overflow,
+    #[from_str = "clip"]
+    Clip,
 }
 
-decl_simple_type_enum! {
-    pub enum TextVerticalType {
-        Horizontal = "horz",
-        Vertical = "vert",
-        Vertical270 = "vert270",
-        WordArtVertical = "wordArtVert",
-        EastAsianVertical = "eaVert",
-        MongolianVertical = "mongolianVert",
-        WordArtVerticalRtl = "wordArtVertRtl",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum TextVerticalType {
+    #[from_str = "horz"]
+    Horizontal,
+    #[from_str = "vert"]
+    Vertical,
+    #[from_str = "vert270"]
+    Vertical270,
+    #[from_str = "wordArtVert"]
+    WordArtVertical,
+    #[from_str = "eaVert"]
+    EastAsianVertical,
+    #[from_str = "mongolianVert"]
+    MongolianVertical,
+    #[from_str = "wordArtVertRtl"]
+    WordArtVerticalRtl,
 }
 
-decl_simple_type_enum! {
-    pub enum TextWrappingType {
-        None = "none",
-        Square = "square",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum TextWrappingType {
+    #[from_str = "none"]
+    None,
+    #[from_str = "square"]
+    Square,
 }
 
-decl_simple_type_enum! {
-    pub enum TextAnchoringType {
-        Top = "t",
-        Center = "ctr",
-        Bottom = "b",
-        Justified = "just",
-        Distributed = "dist",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum TextAnchoringType {
+    #[from_str = "t"]
+    Top,
+    #[from_str = "ctr"]
+    Center,
+    #[from_str = "b"]
+    Bottom,
+    #[from_str = "just"]
+    Justified,
+    #[from_str = "dist"]
+    Distributed,
 }
 
-decl_simple_type_enum! {
-    pub enum BlackWhiteMode {
-        Color = "clr",
-        Auto = "auto",
-        Gray = "gray",
-        LightGray = "ltGray",
-        InverseGray = "invGray",
-        GrayWhite = "grayWhite",
-        BlackGray = "blackGray",
-        BlackWhite = "blackWhite",
-        Black = "black",
-        White = "white",
-        Hidden = "hidden",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum BlackWhiteMode {
+    #[from_str = "clr"]
+    Color,
+    #[from_str = "auto"]
+    Auto,
+    #[from_str = "gray"]
+    Gray,
+    #[from_str = "ltGray"]
+    LightGray,
+    #[from_str = "invGray"]
+    InverseGray,
+    #[from_str = "grayWhite"]
+    GrayWhite,
+    #[from_str = "blackGray"]
+    BlackGray,
+    #[from_str = "blackWhite"]
+    BlackWhite,
+    #[from_str = "black"]
+    Black,
+    #[from_str = "white"]
+    White,
+    #[from_str = "hidden"]
+    Hidden,
 }
 
-decl_simple_type_enum! {
-    pub enum AnimationBuildType {
-        AllAtOnce = "allAtOnce",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum AnimationBuildType {
+    #[from_str = "allAtOnce"]
+    AllAtOnce,
 }
 
-decl_simple_type_enum! {
-    pub enum AnimationDgmOnlyBuildType {
-        One = "one",
-        LvlOne = "lvlOne",
-        LvlAtOnce = "lvlAtOnce",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum AnimationDgmOnlyBuildType {
+    #[from_str = "one"]
+    One,
+    #[from_str = "lvlOne"]
+    LvlOne,
+    #[from_str = "lvlAtOnce"]
+    LvlAtOnce,
 }
 
-decl_simple_type_enum! {
-    pub enum AnimationDgmBuildType {
-        AllAtOnce = "allAtOnce",
-        One = "one",
-        LvlOne = "lvlOne",
-        LvlAtOnce = "lvlAtOnce",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum AnimationDgmBuildType {
+    #[from_str = "allAtOnce"]
+    AllAtOnce,
+    #[from_str = "one"]
+    One,
+    #[from_str = "lvlOne"]
+    LvlOne,
+    #[from_str = "lvlAtOnce"]
+    LvlAtOnce,
 }
 
-decl_simple_type_enum! {
-    pub enum AnimationChartOnlyBuildType {
-        Series = "series",
-        Category = "category",
-        SeriesElement = "seriesElement",
-        CategoryElement = "categoryElement",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum AnimationChartOnlyBuildType {
+    #[from_str = "series"]
+    Series,
+    #[from_str = "category"]
+    Category,
+    #[from_str = "seriesElement"]
+    SeriesElement,
+    #[from_str = "categoryElement"]
+    CategoryElement,
 }
 
-decl_simple_type_enum! {
-    pub enum AnimationChartBuildType {
-        AllAtOnce = "allAtOnce",
-        Series = "series",
-        Category = "category",
-        SeriesElement = "seriesElement",
-        CategoryElement = "categoryElement",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum AnimationChartBuildType {
+    #[from_str = "allAtOnce"]
+    AllAtOnce,
+    #[from_str = "series"]
+    Series,
+    #[from_str = "category"]
+    Category,
+    #[from_str = "seriesElement"]
+    SeriesElement,
+    #[from_str = "categoryElement"]
+    CategoryElement,
 }
 
-decl_simple_type_enum! {
-    pub enum BlipCompression {
-        Email = "email",
-        Screen = "screen",
-        Print = "print",
-        HqPrint = "hqprint",
-        None = "none",
-    }
+#[derive(Debug, Clone, Copy, FromStr)]
+pub enum BlipCompression {
+    #[from_str = "email"]
+    Email,
+    #[from_str = "screen"]
+    Screen,
+    #[from_str = "print"]
+    Print,
+    #[from_str = "hqprint"]
+    HqPrint,
+    #[from_str = "none"]
+    None,
 }
 
-/// ColorTransform
 #[derive(Debug, Clone)]
 pub enum ColorTransform {
     Tint(PositiveFixedPercentage),
@@ -5816,6 +6529,21 @@ impl AnimationChartElement {
 #[derive(Debug, Clone)]
 pub enum AnimationGraphicalObjectBuildProperties {
     BuildDiagram(AnimationDgmBuildProperties),
+    /// This element specifies how to build the animation for a diagram.
+    /// 
+    /// # Xml example
+    /// 
+    /// Consider the following example where a chart is specified to be animated by category rather than as
+    /// one entity. Thus, the bldChart element should be used as follows:
+    /// ```xml
+    /// <p:bdldLst>
+    ///   <p:bldGraphic spid="4" grpId="0">
+    ///     <p:bldSub>
+    ///       <a:bldChart bld="category"/>
+    ///     </p:bldSub>
+    ///   </p:bldGraphic>
+    /// </p:bldLst>
+    /// ```
     BuildChart(AnimationChartBuildProperties),
 }
 
@@ -5870,8 +6598,19 @@ impl AnimationDgmBuildProperties {
 
 #[derive(Default, Debug, Clone)]
 pub struct AnimationChartBuildProperties {
-    pub build_type: Option<AnimationChartBuildType>, // allAtOnce
-    pub animate_bg: Option<bool>,                    // true
+    /// Specifies how the chart is built. The animation animates the sub-elements in the
+    /// container in the particular order defined by this attribute.
+    /// 
+    /// Defaults to AnimationChartBuildType::AllAtOnce
+    pub build_type: Option<AnimationChartBuildType>,
+    /// Specifies whether or not the chart background elements should be animated as well.
+    /// 
+    /// Defaults to true
+    /// 
+    /// # Note
+    /// 
+    /// An example of background elements are grid lines and the chart legend.
+    pub animate_bg: Option<bool>,
 }
 
 impl AnimationChartBuildProperties {
