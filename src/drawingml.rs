@@ -635,9 +635,9 @@ pub enum FontCollectionIndex {
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum DgmBuildStep {
     #[from_str = "sp"]
-    Sp,
+    Shape,
     #[from_str = "bg"]
-    Bg,
+    Background,
 }
 
 #[derive(Debug, Clone, Copy, FromStr)]
@@ -1744,33 +1744,391 @@ pub enum BlipCompression {
 
 #[derive(Debug, Clone)]
 pub enum ColorTransform {
+    /// This element specifies a lighter version of its input color. A 10% tint is 10% of the input color combined with
+    /// 90% white.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following manipulates the fill from having RGB value RRGGBB = (00, FF, 00)
+    /// to value RRGGBB= (BC, FF, BC)
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:srgbClr val="00FF00">
+    ///     <a:tint val="50000"/>
+    ///   </a:srgbClr>
+    /// </a:solidFill>
+    /// ```
     Tint(PositiveFixedPercentage),
+    /// This element specifies a darker version of its input color. A 10% shade is 10% of the input color combined with
+    /// 90% black.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following manipulates the fill from having RGB value RRGGBB = (00, FF, 00)
+    /// to value RRGGBB= (00, BC, 00)
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:srgbClr val="00FF00">
+    ///     <a:shade val="50000"/>
+    ///   </a:srgbClr>
+    /// </a:solidFill>
+    /// ```
     Shade(PositiveFixedPercentage),
+    /// This element specifies that the color rendered should be the complement of its input color with the complement
+    /// being defined as such. Two colors are called complementary if, when mixed they produce a shade of grey. For
+    /// instance, the complement of red which is RGB (255, 0, 0) is cyan which is RGB (0, 255, 255).
+    /// 
+    /// Primary colors and secondary colors are typically paired in this way:
+    /// * red and cyan (where cyan is the mixture of green and blue)
+    /// * green and magenta (where magenta is the mixture of red and blue)
+    /// * blue and yellow (where yellow is the mixture of red and green)
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:srgbClr val="FF0000">
+    ///     <a:comp/>
+    ///   </a:srgbClr>
+    /// </a:solidFill>
+    /// ```
     Complement,
+    /// This element specifies the inverse of its input color.
+    /// 
+    /// # Xml example
+    /// 
+    /// The inverse of red (1, 0, 0) is cyan (0, 1, 1).
+    /// 
+    /// The following represents cyan, the inverse of red:
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:srgbClr val="FF0000">
+    ///     <a:inv/>
+    ///   </a:srgbClr>
+    /// </a:solidFill>
+    /// ```
     Inverse,
+    /// This element specifies a grayscale of its input color, taking into relative intensities of the red, green, and blue
+    /// primaries.
     Grayscale,
+    /// This element specifies its input color with the specific opacity, but with its color unchanged.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following represents a green solid fill which is 50% opaque
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:srgbClr val="00FF00">
+    ///     <a:alpha val="50000"/>
+    ///   </a:srgbClr>
+    /// </a:solidFill>
+    /// ```
     Alpha(PositiveFixedPercentage),
+    /// This element specifies a more or less opaque version of its input color. Increases or decreases the input alpha
+    /// percentage by the specified percentage offset. A 10% alpha offset increases a 50% opacity to 60%. A -10% alpha
+    /// offset decreases a 50% opacity to 40%. The transformed alpha values are limited to a range of 0 to 100%. A 10%
+    /// alpha offset increase to a 100% opaque object still results in 100% opacity.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following represents a green solid fill which is 90% opaque
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:srgbClr val="00FF00">
+    ///     <a:alphaOff val="-10000"/>
+    ///   </a:srgbClr>
+    /// </a:solidFill>
+    /// ```
     AlphaOffset(FixedPercentage),
+    /// This element specifies a more or less opaque version of its input color. An alpha modulate never increases the
+    /// alpha beyond 100%. A 200% alpha modulate makes a input color twice as opaque as before. A 50% alpha
+    /// modulate makes a input color half as opaque as before.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following represents a green solid fill which is 50% opaque
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:srgbClr val="00FF00">
+    ///     <a:alphaMod val="50000"/>
+    ///   </a:srgbClr>
+    /// </a:solidFill>
+    /// ```
     AlphaModulate(PositivePercentage),
+    /// This element specifies the input color with the specified hue, but with its saturation and luminance unchanged.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following two solid fills are equivalent.
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:hslClr hue="14400000" sat="100000" lum="50000">
+    /// </a:solidFill>
+    /// <a:solidFill>
+    ///   <a:hslClr hue="0" sat="100000" lum="50000">
+    ///     <a:hue val="14400000"/>
+    ///   <a:hslClr/>
+    /// </a:solidFill>
+    /// ```
     Hue(PositiveFixedAngle),
+    /// This element specifies the input color with its hue shifted, but with its saturation and luminance unchanged.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following increases the hue angular value by 10 degrees.
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:hslClr hue="0" sat="100000" lum="50000"/>
+    ///   <a:hueOff val="600000"/>
+    /// </a:solidFill>
+    /// ```
     HueOffset(Angle),
+    /// This element specifies the input color with its hue modulated by the given percentage. A 50% hue modulate
+    /// decreases the angular hue value by half. A 200% hue modulate doubles the angular hue value.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:hslClr hue="14400000" sat="100000" lum="50000">
+    ///     <a:hueMod val="50000"/>
+    ///   </a:hslClr>
+    /// </a:solidFill>
+    /// ```
     HueModulate(PositivePercentage),
+    /// This element specifies the input color with the specified saturation, but with its hue and luminance unchanged.
+    /// Typically saturation values fall in the range [0%, 100%].
+    /// 
+    /// # Xml example
+    /// 
+    /// The following two solid fills are equivalent:
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:hslClr hue="14400000" sat="100000" lum="50000">
+    /// </a:solidFill>
+    /// <a:solidFill>
+    ///   <a:hslClr hue="14400000" sat="0" lum="50000">
+    ///     <a:sat val="100000"/>
+    ///   <a:hslClr/>
+    /// </a:solidFill>
+    /// ```
     Saturation(Percentage),
+    /// This element specifies the input color with its saturation shifted, but with its hue and luminance unchanged. A
+    /// 10% offset to 20% saturation yields 30% saturation.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following manipulates the fill from having RGB value RRGGBB = (00, FF, 00)
+    /// to value RRGGBB= (19, E5, 19)
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:srgbClr val="00FF00">
+    ///     <a:satOff val="-20000"/>
+    ///   </a:srgbClr>
+    /// </a:solidFill>
+    /// ```
     SaturationOffset(Percentage),
+    /// This element specifies the input color with its saturation modulated by the given percentage. A 50% saturation
+    /// modulate reduces the saturation by half. A 200% saturation modulate doubles the saturation.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following manipulates the fill from having RGB value RRGGBB = (00, FF, 00)
+    /// to value RRGGBB= (66, 99, 66)
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:srgbClr val="00FF00">
+    ///     <a:satMod val="20000"/>
+    ///   </a:srgbClr>
+    /// </a:solidFill>
+    /// ```
     SaturationModulate(Percentage),
+    /// This element specifies the input color with the specified luminance, but with its hue and saturation unchanged.
+    /// Typically luminance values fall in the range [0%, 100%].
+    /// 
+    /// # Xml example
+    /// 
+    /// The following two solid fills are equivalent:
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:hslClr hue="14400000" sat="100000" lum="50000">
+    /// </a:solidFill>
+    /// <a:solidFill>
+    ///   <a:hslClr hue="14400000" sat="100000" lum="0">
+    ///     <a:lum val="50000"/>
+    ///   <a:hslClr/>
+    /// </a:solidFill>
+    /// ```
     Luminance(Percentage),
+    /// This element specifies the input color with its luminance shifted, but with its hue and saturation unchanged.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following manipulates the fill from having RGB value RRGGBB = (00, FF, 00)
+    /// to value RRGGBB= (00, 99, 00)
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:srgbClr val="00FF00">
+    ///     <a:lumOff val="-20000"/>
+    ///   </a:srgbClr>
+    /// </a:solidFill>
+    /// ```
     LuminanceOffset(Percentage),
+    /// This element specifies the input color with its luminance modulated by the given percentage. A 50% luminance
+    /// modulate reduces the luminance by half. A 200% luminance modulate doubles the luminance.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following manipulates the fill from having RGB value RRGGBB = (00, FF, 00)
+    /// to value RRGGBB= (00, 75, 00)
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:srgbClr val="00FF00">
+    ///     <a:lumMod val="50000"/>
+    ///   </a:srgbClr>
+    /// </a:solidFill>
+    /// ```
     LuminanceModulate(Percentage),
+    /// This element specifies the input color with the specified red component, but with its green and blue color
+    /// components unchanged.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following manipulates the fill from having RGB value RRGGBB = (00, FF, 00)
+    /// to value RRGGBB= (FF, FF, 00)
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:srgbClr val="00FF00">
+    ///     <a:red val="100000"/>
+    ///   </a:srgbClr>
+    /// </a:solidFill>
+    /// ```
     Red(Percentage),
+    /// This element specifies the input color with its red component shifted, but with its green and blue color
+    /// components unchanged.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following manipulates the fill from having RGB value RRGGBB = (FF, 00, 00)
+    /// to value RRGGBB= (CC, 00, 00)
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:srgbClr val="FF0000">
+    ///     <a:redOff val="-20000"/>
+    ///   </a:srgbClr>
+    /// </a:solidFill>
+    /// ```
     RedOffset(Percentage),
+    /// This element specifies the input color with its red component modulated by the given percentage. A 50% red
+    /// modulate reduces the red component by half. A 200% red modulate doubles the red component.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following manipulates the fill from having RGB value RRGGBB = (FF, 00, 00)
+    /// to value RRGGBB= (80, 00, 00)
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:srgbClr val="FF0000">
+    ///     <a:redMod val="50000"/>
+    ///   </a:srgbClr>
+    /// </a:solidFill>
+    /// ```
     RedModulate(Percentage),
+    /// This elements specifies the input color with the specified green component, but with its red and blue color
+    /// components unchanged.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following manipulates the fill from having RGB value RRGGBB = (00, 00, FF)
+    /// to value RRGGBB= (00, FF, FF)
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:srgbClr val="0000FF">
+    ///     <a:green val="100000"/>
+    ///   </a:srgbClr>
+    /// </a:solidFill>
+    /// ```
     Green(Percentage),
+    /// This element specifies the input color with its green component shifted, but with its red and blue color
+    /// components unchanged.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following manipulates the fill from having RGB value RRGGBB = (00, FF, 00)
+    /// to value RRGGBB= (00, CC, 00).
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:srgbClr val="00FF00">
+    ///     <a:greenOff val="-20000"/>
+    ///   </a:srgbClr>
+    /// </a:solidFill>
+    /// ```
     GreenOffset(Percentage),
+    /// This element specifies the input color with its green component modulated by the given percentage. A 50%
+    /// green modulate reduces the green component by half. A 200% green modulate doubles the green component.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following manipulates the fill from having RGB value RRGGBB = (00, FF, 00)
+    /// to value RRGGBB= (00, 80, 00)
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:srgbClr val="00FF00">
+    ///     <a:greenMod val="50000"/>
+    ///   </a:srgbClr>
+    /// </a:solidFill>
+    /// ```
     GreenModulate(Percentage),
+    /// This element specifies the input color with the specific blue component, but with the red and green color
+    /// components unchanged.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following manipulates the fill from having RGB value RRGGBB = (00, FF, 00)
+    /// to value RRGGBB= (00, FF, FF)
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:srgbClr val="00FF00">
+    ///     <a:blue val="100000"/>
+    ///   </a:srgbClr>
+    /// </a:solidFill>
+    /// ```
     Blue(Percentage),
+    /// This element specifies the input color with its blue component shifted, but with its red and green color
+    /// components unchanged.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following manipulates the fill from having RGB value RRGGBB = (00, 00, FF)
+    /// to value RRGGBB= (00, 00, CC)
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:srgbClr val="00FF00">
+    ///     <a:blueOff val="-20000"/>
+    ///   </a:srgbClr>
+    /// </a:solidFill>
+    /// ```
     BlueOffset(Percentage),
+    /// This element specifies the input color with its blue component modulated by the given percentage. A 50% blue
+    /// modulate reduces the blue component by half. A 200% blue modulate doubles the blue component.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following manipulates the fill from having RGB value RRGGBB = (00, 00, FF)
+    /// to value RRGGBB= (00, 00, 80)
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:srgbClr val="0000FF">
+    ///     <a:blueMod val="50000"/>
+    ///   </a:srgbClr>
+    /// </a:solidFill>
+    /// ```
     BlueModulate(Percentage),
+    /// This element specifies that the output color rendered by the generating application should be the sRGB gamma
+    /// shift of the input color.
     Gamma,
+    /// This element specifies that the output color rendered by the generating application should be the inverse sRGB
+    /// gamma shift of the input color.
     InverseGamma,
 }
 
@@ -1937,8 +2295,11 @@ impl ColorTransform {
 /// ScRgbColor
 #[derive(Debug, Clone)]
 pub struct ScRgbColor {
+    /// Specifies the percentage of red.
     pub r: Percentage,
+    /// Specifies the percentage of green.
     pub g: Percentage,
+    /// Specifies the percentage of blue.
     pub b: Percentage,
     pub color_transforms: Vec<ColorTransform>,
 }
@@ -2011,8 +2372,15 @@ impl SRgbColor {
 /// HslColor
 #[derive(Debug, Clone)]
 pub struct HslColor {
+    /// Specifies the angular value describing the wavelength. Expressed in 1/6000ths of a
+    /// degree.
     pub hue: PositiveFixedAngle,
+    /// Specifies the saturation referring to the purity of the hue. Expressed as a percentage with
+    /// 0% referring to grey, 100% referring to the purest form of the hue.
     pub saturation: Percentage,
+    /// Specifies the luminance referring to the lightness or darkness of the color. Expressed as a
+    /// percentage with 0% referring to maximal dark (black) and 100% referring to maximal
+    /// white.
     pub luminance: Percentage,
     pub color_transforms: Vec<ColorTransform>,
 }
@@ -2056,7 +2424,9 @@ impl HslColor {
 /// SystemColor
 #[derive(Debug, Clone)]
 pub struct SystemColor {
+    /// Specifies the system color value.
     pub value: SystemColorVal,
+    /// Specifies the color value that was last computed by the generating application.
     pub last_color: Option<HexColorRGB>,
     pub color_transforms: Vec<ColorTransform>,
 }
@@ -2153,11 +2523,84 @@ impl SchemeColor {
 /// Color
 #[derive(Debug, Clone)]
 pub enum Color {
+    /// This element specifies a color using the red, green, blue RGB color model. Each component, red, green, and blue
+    /// is expressed as a percentage from 0% to 100%. A linear gamma of 1.0 is assumed.
+    /// 
+    /// Specifies the level of red as expressed by a percentage offset increase or decrease relative to the input color.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following represent the same color
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:scrgbClr r="50000" g="50000" b="50000"/>
+    /// </a:solidFill>
+    /// <a:solidFill>
+    ///   <a:srgbClr val="BCBCBC"/>
+    /// </a:solidFill>
+    /// ```
     ScRgbColor(Box<ScRgbColor>),
+    /// This element specifies a color using the red, green, blue RGB color model. Red, green, and blue is expressed as
+    /// sequence of hex digits, RRGGBB. A perceptual gamma of 2.2 is used.
+    /// 
+    /// Specifies the level of red as expressed by a percentage offset increase or decrease relative to the input color.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following represent the same color
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:scrgbClr r="50000" g="50000" b="50000"/>
+    /// </a:solidFill>
+    /// <a:solidFill>
+    ///   <a:srgbClr val="BCBCBC"/>
+    /// </a:solidFill>
+    /// ```
     SRgbColor(Box<SRgbColor>),
+    /// This element specifies a color using the HSL color model. A perceptual gamma of 2.2 is assumed.
+    /// 
+    /// Hue refers to the dominant wavelength of color, saturation refers to the purity of its hue, and luminance refers
+    /// to its lightness or darkness.
+    /// 
+    /// As with all colors, colors defined with the HSL color model can have color transforms applied to it.
+    /// 
+    /// # Xml example
+    /// 
+    /// The color blue having RGB value RRGGBB = (00, 00, 80) is equivalent to
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:hslClr hue="14400000" sat="100000" lum="50000">
+    /// </a:solidFill>
+    /// ```
     HslColor(Box<HslColor>),
+    /// This element specifies a color bound to predefined operating system elements.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following represents the default color used for displaying text in a window.
+    /// ```xml
+    /// <a:solidFill>
+    ///   <a:sysClr val="windowText"/>
+    /// </a:solidFill>
+    /// ```
     SystemColor(Box<SystemColor>),
+    /// This element specifies a color bound to a user's theme. As with all elements which define a color, it is possible to
+    /// apply a list of color transforms to the base color defined.
+    /// 
+    /// # Xml example
+    /// 
+    /// <a:solidFill>
+    ///   <a:schemeClr val="lt1"/>
+    /// </a:solidFill>
     SchemeColor(Box<SchemeColor>),
+    /// This element specifies a color which is bound to one of a predefined collection of colors.
+    /// 
+    /// # Xml example
+    /// 
+    /// The following defines a solid fill bound to the "black" preset color.
+    /// <a:solidFill>
+    ///   <a:prstClr val="black">
+    /// </a:solidFill>
     PresetColor(Box<PresetColor>),
 }
 
@@ -2582,7 +3025,9 @@ impl GradientFillProperties {
 pub struct TileInfoProperties {
     pub translate_x: Option<Coordinate>,
     pub translate_y: Option<Coordinate>,
+    /// This element specifies the horizontal ratio for use within a scaling calculation.
     pub scale_x: Option<Percentage>,
+    /// This element specifies the vertical ratio for use within a scaling calculation.
     pub scale_y: Option<Percentage>,
     pub flip_mode: Option<TileFlipMode>,
     pub alignment: Option<RectAlignment>,
@@ -2955,12 +3400,24 @@ impl LineEndProperties {
     }
 }
 
-/// LineProperties
+/// This element specifies an outline style that can be applied to a number of different objects such as shapes and
+/// text. The line allows for the specifying of many different types of outlines including even line dashes and bevels.
 #[derive(Default, Debug, Clone)]
 pub struct LineProperties {
+    /// Specifies the width to be used for the underline stroke. If this attribute is omitted, then a
+    /// value of 0 is assumed.
     pub width: Option<LineWidth>,
+    /// Specifies the ending caps that should be used for this line. If this attribute is omitted, than a value of
+    /// square is assumed.
+    /// 
+    /// # Note
+    /// 
+    /// Examples of cap types are rounded, flat, etc.
     pub cap: Option<LineCap>,
+    /// Specifies the compound line type to be used for the underline stroke. If this attribute is
+    /// omitted, then a value of CompoundLine::Single is assumed.
     pub compound: Option<CompoundLine>,
+    /// Specifies the alignment to be used for the underline stroke.
     pub pen_alignment: Option<PenAlignment>,
     pub fill_properties: Option<LineFillProperties>,
     pub dash_properties: Option<LineDashProperties>,
@@ -3546,8 +4003,14 @@ pub struct OuterShadowEffect {
     pub blur_radius: Option<PositiveCoordinate>, // 0
     pub distance: Option<PositiveCoordinate>,    // 0
     pub direction: Option<PositiveFixedAngle>,   // 0
-    pub scale_x: Option<Percentage>,             // 100000
-    pub scale_y: Option<Percentage>,             // 100000
+    /// This element specifies the horizontal ratio for use within a scaling calculation.
+    /// 
+    /// Defaults to 100_000
+    pub scale_x: Option<Percentage>,
+    /// This element specifies the vertical ratio for use within a scaling calculation.
+    /// 
+    /// Defaults to 100_000
+    pub scale_y: Option<Percentage>,
     pub skew_x: Option<FixedAngle>,              // 0
     pub skew_y: Option<FixedAngle>,              // 0
     pub alignment: Option<RectAlignment>,        // b
@@ -3653,8 +4116,14 @@ pub struct ReflectionEffect {
     pub distance: Option<PositiveCoordinate>,            // 0
     pub direction: Option<PositiveFixedAngle>,           // 0
     pub fade_direction: Option<PositiveFixedAngle>,      // 5400000
-    pub scale_x: Option<Percentage>,                     // 100000
-    pub scale_y: Option<Percentage>,                     // 100000
+    /// This element specifies the horizontal ratio for use within a scaling calculation.
+    /// 
+    /// Defaults to 100_000
+    pub scale_x: Option<Percentage>,
+    /// This element specifies the vertical ratio for use within a scaling calculation.
+    /// 
+    /// Defaults to 100_000
+    pub scale_y: Option<Percentage>,
     pub skew_x: Option<FixedAngle>,                      // 0
     pub skew_y: Option<FixedAngle>,                      // 0
     pub alignment: Option<RectAlignment>,                // b
@@ -3757,8 +4226,14 @@ impl TintEffect {
 
 #[derive(Default, Debug, Clone)]
 pub struct TransformEffect {
-    pub scale_x: Option<Percentage>,     // 100000
-    pub scale_y: Option<Percentage>,     // 100000
+    /// This element specifies the horizontal ratio for use within a scaling calculation.
+    /// 
+    /// Defaults to 100_000
+    pub scale_x: Option<Percentage>,
+    /// This element specifies the vertical ratio for use within a scaling calculation.
+    /// 
+    /// Defaults to 100_000
+    pub scale_y: Option<Percentage>,
     pub translate_x: Option<Coordinate>, // 0
     pub translate_y: Option<Coordinate>, // 0
     pub skew_x: Option<FixedAngle>,      // 0
@@ -4409,14 +4884,42 @@ impl TextUnderlineFill {
 
 #[derive(Default, Debug, Clone)]
 pub struct Hyperlink {
+    /// Specifies the relationship id that when looked up in this slides relationship file contains
+    /// the target of this hyperlink. This attribute cannot be omitted.
     pub relationship_id: Option<RelationshipId>,
+    /// Specifies the URL when it has been determined by the generating application that the
+    /// URL is invalid. That is the generating application can still store the URL but it is known
+    /// that this URL is not correct.
     pub invalid_url: Option<String>,
+    /// Specifies an action that is to be taken when this hyperlink is activated. This can be used to
+    /// specify a slide to be navigated to or a script of code to be run.
     pub action: Option<String>,
+    /// Specifies the target frame that is to be used when opening this hyperlink. When the
+    /// hyperlink is activated this attribute is used to determine if a new window is launched for
+    /// viewing or if an existing one can be used. If this attribute is omitted, than a new window
+    /// is opened.
     pub target_frame: Option<String>,
+    /// Specifies the tooltip that should be displayed when the hyperlink text is hovered over
+    /// with the mouse. If this attribute is omitted, than the hyperlink text itself can be
+    /// displayed.
     pub tooltip: Option<String>,
-    pub history: Option<bool>,         // true
-    pub highlight_click: Option<bool>, // false
-    pub end_sound: Option<bool>,       // false
+    /// Specifies whether to add this URI to the history when navigating to it. This allows for the
+    /// viewing of this presentation without the storing of history information on the viewing
+    /// machine. If this attribute is omitted, then a value of 1 or true is assumed.
+    /// 
+    /// Defaults to true
+    pub history: Option<bool>,
+    /// Specifies if this attribute has already been used within this document. That is when a
+    /// hyperlink has already been visited that this attribute would be utilized so the generating
+    /// application can determine the color of this text. If this attribute is omitted, then a value
+    /// of 0 or false is implied.
+    /// 
+    /// Defaults to false
+    pub highlight_click: Option<bool>,
+    /// Specifies if the URL in question should stop all sounds that are playing when it is clicked.
+    /// 
+    /// Defaults to false
+    pub end_sound: Option<bool>,
     pub sound: Option<EmbeddedWAVAudioFile>,
 }
 
@@ -5128,6 +5631,10 @@ pub struct NonVisualDrawingProps {
     pub hidden: Option<bool>, // false
     pub title: Option<String>,
     pub hyperlink_click: Option<Box<Hyperlink>>,
+    /// This element specifies the hyperlink information to be activated when the user's mouse is hovered over the
+    /// corresponding object. The operation of the hyperlink is to have the specified action be activated when the
+    /// mouse of the user hovers over the object. When this action is activated then additional attributes can be used to
+    /// specify other tasks that should be performed along with the action.
     pub hyperlink_hover: Option<Box<Hyperlink>>,
 }
 
@@ -5177,16 +5684,67 @@ impl NonVisualDrawingProps {
 
 #[derive(Default, Debug, Clone)]
 pub struct Locking {
-    pub no_grouping: Option<bool>,            // false
-    pub no_select: Option<bool>,              // false
-    pub no_rotate: Option<bool>,              // false
-    pub no_change_aspect_ratio: Option<bool>, // false
-    pub no_move: Option<bool>,                // false
-    pub no_resize: Option<bool>,              // false
-    pub no_edit_points: Option<bool>,         // false
-    pub no_adjust_handles: Option<bool>,      // false
-    pub no_change_arrowheads: Option<bool>,   // false
-    pub no_change_shape_type: Option<bool>,   // false
+    /// Specifies that the generating application should not allow shape grouping for the
+    /// corresponding connection shape. That is it cannot be combined within other shapes to
+    /// form a group of shapes. If this attribute is not specified, then a value of false is assumed.
+    /// 
+    /// Defaults to false
+    pub no_grouping: Option<bool>,
+    /// Specifies that the generating application should not allow selecting of the corresponding
+    /// connection shape. That means also that no picture, shapes or text attached to this
+    /// connection shape can be selected if this attribute has been specified. If this attribute is
+    /// not specified, then a value of false is assumed.
+    /// 
+    /// Defaults to false
+    pub no_select: Option<bool>,
+    /// Specifies that the generating application should not allow shape rotation changes for the
+    /// corresponding connection shape. If this attribute is not specified, then a value of false is
+    /// assumed.
+    /// 
+    /// Defaults to false
+    pub no_rotate: Option<bool>,
+    /// Specifies that the generating application should not allow aspect ratio changes for the
+    /// corresponding connection shape. If this attribute is not specified, then a value of false is
+    /// assumed.
+    /// 
+    /// Defaults to false
+    pub no_change_aspect_ratio: Option<bool>,
+    /// Specifies that the generating application should not allow position changes for the
+    /// corresponding connection shape. If this attribute is not specified, then a value of false is
+    /// assumed.
+    /// 
+    /// Defaults to false
+    pub no_move: Option<bool>,
+    /// Specifies that the generating application should not allow size changes for the
+    /// corresponding connection shape. If this attribute is not specified, then a value of false is
+    /// assumed.
+    /// 
+    /// Defaults to false
+    pub no_resize: Option<bool>,
+    /// Specifies that the generating application should not allow shape point changes for the
+    /// corresponding connection shape. If this attribute is not specified, then a value of false is
+    /// assumed.
+    /// 
+    /// Defaults to false
+    pub no_edit_points: Option<bool>,
+    /// Specifies that the generating application should not show adjust handles for the
+    /// corresponding connection shape. If this attribute is not specified, then a value of false is
+    /// assumed.
+    /// 
+    /// Defaults to false
+    pub no_adjust_handles: Option<bool>,
+    /// Specifies that the generating application should not allow arrowhead changes for the
+    /// corresponding connection shape. If this attribute is not specified, then a value of false is
+    /// assumed.
+    /// 
+    /// Defaults to false
+    pub no_change_arrowheads: Option<bool>,
+    /// Specifies that the generating application should not allow shape type changes for the
+    /// corresponding connection shape. If this attribute is not specified, then a value of false is
+    /// assumed.
+    /// 
+    /// Defaults to false
+    pub no_change_shape_type: Option<bool>,
 }
 
 impl Locking {
@@ -5266,12 +5824,49 @@ impl GroupLocking {
 
 #[derive(Default, Debug, Clone)]
 pub struct GraphicalObjectFrameLocking {
-    pub no_grouping: Option<bool>,      // false
-    pub no_drilldown: Option<bool>,     // false
-    pub no_select: Option<bool>,        // false
-    pub no_change_aspect: Option<bool>, // false
-    pub no_move: Option<bool>,          // false
-    pub no_resize: Option<bool>,        // false
+    /// Specifies that the generating application should not allow shape grouping for the
+    /// corresponding graphic frame. That is it cannot be combined within other shapes to form
+    /// a group of shapes. If this attribute is not specified, then a value of false is assumed.
+    /// 
+    /// Defaults to false
+    pub no_grouping: Option<bool>,
+    /// Specifies that the generating application should not allow selecting of objects within the
+    /// corresponding graphic frame but allow selecting of the graphic frame itself. If this
+    /// attribute is not specified, then a value of false is assumed.
+    /// 
+    /// Defaults to false
+    pub no_drilldown: Option<bool>,
+    /// Specifies that the generating application should not allow selecting of the corresponding
+    /// picture. That means also that no picture, shapes or text attached to this picture can be
+    /// selected if this attribute has been specified. If this attribute is not specified, then a value
+    /// of false is assumed.
+    /// 
+    /// Defaults to false
+    /// 
+    /// # Note
+    /// 
+    /// If this attribute is specified to be true then the graphic frame cannot be selected
+    /// and the objects within the graphic frame cannot be selected as well. That is the entire
+    /// graphic frame including all sub-parts are considered un-selectable.
+    pub no_select: Option<bool>,
+    /// Specifies that the generating application should not allow aspect ratio changes for the
+    /// corresponding graphic frame. If this attribute is not specified, then a value of false is
+    /// assumed.
+    /// 
+    /// Defaults to false
+    pub no_change_aspect: Option<bool>,
+    /// Specifies that the corresponding graphic frame cannot be moved. Objects that reside
+    /// within the graphic frame can still be moved unless they also have been locked. If this
+    /// attribute is not specified, then a value of false is assumed.
+    /// 
+    /// Defaults to false
+    pub no_move: Option<bool>,
+    /// Specifies that the generating application should not allow size changes for the
+    /// corresponding graphic frame. If this attribute is not specified, then a value of false is
+    /// assumed.
+    /// 
+    /// Defaults to false
+    pub no_resize: Option<bool>,
 }
 
 impl GraphicalObjectFrameLocking {
@@ -5376,6 +5971,8 @@ impl NonVisualGroupDrawingShapeProps {
 
 #[derive(Default, Debug, Clone)]
 pub struct NonVisualGraphicFrameProperties {
+    /// This element specifies all locking properties for a graphic frame. These properties inform the generating
+    /// application about specific properties that have been previously locked and thus should not be changed.
     pub graphic_frame_locks: Option<GraphicalObjectFrameLocking>,
 }
 
@@ -5398,8 +5995,14 @@ impl NonVisualGraphicFrameProperties {
 
 #[derive(Default, Debug, Clone)]
 pub struct NonVisualConnectorProperties {
+    /// This element specifies all locking properties for a connection shape. These properties inform the generating
+    /// application about specific properties that have been previously locked and thus should not be changed.
     pub connector_locks: Option<ConnectorLocking>,
+    /// This element specifies the starting connection that should be made by the corresponding connector shape. This
+    /// connects the head of the connector to the first shape.
     pub start_connection: Option<Connection>,
+    /// This element specifies the ending connection that should be made by the corresponding connector shape. This
+    /// connects the end tail of the connector to the final destination shape.
     pub end_connection: Option<Connection>,
 }
 
@@ -5447,7 +6050,11 @@ impl NonVisualPictureProperties {
 
 #[derive(Debug, Clone)]
 pub struct Connection {
+    /// Specifies the id of the shape to make the final connection to.
     pub id: DrawingElementId,
+    /// Specifies the index into the connection site table of the final connection shape. That is
+    /// there are many connection sites on a shape and it shall be specified which connection
+    /// site the corresponding connector shape should connect to.
     pub shape_index: u32,
 }
 
@@ -6298,6 +6905,17 @@ impl PresetGeometry2D {
 
 #[derive(Default, Debug, Clone)]
 pub struct ShapeProperties {
+    /// Specifies that the picture should be rendered using only black and white coloring. That is
+    /// the coloring information for the picture should be converted to either black or white
+    /// when rendering the picture.
+    /// 
+    /// No gray is to be used in rendering this image, only stark black and stark white.
+    /// 
+    /// # Note
+    /// 
+    /// This does not mean that the picture itself that is stored within the file is
+    /// necessarily a black and white picture. This attribute instead sets the rendering mode that
+    /// the picture has applied to when rendering.
     pub black_and_white_mode: Option<BlackWhiteMode>,
     pub transform: Option<Box<Transform2D>>,
     pub geometry: Option<Geometry>,
@@ -6406,6 +7024,13 @@ impl FontReference {
 
 #[derive(Debug, Clone)]
 pub struct GraphicalObject {
+    /// This element specifies the reference to a graphic object within the document. This graphic object is provided
+    /// entirely by the document authors who choose to persist this data within the document.
+    /// 
+    /// # Note
+    /// 
+    /// Depending on the kind of graphical object used not every generating application that supports the
+    /// OOXML framework has the ability to render the graphical object.
     pub graphic_data: GraphicalObjectData,
 }
 
@@ -6425,6 +7050,9 @@ impl GraphicalObject {
 pub struct GraphicalObjectData {
     // TODO implement
     //pub graphic_object: Vec<Any>,
+    /// Specifies the URI, or uniform resource identifier that represents the data stored under
+    /// this tag. The URI is used to identify the correct 'server' that can process the contents of
+    /// this tag. 
     pub uri: String,
 }
 
@@ -6441,7 +7069,11 @@ impl GraphicalObjectData {
 
 #[derive(Debug, Clone)]
 pub enum AnimationElementChoice {
+    /// This element specifies a reference to a diagram that should be animated within a sequence of slide animations.
+    /// In addition to simply acting as a reference to a diagram there is also animation build steps defined.
     Diagram(AnimationDgmElement),
+    /// This element specifies a reference to a chart that should be animated within a sequence of slide animations. In
+    /// addition to simply acting as a reference to a chart there is also animation build steps defined.
     Chart(AnimationChartElement),
 }
 
@@ -6474,8 +7106,16 @@ impl AnimationElementChoice {
 
 #[derive(Default, Debug, Clone)]
 pub struct AnimationDgmElement {
-    pub id: Option<Guid>,                 // {00000000-0000-0000-0000-000000000000}
-    pub build_step: Option<DgmBuildStep>, // sp
+    /// Specifies the GUID of the shape for this build step in the animation.
+    /// 
+    /// Defaults to {00000000-0000-0000-0000-000000000000}
+    pub id: Option<Guid>,
+    /// Specifies which step this part of the diagram should be built using. For instance the
+    /// diagram can be built as one object meaning it is animated as a single graphic.
+    /// Alternatively the diagram can be animated, or built as separate pieces.
+    /// 
+    /// Defaults to DgmBuildStep::Shape
+    pub build_step: Option<DgmBuildStep>,
 }
 
 impl AnimationDgmElement {
@@ -6496,8 +7136,18 @@ impl AnimationDgmElement {
 
 #[derive(Debug, Clone)]
 pub struct AnimationChartElement {
-    pub series_index: Option<i32>,   // -1
-    pub category_index: Option<i32>, // -1
+    /// Specifies the index of the series within the corresponding chart that should be animated.
+    /// 
+    /// Defaults to -1
+    pub series_index: Option<i32>,
+    /// Specifies the index of the category within the corresponding chart that should be
+    /// animated.
+    /// 
+    /// Defaults to -1
+    pub category_index: Option<i32>,
+    /// Specifies which step this part of the chart should be built using. For instance the chart can
+    /// be built as one object meaning it is animated as a single graphic. Alternatively the chart
+    /// can be animated, or built as separate pieces.
     pub build_step: ChartBuildStep,
 }
 
@@ -6528,6 +7178,21 @@ impl AnimationChartElement {
 
 #[derive(Debug, Clone)]
 pub enum AnimationGraphicalObjectBuildProperties {
+    /// This element specifies how to build the animation for a diagram.
+    /// 
+    /// # Xml example
+    /// 
+    /// Consider having a diagram appear as on entity as opposed to by section. The bldDgm element should
+    /// be used as follows:
+    /// ```xml
+    /// <p:bdldLst>
+    ///   <p:bldGraphic spid="4" grpId="0">
+    ///     <p:bldSub>
+    ///       <a:bldDgm bld="one"/>
+    ///     </p:bldSub>
+    ///   </p:bldGraphic>
+    /// </p:bldLst>
+    /// ```
     BuildDiagram(AnimationDgmBuildProperties),
     /// This element specifies how to build the animation for a diagram.
     /// 
@@ -6576,8 +7241,16 @@ impl AnimationGraphicalObjectBuildProperties {
 
 #[derive(Default, Debug, Clone)]
 pub struct AnimationDgmBuildProperties {
-    pub build_type: Option<AnimationDgmBuildType>, // allAtOnce
-    pub reverse: Option<bool>,                     // false
+    /// Specifies how the chart is built. The animation animates the sub-elements in the
+    /// container in the particular order defined by this attribute.
+    /// 
+    /// Defaults to AnimationDgmBuildType::AllAtOnce
+    pub build_type: Option<AnimationDgmBuildType>,
+    /// Specifies whether the animation of the objects in this diagram should be reversed or not.
+    /// If this attribute is not specified, a value of false is assumed.
+    /// 
+    /// Defaults to false
+    pub reverse: Option<bool>,
 }
 
 impl AnimationDgmBuildProperties {
@@ -6849,9 +7522,11 @@ impl ObjectStyleDefaults {
 
 #[derive(Debug, Clone)]
 pub struct DefaultShapeDefinition {
+    /// This element specifies the visual shape properties that can be applied to a shape.
     pub shape_properties: Box<ShapeProperties>,
     pub text_body_properties: Box<TextBodyProperties>,
     pub text_list_style: Box<TextListStyle>,
+    /// This element specifies the style information for a shape.
     pub shape_style: Option<Box<ShapeStyle>>,
 }
 
