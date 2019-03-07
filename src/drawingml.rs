@@ -2627,8 +2627,9 @@ impl Color {
 
 #[derive(Debug, Clone)]
 pub struct CustomColor {
-    pub color: Color,
+    /// The name of the color shown in the color picker.
     pub name: Option<String>,
+    pub color: Color,
 }
 
 impl CustomColor {
@@ -2727,17 +2728,41 @@ impl ColorMapping {
 #[derive(Debug, Clone)]
 pub struct ColorScheme {
     pub name: String,
+    /// This element defines a color that happens to be the dark 1 color. The set of twelve colors come together to
+    /// form the color scheme for a theme.
     pub dark1: Color,
+    /// This element defines a color that happens to be the accent 1 color. The set of twelve colors come together to
+    /// form the color scheme for a theme.
     pub light1: Color,
+    /// This element defines a color that happens to be the dark 2 color. The set of twelve colors come together to
+    /// form the color scheme for a theme.
     pub dark2: Color,
+    /// This element defines a color that happens to be the accent 1 color. The set of twelve colors come together to
+    /// form the color scheme for a theme.
     pub light2: Color,
+    /// This element defines a color that happens to be the accent 1 color. The set of twelve colors come together to
+    /// form the color scheme for a theme.
     pub accent1: Color,
+    /// This element defines a color that happens to be the accent 2 color. The set of twelve colors come together to
+    /// form the color scheme for a theme.
     pub accent2: Color,
+    /// This element defines a color that happens to be the accent 3 color. The set of twelve colors come together to
+    /// form the color scheme for a theme.
     pub accent3: Color,
+    /// This element defines a color that happens to be the accent 4 color. The set of twelve colors come together to
+    /// form the color scheme for a theme.
     pub accent4: Color,
+    /// This element defines a color that happens to be the accent 5 color. The set of twelve colors come together to
+    /// form the color scheme for a theme.
     pub accent5: Color,
+    /// This element defines a color that happens to be the accent 6 color. The set of twelve colors come together to
+    /// form the color scheme for a theme.
     pub accent6: Color,
+    /// This element defines a color that happens to be the hyperlink color. The set of twelve colors come together to
+    /// form the color scheme for a theme.
     pub hyperlink: Color,
+    /// This element defines a color that happens to be the followed hyperlink color. The set of twelve colors come
+    /// together to form the color scheme for a theme.
     pub followed_hyperlink: Color,
 }
 
@@ -4598,7 +4623,13 @@ impl TextFont {
 
 #[derive(Debug, Clone)]
 pub struct SupplementalFont {
+    /// Specifies the script, or language, in which the typeface is supposed to be used.
+    /// 
+    /// # Note
+    /// 
+    /// It is recommended that script names as specified in ISO 15924 are used.
     pub script: String,
+    /// Specifies the font face to use.
     pub typeface: TextTypeFace,
 }
 
@@ -5552,8 +5583,59 @@ impl PresetTextShape {
 
 #[derive(Debug, Clone)]
 pub struct FontScheme {
+    /// The name of the font scheme shown in the user interface.
     pub name: String,
+    /// This element defines the set of major fonts which are to be used under different languages or locals.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <majorFont>
+    /// <latin typeface="Calibri"/>
+    ///   <ea typeface="Arial"/>
+    ///   <cs typeface="Arial"/>
+    ///   <font script="Jpan" typeface="MS Pゴシック "/>
+    ///   <font script="Hang" typeface="HY중고딕"/>
+    ///   <font script="Hans" typeface="隶 书"/>
+    ///   <font script="Hant" typeface="微軟正黑體 "/>
+    ///   <font script="Arab" typeface="Traditional Arabic"/>
+    ///   <font script="Hebr" typeface="Arial"/>
+    ///   <font script="Thai" typeface="Cordia New"/>
+    ///   <font script="Ethi" typeface="Nyala"/>
+    ///   <font script="Beng" typeface="Vrinda"/>
+    ///   <font script="Gujr" typeface="Shruti"/>
+    ///   <font script="Khmr" typeface="DaunPenh"/>
+    ///   <font script="Knda" typeface="Tunga"/>
+    /// </majorFont>
+    /// ```
+    /// 
+    /// In this example, we see the latin, east asian, and complex script fonts defined along with many fonts for
+    /// different locals.
     pub major_font: Box<FontCollection>,
+    /// This element defines the set of minor fonts that are to be used under different languages or locals.
+    /// 
+    /// ```xml
+    /// <minorFont>
+    ///   <latin typeface="Calibri"/>
+    ///   <ea typeface="Arial"/>
+    ///   <cs typeface="Arial"/>
+    ///   <font script="Jpan" typeface="MS Pゴシック "/>
+    ///   <font script="Hang" typeface="HY중고딕"/>
+    ///   <font script="Hans" typeface="隶 书"/>
+    ///   <font script="Hant" typeface="微軟正黑體 "/>
+    ///   <font script="Arab" typeface="Traditional Arabic"/>
+    ///   <font script="Hebr" typeface="Arial"/>
+    ///   <font script="Thai" typeface="Cordia New"/>
+    ///   <font script="Ethi" typeface="Nyala"/>
+    ///   <font script="Beng" typeface="Vrinda"/>
+    ///   <font script="Gujr" typeface="Shruti"/>
+    ///   <font script="Khmr" typeface="DaunPenh"/>
+    ///   <font script="Knda" typeface="Tunga"/>
+    /// </minorFont>
+    /// ```
+    /// 
+    /// In this example, we see the latin, east asian, and complex script fonts defined along with many fonts for
+    /// different locals.
     pub minor_font: Box<FontCollection>,
 }
 
@@ -5590,6 +5672,8 @@ pub struct FontCollection {
     pub latin: TextFont,
     pub east_asian: TextFont,
     pub complex_script: TextFont,
+    /// This element defines a list of font within the styles area of DrawingML. A font is defined by a script along
+    /// with a typeface.
     pub supplemental_font_list: Vec<SupplementalFont>,
 }
 
@@ -6080,7 +6164,12 @@ impl Connection {
 
 #[derive(Debug, Clone)]
 pub struct EmbeddedWAVAudioFile {
+    /// Specifies the identification information for an embedded audio file. This attribute is used
+    /// to specify the location of an object that resides locally within the file.
     pub embed_rel_id: RelationshipId,
+    /// Specifies the original name or given short name for the corresponding sound. This is used
+    /// to distinguish this sound from others by providing a human readable name for the
+    /// attached sound should the user need to identify the sound among others within the UI.
     pub name: Option<String>,
     //pub built_in: Option<bool>, // false
 }
@@ -6107,8 +6196,13 @@ impl EmbeddedWAVAudioFile {
 
 #[derive(Debug, Clone)]
 pub struct AudioCDTime {
+    /// Specifies which track of the CD this Audio begins playing on. This attribute is required and
+    /// cannot be omitted.
     pub track: u8,
-    pub time: Option<u32>, // 0
+    /// Specifies the time in seconds that the CD Audio should be started at.
+    /// 
+    /// Defaults to 0
+    pub time: Option<u32>,
 }
 
 impl AudioCDTime {
@@ -6132,7 +6226,37 @@ impl AudioCDTime {
 
 #[derive(Debug, Clone)]
 pub struct AudioCD {
+    /// This element specifies the start point for a CD Audio sound element. Encompassed within this element are the
+    /// time and track at which the sound should begin its playback. This element is used in conjunction with an Audio
+    /// End Time element to specify the time span for an entire audioCD sound element.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <a:audioCd>
+    ///   <a:st track="1" time="2"/>
+    ///   <a:end track="3" time="65"/>
+    /// </a:audioCd>
+    /// ```
+    /// 
+    /// In the above example, the audioCD sound element shown specifies for a portion of audio spanning from 2
+    /// seconds into the first track to 1 minute, 5 seconds into the third track.
     pub start_time: AudioCDTime,
+    /// This element specifies the end point for a CD Audio sound element. Encompassed within this element are the
+    /// time and track at which the sound should halt its playback. This element is used in conjunction with an Audio
+    /// Start Time element to specify the time span for an entire audioCD sound element.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <a:audioCd>
+    ///   <a:st track="1" time="2"/>
+    ///   <a:end track="3" time="65"/>
+    /// </a:audioCd>
+    /// ```
+    /// 
+    /// In the above example, the audioCD sound element shown specifies for a portion of audio spanning from 2
+    /// seconds into the first track to 1 minute, 5 seconds into the third track.
     pub end_time: AudioCDTime,
 }
 
@@ -6158,7 +6282,27 @@ impl AudioCD {
 
 #[derive(Debug, Clone)]
 pub struct AudioFile {
+    /// Specifies the identification information for a linked object. This attribute is used to
+    /// specify the location of an object that does not reside within this file.
     pub link: RelationshipId,
+    /// Specifies the content type for the external file that is referenced by this element. Content
+    /// types define a media type, a subtype, and an optional set of parameters, as defined in
+    /// Part 2. If a rendering application cannot process external content of the content type
+    /// specified, then the specified content can be ignored.
+    /// 
+    /// If this attribute is omitted, application should attempt to determine the content type by
+    /// reading the contents of the relationship’s target.
+    /// 
+    /// Suggested audio types:
+    /// * aiff
+    /// * midi
+    /// * ogg
+    /// * mpeg
+    /// 
+    /// A producer that wants interoperability should use the following standard format:
+    /// * audio
+    /// * mpeg ISO
+    /// * IEC 11172-3
     pub content_type: Option<String>,
 }
 
@@ -6183,7 +6327,24 @@ impl AudioFile {
 
 #[derive(Debug, Clone)]
 pub struct VideoFile {
+    /// Specifies the identification information for a linked video file. This attribute is used to
+    /// specify the location of an object that does not reside within this file.
     pub link: RelationshipId,
+    /// Specifies the content type for the external file that is referenced by this element. Content
+    /// types define a media type, a subtype, and an optional set of parameters, as defined in
+    /// Part 2. If a rendering application cannot process external content of the content type
+    /// specified, then the specified content can be ignored.
+    /// 
+    /// Suggested video formats:
+    /// * avi
+    /// * mpg
+    /// * mpeg
+    /// * ogg
+    /// * quicktime
+    /// * vc1
+    /// 
+    /// If this attribute is omitted, application should attempt to determine the content type by
+    /// reading the contents of the relationship’s target.
     pub content_type: Option<String>,
 }
 
@@ -6208,6 +6369,8 @@ impl VideoFile {
 
 #[derive(Debug, Clone)]
 pub struct QuickTimeFile {
+    /// Specifies the identification information for a linked object. This attribute is used to
+    /// specify the location of an object that does not reside within this file.
     pub link: RelationshipId,
 }
 
@@ -6224,10 +6387,154 @@ impl QuickTimeFile {
 
 #[derive(Debug, Clone)]
 pub enum Media {
+    /// This element specifies the existence of Audio from a CD. This element is specified within the non-visual
+    /// properties of an object. The audio shall be attached to an object as this is how it is represented within the
+    /// document. The actual playing of the sound however is done within the timing node list that is specified under
+    /// the timing element.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:pic>
+    ///   <p:nvPicPr>
+    ///     <p:cNvPr id="7" name="Rectangle 6">
+    ///       <a:hlinkClick r:id="" action="ppaction://media"/>
+    ///     </p:cNvPr>
+    ///     <p:cNvPicPr>
+    ///       <a:picLocks noRot="1"/>
+    ///     </p:cNvPicPr>
+    ///     <p:nvPr>
+    ///       <a:audioCd>
+    ///         <a:st track="1"/>
+    ///         <a:end track="3" time="65"/>
+    ///       </a:audioCd>
+    ///     </p:nvPr>
+    ///   </p:nvPicPr>
+    ///   ...
+    /// </p:pic>
+    /// ```
+    /// 
+    /// In the above example, we see that there is a single audioCD element attached to this picture. This picture is
+    /// placed within the document just as a normal picture or shape would be. The id of this picture, namely 7 in this
+    /// case, is used to refer to this audioCD element from within the timing node list. For this example we see that the
+    /// audio for this CD starts playing at the 0 second mark on the first track and ends on the 1 minute 5 second mark
+    /// of the third track.
     AudioCd(AudioCD),
+    /// This element specifies the existence of an audio WAV file. This element is specified within the non-visual
+    /// properties of an object. The audio shall be attached to an object as this is how it is represented within the
+    /// document. The actual playing of the audio however is done within the timing node list that is specified under the
+    /// timing element.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:pic>
+    ///   <p:nvPicPr>
+    ///     <p:cNvPr id="7" name="Rectangle 6">
+    ///       <a:hlinkClick r:id="" action="ppaction://media"/>
+    ///     </p:cNvPr>
+    ///     <p:cNvPicPr>
+    ///       <a:picLocks noRot="1"/>
+    ///     </p:cNvPicPr>
+    ///     <p:nvPr>
+    ///       <a:wavAudioFile r:embed="rId2"/>
+    ///     </p:nvPr>
+    ///   </p:nvPicPr>
+    ///   ...
+    /// </p:pic>
+    /// ```
+    /// 
+    /// In the above example, we see that there is a single wavAudioFile element attached to this picture. This picture
+    /// is placed within the document just as a normal picture or shape would be. The id of this picture, namely 7 in this
+    /// case, is used to refer to this wavAudioFile element from within the timing node list. The Embedded relationship
+    /// id is used to retrieve the actual audio file for playback purposes.
     WavAudioFile(EmbeddedWAVAudioFile),
+    /// This element specifies the existence of an audio file. This element is specified within the non-visual properties of
+    /// an object. The audio shall be attached to an object as this is how it is represented within the document. The
+    /// actual playing of the audio however is done within the timing node list that is specified under the timing
+    /// element.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:pic>
+    ///   <p:nvPicPr>
+    ///     <p:cNvPr id="7" name="Rectangle 6">
+    ///       <a:hlinkClick r:id="" action="ppaction://media"/>
+    ///     </p:cNvPr>
+    ///     <p:cNvPicPr>
+    ///       <a:picLocks noRot="1"/>
+    ///     </p:cNvPicPr>
+    ///     <p:nvPr>
+    ///       <a:audioFile r:link="rId1"/>
+    ///     </p:nvPr>
+    ///   </p:nvPicPr>
+    ///   ...
+    /// </p:pic>
+    /// ```
+    /// 
+    /// In the above example, we see that there is a single audioFile element attached to this picture. This picture is
+    /// placed within the document just as a normal picture or shape would be. The id of this picture, namely 7 in this
+    /// case, is used to refer to this audioFile element from within the timing node list. The Linked relationship id is
+    /// used to retrieve the actual audio file for playback purposes.
     AudioFile(AudioFile),
+    /// This element specifies the existence of a video file. This element is specified within the non-visual properties of
+    /// an object. The video shall be attached to an object as this is how it is represented within the document. The
+    /// actual playing of the video however is done within the timing node list that is specified under the timing
+    /// element.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:pic>
+    ///   <p:nvPicPr>
+    ///     <p:cNvPr id="7" name="Rectangle 6">
+    ///       <a:hlinkClick r:id="" action="ppaction://media"/>
+    ///     </p:cNvPr>
+    ///     <p:cNvPicPr>
+    ///       <a:picLocks noRot="1"/>
+    ///     </p:cNvPicPr>
+    ///     <p:nvPr>
+    ///       <a:videoFile r:link="rId1"/>
+    ///     </p:nvPr>
+    ///   </p:nvPicPr>
+    ///   ...
+    /// </p:pic>
+    /// ```
+    /// 
+    /// In the above example, we see that there is a single videoFile element attached to this picture. This picture is
+    /// placed within the document just as a normal picture or shape would be. The id of this picture, namely 7 in this
+    /// case, is used to refer to this videoFile element from within the timing node list. The Linked relationship id is
+    /// used to retrieve the actual video file for playback purposes.
     VideoFile(VideoFile),
+    /// This element specifies the existence of a QuickTime file. This element is specified within the non-visual
+    /// properties of an object. The QuickTime file shall be attached to an object as this is how it is represented
+    /// within the document. The actual playing of the QuickTime however is done within the timing node list that is
+    /// specified under the timing element.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:pic>
+    ///   <p:nvPicPr>
+    ///     <p:cNvPr id="7" name="Rectangle 6">
+    ///       <a:hlinkClick r:id="" action="ppaction://media"/>
+    ///     </p:cNvPr>
+    ///     <p:cNvPicPr>
+    ///       <a:picLocks noRot="1"/>
+    ///     </p:cNvPicPr>
+    ///     <p:nvPr>
+    ///       <a:quickTimeFile r:link="rId1"/>
+    ///     </p:nvPr>
+    ///   </p:nvPicPr>
+    ///   ...
+    /// </p:pic>
+    /// ```
+    /// 
+    /// In the above example, we see that there is a single quickTimeFile element attached to this picture. This picture
+    /// is placed within the document just as a normal picture or shape would be. The id of this picture, namely 7 in this
+    /// case, is used to refer to this quickTimeFile element from within the timing node list. The Linked relationship id
+    /// is used to retrieve the actual video file for playback purposes.
     QuickTimeFile(QuickTimeFile),
 }
 
@@ -6962,6 +7269,16 @@ pub struct ShapeStyle {
     pub line_reference: StyleMatrixReference,
     pub fill_reference: StyleMatrixReference,
     pub effect_reference: StyleMatrixReference,
+    /// This element represents a reference to a themed font. When used it specifies which themed font to use along
+    /// with a choice of color.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <fontRef idx="minor">
+    ///   <schemeClr val="tx1"/>
+    /// </fontRef>
+    /// ```
     pub font_reference: FontReference,
 }
 
@@ -7002,6 +7319,7 @@ impl ShapeStyle {
 
 #[derive(Debug, Clone)]
 pub struct FontReference {
+    /// Specifies the identifier of the font to reference.
     pub index: FontCollectionIndex,
     pub color: Option<Color>,
 }
@@ -7308,6 +7626,9 @@ pub struct OfficeStyleSheet {
     pub theme_elements: Box<BaseStyles>,
     pub object_defaults: Option<ObjectStyleDefaults>,
     pub extra_color_scheme_list: Vec<ColorSchemeAndMapping>,
+    /// This element defines a custom color. The custom colors are used within a custom color list to define custom
+    /// colors that are extra colors that can be appended to a theme. This is useful within corporate scenarios where
+    /// there is a set corporate color palette from which to work.
     pub custom_color_list: Vec<CustomColor>,
 }
 
@@ -7362,7 +7683,28 @@ impl OfficeStyleSheet {
 #[derive(Debug, Clone)]
 pub struct BaseStyles {
     pub color_scheme: Box<ColorScheme>,
+    /// This element defines the font scheme within the theme. The font scheme consists of a pair of major and minor
+    /// fonts for which to use in a document. The major font corresponds well with the heading areas of a document,
+    /// and the minor font corresponds well with the normal text or paragraph areas.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <fontScheme name="sample">
+    ///   <majorFont>
+    ///   ...
+    ///   </majorFont>
+    ///   <minorFont>
+    ///   ...
+    ///   </minorFont>
+    /// </fontScheme>
+    /// ```
     pub font_scheme: FontScheme,
+    /// This element contains the background fill styles, effect styles, fill styles, and line styles which define the style
+    /// matrix for a theme. The style matrix consists of subtle, moderate, and intense fills, lines, and effects. The
+    /// background fills are not generally thought of to directly be associated with the matrix, but do play a role in the
+    /// style of the overall document. Usually, a given object chooses a single line style, a single fill style, and a single
+    /// effect style in order to define the overall final look of the object.
     pub format_scheme: Box<StyleMatrix>,
 }
 
@@ -7398,11 +7740,132 @@ impl BaseStyles {
 
 #[derive(Debug, Clone)]
 pub struct StyleMatrix {
-    pub name: Option<String>,                      // ""
-    pub fill_style_list: Vec<FillProperties>,      // minOccurs: 3
-    pub line_style_list: Vec<Box<LineProperties>>, // minOccurs: 3
-    pub effect_style_list: Vec<EffectStyleItem>,   // minOccurs: 3
-    pub bg_fill_style_list: Vec<FillProperties>,   // minOccurs: 3
+    /// Defines the name for the format scheme. The name is simply a human readable string
+    /// which identifies the format scheme in the user interface.
+    pub name: Option<String>,
+    /// This element defines a set of three fill styles that are used within a theme. The three fill styles are arranged in
+    /// order from subtle to moderate to intense.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <fillStyleLst>
+    ///   <solidFill>
+    ///   ...
+    ///   </solidFill>
+    ///   <gradFill rotWithShape="1">
+    ///   ...
+    ///   </gradFill>
+    ///   <gradFill rotWithShape="1">
+    ///   ...
+    ///   </gradFill>
+    /// </fillStyleLst>
+    /// ```
+    /// 
+    /// In this example, we see three fill styles being defined within the fill style list. The first style is the subtle style and
+    /// defines simply a solid fill. The second and third styles (moderate and intense fills respectively) define gradient
+    /// fills.
+    pub fill_style_list: Vec<FillProperties>,
+    /// This element defines a list of three line styles for use within a theme. The three line styles are arranged in order
+    /// from subtle to moderate to intense versions of lines. This list makes up part of the style matrix.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <lnStyleLst>
+    ///   <ln w="9525" cap="flat" cmpd="sng" algn="ctr">
+    ///     <solidFill>
+    ///       <schemeClr val="phClr">
+    ///         <shade val="50000"/>
+    ///         <satMod val="103000"/>
+    ///       </schemeClr>
+    ///     </solidFill>
+    ///     <prstDash val="solid"/>
+    ///   </ln>
+    ///   <ln w="25400" cap="flat" cmpd="sng" algn="ctr">
+    ///     <solidFill>
+    ///       <schemeClr val="phClr"/>
+    ///     </solidFill>
+    ///     <prstDash val="solid"/>
+    ///   </ln>
+    ///   <ln w="38100" cap="flat" cmpd="sng" algn="ctr">
+    ///     <solidFill>
+    ///       <schemeClr val="phClr"/>
+    ///     </solidFill>
+    ///     <prstDash val="solid"/>
+    ///   </ln>
+    /// </lnStyleLst>
+    /// ```
+    /// 
+    /// In this example, we see three lines defined within a line style list. The first line corresponds to the subtle line,
+    /// the second to the moderate, and the third corresponds to the intense line defined in the theme.
+    pub line_style_list: Vec<Box<LineProperties>>,
+    /// This element defines a set of three effect styles that create the effect style list for a theme. The effect styles are
+    /// arranged in order of subtle to moderate to intense.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <effectStyleLst>
+    ///   <effectStyle>
+    ///     <effectLst>
+    ///       <outerShdw blurRad="57150" dist="38100" dir="5400000"
+    ///       algn="ctr" rotWithShape="0">
+    ///       ...
+    ///       </outerShdw>
+    ///     </effectLst>
+    ///   </effectStyle>
+    ///   <effectStyle>
+    ///     <effectLst>
+    ///       <outerShdw blurRad="57150" dist="38100" dir="5400000"
+    ///       algn="ctr" rotWithShape="0">
+    ///       ...
+    ///       </outerShdw>
+    ///     </effectLst>
+    ///   </effectStyle>
+    ///   <effectStyle>
+    ///     <effectLst>
+    ///       <outerShdw blurRad="57150" dist="38100" dir="5400000"
+    ///       algn="ctr" rotWithShape="0">
+    ///       ...
+    ///       </outerShdw>
+    ///     </effectLst>
+    ///     <scene3d>
+    ///     ...
+    ///     </scene3d>
+    ///     <sp3d prstMaterial="powder">
+    ///     ...
+    ///     </sp3d>
+    ///   </effectStyle>
+    /// </effectStyleLst>
+    /// ```
+    /// 
+    /// In this example, we see three effect styles defined. The first two (subtle and moderate) define an outer shadow
+    /// as the effect, while the third effect style (intense) defines an outer shadow along with 3D properties which are
+    /// to be applied to the object as well.
+    pub effect_style_list: Vec<EffectStyleItem>,
+    /// This element defines a list of background fills that are used within a theme. The background fills consist of three
+    /// fills, arranged in order from subtle to moderate to intense.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <bgFillStyleLst>
+    ///   <solidFill>
+    ///   ...
+    ///   </solidFill>
+    ///   <gradFill rotWithShape="1">
+    ///   ...
+    ///   </gradFill>
+    ///   <blipFill>
+    ///   ...
+    ///   </blipFill>
+    /// </bgFillStyleLst>
+    /// ```
+    /// 
+    /// In this example, we see that the list contains a solid fill for the subtle fill, a gradient fill for the moderate fill and
+    /// an image fill for the intense background fill.
+    pub bg_fill_style_list: Vec<FillProperties>,
 }
 
 impl StyleMatrix {
@@ -7492,8 +7955,109 @@ impl StyleMatrix {
 
 #[derive(Default, Debug, Clone)]
 pub struct ObjectStyleDefaults {
+    /// This element defines the formatting that is associated with the default shape. The default formatting can be
+    /// applied to a shape when it is initially inserted into a document.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <spDef>
+    ///   <spPr>
+    ///     <solidFill>
+    ///       <schemeClr val="accent2">
+    ///         <shade val="75000"/>
+    ///       </schemeClr>
+    ///     </solidFill>
+    ///   </spPr>
+    ///   <bodyPr rtlCol="0" anchor="ctr"/>
+    ///   <lstStyle>
+    ///     <defPPr algn="ctr">
+    ///       <defRPr/>
+    ///     </defPPr>
+    ///   </lstStyle>
+    ///   <style>
+    ///     <lnRef idx="1">
+    ///       <schemeClr val="accent1"/>
+    ///     </lnRef>
+    ///     <fillRef idx="2">
+    ///       <schemeClr val="accent1"/>
+    ///     </fillRef>
+    ///     <effectRef idx="1">
+    ///       <schemeClr val="accent1"/>
+    ///     </effectRef>
+    ///     <fontRef idx="minor">
+    ///       <schemeClr val="dk1"/>
+    ///     </fontRef>
+    ///   </style>
+    /// </spDef>
+    /// ```
+    /// 
+    /// In this example, we see a default shape which references a certain themed fill, line, effect, and font along with
+    /// an override fill to these.
     pub shape_definition: Option<Box<DefaultShapeDefinition>>,
+    /// This element defines a default line that is used within a document.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <lnDef>
+    ///   <spPr/>
+    ///   <bodyPr/>
+    ///   <lstStyle/>
+    ///   <style>
+    ///     <lnRef idx="1">
+    ///       <schemeClr val="accent2"/>
+    ///     </lnRef>
+    ///     <fillRef idx="0">
+    ///       <schemeClr val="accent2"/>
+    ///     </fillRef>
+    ///     <effectRef idx="0">
+    ///       <schemeClr val="accent2"/>
+    ///     </effectRef>
+    ///     <fontRef idx="minor">
+    ///       <schemeClr val="tx1"/>
+    ///     </fontRef>
+    ///   </style>
+    /// </lnDef>
+    /// ```
+    /// 
+    /// In this example, we see that the default line for the document is being defined as a themed line which
+    /// references the subtle line style with idx equal to 1.
     pub line_definition: Option<Box<DefaultShapeDefinition>>,
+    /// This element defines the default formatting which is applied to text in a document by default. The default
+    /// formatting can and should be applied to the shape when it is initially inserted into a document.
+    /// 
+    /// ```xml
+    /// <txDef>
+    ///   <spPr>
+    ///     <solidFill>
+    ///       <schemeClr val="accent2">
+    ///         <shade val="75000"/>
+    ///       </schemeClr>
+    ///     </solidFill>
+    ///   </spPr>
+    ///   <bodyPr rtlCol="0" anchor="ctr"/>
+    ///   <lstStyle>
+    ///     <defPPr algn="ctr">
+    ///       <defRPr/>
+    ///     </defPPr>
+    ///   </lstStyle>
+    ///   <style>
+    ///     <lnRef idx="1">
+    ///       <schemeClr val="accent1"/>
+    ///     </lnRef>
+    ///     <fillRef idx="2">
+    ///       <schemeClr val="accent1"/>
+    ///     </fillRef>
+    ///     <effectRef idx="1">
+    ///       <schemeClr val="accent1"/>
+    ///     </effectRef>
+    ///     <fontRef idx="minor">
+    ///       <schemeClr val="dk1"/>
+    ///     </fontRef>
+    ///   </style>
+    /// </txDef>
+    /// ```
     pub text_definition: Option<Box<DefaultShapeDefinition>>,
 }
 
