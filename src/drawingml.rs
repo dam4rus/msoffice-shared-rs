@@ -2625,6 +2625,9 @@ impl Color {
     }
 }
 
+/// This element defines a custom color. The custom colors are used within a custom color list to define custom
+/// colors that are extra colors that can be appended to a theme. This is useful within corporate scenarios where
+/// there is a set corporate color palette from which to work.
 #[derive(Debug, Clone)]
 pub struct CustomColor {
     /// The name of the color shown in the color picker.
@@ -2647,17 +2650,29 @@ impl CustomColor {
 
 #[derive(Debug, Clone)]
 pub struct ColorMapping {
+    /// A color defined which is associated as the first background color.
     pub background1: ColorSchemeIndex,
+    /// Specifies a color defined which is associated as the first text color.
     pub text1: ColorSchemeIndex,
+    /// Specifies a color defined which is associated as the second background color.
     pub background2: ColorSchemeIndex,
+    /// Specifies a color defined which is associated as the second text color.
     pub text2: ColorSchemeIndex,
+    /// Specifies a color defined which is associated as the accent 1 color.
     pub accent1: ColorSchemeIndex,
+    /// Specifies a color defined which is associated as the accent 2 color.
     pub accent2: ColorSchemeIndex,
+    /// Specifies a color defined which is associated as the accent 3 color.
     pub accent3: ColorSchemeIndex,
+    /// Specifies a color defined which is associated as the accent 4 color.
     pub accent4: ColorSchemeIndex,
+    /// Specifies a color defined which is associated as the accent 5 color.
     pub accent5: ColorSchemeIndex,
+    /// Specifies a color defined which is associated as the accent 6 color.
     pub accent6: ColorSchemeIndex,
+    /// Specifies a color defined which is associated as the color for a hyperlink.
     pub hyperlink: ColorSchemeIndex,
+    /// Specifies a color defined which is associated as the color for a followed hyperlink.
     pub followed_hyperlink: ColorSchemeIndex,
 }
 
@@ -2727,6 +2742,8 @@ impl ColorMapping {
 
 #[derive(Debug, Clone)]
 pub struct ColorScheme {
+    /// The common name for this color scheme. This name can show up in the user interface in
+    /// a list of color schemes.
     pub name: String,
     /// This element defines a color that happens to be the dark 1 color. The set of twelve colors come together to
     /// form the color scheme for a theme.
@@ -2843,7 +2860,20 @@ impl ColorScheme {
 
 #[derive(Debug, Clone)]
 pub enum ColorMappingOverride {
+    /// This element is a part of a choice for which color mapping is used within the document. 
+    /// If this element is specified, then we specifically use the color mapping defined in the master.
     UseMaster,
+    /// This element provides an override for the color mapping in a document. When defined, this color mapping is
+    /// used in place of the already defined color mapping, or master color mapping. This color mapping is defined in
+    /// the same manner as the other mappings within this document.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <overrideClrMapping bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1"
+    ///   accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5"
+    ///   accent6="accent6" hlink="hlink" folHlink="folHlink"/>
+    /// ```
     Override(Box<ColorMapping>),
 }
 
@@ -2868,7 +2898,85 @@ impl ColorMappingOverride {
 
 #[derive(Debug, Clone)]
 pub struct ColorSchemeAndMapping {
+    /// This element defines a set of colors which are referred to as a color scheme. The color scheme is responsible for
+    /// defining a list of twelve colors. The twelve colors consist of six accent colors, two dark colors, two light colors
+    /// and a color for each of a hyperlink and followed hyperlink.
+    /// 
+    /// The Color Scheme Color elements appear in a sequence. The following listing shows the index value and
+    /// corresponding Color Name.
+    /// 
+    /// |:Sequence Index       :|:Element (Color) Name             :|
+    /// |-----------------------|-----------------------------------|
+    /// |0                      |dark1                              |
+    /// |1                      |light1                             |
+    /// |2                      |dark2                              |
+    /// |3                      |light2                             |
+    /// |4                      |accent1                            |
+    /// |5                      |accent2                            |
+    /// |6                      |accent3                            |
+    /// |7                      |accent4                            |
+    /// |8                      |accent5                            |
+    /// |9                      |accent6                            |
+    /// |10                     |hyperlink                          |
+    /// |11                     |followedHyperlink                  |
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <clrScheme name="sample">
+    ///   <dk1>
+    ///     <sysClr val="windowText"/>
+    ///   </dk1>
+    ///   <lt1>
+    ///     <sysClr val="window"/>
+    ///   </lt1>
+    ///   <dk2>
+    ///     <srgbClr val="04617B"/>
+    ///   </dk2>
+    ///   <lt2>
+    ///     <srgbClr val="DBF5F9"/>
+    ///   </lt2>
+    ///   <accent1>
+    ///     <srgbClr val="0F6FC6"/>
+    ///   </accent1>
+    ///   <accent2>
+    ///     <srgbClr val="009DD9"/>
+    ///   </accent2>
+    ///   <accent3>
+    ///     <srgbClr val="0BD0D9"/>
+    ///   </accent3>
+    ///   <accent4>
+    ///     <srgbClr val="10CF9B"/>
+    ///   </accent4>
+    ///   <accent5>
+    ///     <srgbClr val="7CCA62"/>
+    ///   </accent5>
+    ///   <accent6>
+    ///     <srgbClr val="A5C249"/>
+    ///   </accent6>
+    ///   <hlink>
+    ///     <srgbClr val="FF9800"/>
+    ///   </hlink>
+    ///   <folHlink>
+    ///     <srgbClr val="F45511"/>
+    ///   </folHlink>
+    /// </clrScheme>
+    /// ```
     pub color_scheme: Box<ColorScheme>,
+    /// This element specifics the color mapping layer which allows a user to define colors for background and text.
+    /// This allows for swapping out of light/dark colors for backgrounds and the text on top of the background in order
+    /// to maintain readability of the text On a deeper level, this specifies exactly which colors the first 12 values refer
+    /// to in the color scheme.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1"
+    /// accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5"
+    /// accent6="accent6" hlink="hlink" folHlink="folHlink"/>
+    /// ```
+    /// 
+    /// In this example, we see that bg1 is mapped to lt1, tx1 is mapped to dk1, and so on.
     pub color_mapping: Option<Box<ColorMapping>>,
 }
 
@@ -2924,7 +3032,18 @@ impl GradientStop {
 
 #[derive(Default, Debug, Clone)]
 pub struct LinearShadeProperties {
+    /// Specifies the direction of color change for the gradient. To define this angle, let its value
+    /// be x measured clockwise. Then ( -sin x, cos x ) is a vector parallel to the line of constant
+    /// color in the gradient fill.
     pub angle: Option<PositiveFixedAngle>,
+    /// Whether the gradient angle scales with the fill region. Mathematically, if this flag is true,
+    /// then the gradient vector ( cos x , sin x ) is scaled by the width (w) and height (h) of the fill
+    /// region, so that the vector becomes ( w cos x, h sin x ) (before normalization). Observe
+    /// that now if the gradient angle is 45 degrees, the gradient vector is ( w, h ), which goes
+    /// from top-left to bottom-right of the fill region. If this flag is false, the gradient angle is
+    /// independent of the fill region and is not scaled using the manipulation described above.
+    /// So a 45-degree gradient angle always give a gradient band whose line of constant color is
+    /// parallel to the vector (1, -1).
     pub scaled: Option<bool>,
 }
 
@@ -2947,7 +3066,29 @@ impl LinearShadeProperties {
 
 #[derive(Default, Debug, Clone)]
 pub struct PathShadeProperties {
+    /// Specifies the shape of the path to follow.
     pub path: Option<PathShadeType>,
+    /// This element defines the "focus" rectangle for the center shade, specified relative to the fill tile rectangle. The
+    /// center shade fills the entire tile except the margins specified by each attribute.
+    /// 
+    /// Each edge of the center shade rectangle is defined by a percentage offset from the corresponding edge of the
+    /// tile rectangle. A positive percentage specifies an inset, while a negative percentage specifies an outset.
+    /// 
+    /// # Note
+    /// 
+    /// For example, a left offset of 25% specifies that the left edge of the center shade rectangle is located to the right
+    /// of the tile rectangle's left edge by an amount equal to 25% of the tile rectangle's width.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <a:path path="rect">
+    ///   <a:fillToRect l="50000" r="50000" t="50000" b="50000"/>
+    /// </a:path>
+    /// ```
+    /// 
+    /// In the above shape, the rectangle defined by fillToRect is a single point in the center of the shape. This creates
+    /// the effect of the center shade focusing at a point in the center of the region.
     pub fill_to_rect: Option<RelativeRect>,
 }
 
@@ -2969,7 +3110,9 @@ impl PathShadeProperties {
 
 #[derive(Debug, Clone)]
 pub enum ShadeProperties {
+    /// This element specifies a linear gradient.
     Linear(LinearShadeProperties),
+    /// This element defines that a gradient fill follows a path vs. a linear line.
     Path(PathShadeProperties),
 }
 
@@ -2992,13 +3135,42 @@ impl ShadeProperties {
     }
 }
 
-/// GradientFillProperties
+/// This element defines a gradient fill.
+/// 
+/// A gradient fill is a fill which is characterized by a smooth gradual transition from one color to the next. At its
+/// simplest, it is a fill which transitions between two colors; or more generally, it can be a transition of any number
+/// of colors.
+/// 
+/// The desired transition colors and locations are defined in the gradient stop list (gsLst) child element.
+/// 
+/// The other child element defines the properties of the gradient fill (there are two styles-- a linear shade style as
+/// well as a path shade style)
 #[derive(Default, Debug, Clone)]
 pub struct GradientFillProperties {
+    /// Specifies the direction(s) in which to flip the gradient while tiling.
+    /// 
+    /// Normally a gradient fill encompasses the entire bounding box of the shape which
+    /// contains the fill. However, with the tileRect element, it is possible to define a "tile"
+    /// rectangle which is smaller than the bounding box. In this situation, the gradient fill is
+    /// encompassed within the tile rectangle, and the tile rectangle is tiled across the bounding
+    /// box to fill the entire area.
     pub flip: Option<TileFlipMode>,
+    /// Specifies if a fill rotates along with a shape when the shape is rotated.
     pub rotate_with_shape: Option<bool>,
-    pub gradient_stop_list: Vec<GradientStop>, // length: 2 <= n <= inf
+    /// The list of gradient stops that specifies the gradient colors and their relative positions in the color band.
+    pub gradient_stop_list: Option<Vec<GradientStop>>,
     pub shade_properties: Option<ShadeProperties>,
+    /// This element specifies a rectangular region of the shape to which the gradient is applied. This region is then
+    /// tiled across the remaining area of the shape to complete the fill. The tile rectangle is defined by percentage
+    /// offsets from the sides of the shape's bounding box.
+    /// 
+    /// Each edge of the tile rectangle is defined by a percentage offset from the corresponding edge of the bounding
+    /// box. A positive percentage specifies an inset, while a negative percentage specifies an outset.
+    /// 
+    /// # Note
+    /// 
+    /// For example, a left offset of 25% specifies that the left edge of the tile rectangle is located to the right of the
+    /// bounding box's left edge by an amount equal to 25% of the bounding box's width.
     pub tile_rect: Option<RelativeRect>,
 }
 
@@ -3015,7 +3187,7 @@ impl GradientFillProperties {
             }
         }
 
-        let mut gradient_stop_list = Vec::new();
+        let mut gradient_stop_list = None;
         let mut shade_properties = None;
         let mut tile_rect = None;
 
@@ -3026,9 +3198,22 @@ impl GradientFillProperties {
             } else {
                 match child_node.local_name() {
                     "gsLst" => {
+                        let mut vec = Vec::new();
                         for gs_node in &child_node.child_nodes {
-                            gradient_stop_list.push(GradientStop::from_xml_element(gs_node)?);
+                            vec.push(GradientStop::from_xml_element(gs_node)?);
                         }
+
+                        if vec.len() < 2 {
+                            return Err(Box::new(LimitViolationError::new(
+                                xml_node.name.clone(), 
+                                "gsLst",
+                                Limit::Value(2),
+                                Limit::Unbounded,
+                                vec.len() as u32,
+                            )));
+                        }
+
+                        gradient_stop_list = Some(vec);
                     }
                     "tileRect" => tile_rect = Some(RelativeRect::from_xml_element(child_node)?),
                     _ => (),
@@ -3048,13 +3233,19 @@ impl GradientFillProperties {
 
 #[derive(Default, Debug, Clone)]
 pub struct TileInfoProperties {
+    /// Specifies additional horizontal offset after alignment.
     pub translate_x: Option<Coordinate>,
+    /// Specifies additional vertical offset after alignment.
     pub translate_y: Option<Coordinate>,
-    /// This element specifies the horizontal ratio for use within a scaling calculation.
+    /// Specifies the amount to horizontally scale the srcRect.
     pub scale_x: Option<Percentage>,
-    /// This element specifies the vertical ratio for use within a scaling calculation.
+    /// Specifies the amount to vertically scale the srcRect.
     pub scale_y: Option<Percentage>,
+    /// Specifies the direction(s) in which to flip the source image while tiling. Images can be
+    /// flipped horizontally, vertically, or in both directions to fill the entire region.
     pub flip_mode: Option<TileFlipMode>,
+    /// Specifies where to align the first tile with respect to the shape. Alignment happens after
+    /// the scaling, but before the additional offset.
     pub alignment: Option<RectAlignment>,
 }
 
@@ -3080,6 +3271,27 @@ impl TileInfoProperties {
 
 #[derive(Default, Debug, Clone)]
 pub struct StretchInfoProperties {
+    /// This element specifies a fill rectangle. When stretching of an image is specified, a source rectangle, srcRect, is
+    /// scaled to fit the specified fill rectangle.
+    /// 
+    /// Each edge of the fill rectangle is defined by a percentage offset from the corresponding edge of the shape's
+    /// bounding box. A positive percentage specifies an inset, while a negative percentage specifies an outset.
+    /// 
+    /// # Note
+    /// 
+    /// For example, a left offset of 25% specifies that the left edge of the fill rectangle is located to the right of the
+    /// bounding box's left edge by an amount equal to 25% of the bounding box's width.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <a:blipFill>
+    ///   <a:blip r:embed="rId2"/>
+    ///   <a:stretch>
+    ///     <a:fillRect b="10000" r="25000"/>
+    ///   </a:stretch>
+    /// </a:blipFill>
+    /// ```
     pub fill_rect: Option<RelativeRect>,
 }
 
@@ -3096,7 +3308,12 @@ impl StretchInfoProperties {
 
 #[derive(Debug, Clone)]
 pub enum FillModeProperties {
+    /// This element specifies that a BLIP should be tiled to fill the available space. This element defines a "tile"
+    /// rectangle within the bounding box. The image is encompassed within the tile rectangle, and the tile rectangle is
+    /// tiled across the bounding box to fill the entire area.
     Tile(Box<TileInfoProperties>),
+    /// This element specifies that a BLIP should be stretched to fill the target rectangle. The other option is a tile where
+    /// a BLIP is tiled to fill the available area.
     Stretch(Box<StretchInfoProperties>),
 }
 
@@ -3123,9 +3340,31 @@ impl FillModeProperties {
 
 #[derive(Default, Debug, Clone)]
 pub struct BlipFillProperties {
+    /// Specifies the DPI (dots per inch) used to calculate the size of the blip. If not present or
+    /// zero, the DPI in the blip is used.
+    /// 
+    /// # Note
+    /// 
+    /// This attribute is primarily used to keep track of the picture quality within a
+    /// document. There are different levels of quality needed for print than on-screen viewing
+    /// and thus a need to track this information.
     pub dpi: Option<u32>,
+    /// Specifies that the fill should rotate with the shape. That is, when the shape that has been
+    /// filled with a picture and the containing shape (say a rectangle) is transformed with a
+    /// rotation then the fill is transformed with the same rotation.
     pub rotate_with_shape: Option<bool>,
+    /// This element specifies the existence of an image (binary large image or picture) and contains a reference to the
+    /// image data.
     pub blip: Option<Box<Blip>>,
+    /// This element specifies the portion of the blip used for the fill.
+    /// 
+    /// Each edge of the source rectangle is defined by a percentage offset from the corresponding edge of the
+    /// bounding box. A positive percentage specifies an inset, while a negative percentage specifies an outset.
+    /// 
+    /// # Note
+    /// 
+    /// For example, a left offset of 25% specifies that the left edge of the source rectangle is located to the right of the
+    /// bounding box's left edge by an amount equal to 25% of the bounding box's width.
     pub source_rect: Option<RelativeRect>,
     pub fill_mode_properties: Option<FillModeProperties>,
 }
@@ -3173,9 +3412,12 @@ impl BlipFillProperties {
 
 #[derive(Default, Debug, Clone)]
 pub struct PatternFillProperties {
-    pub fg_color: Option<Color>,
-    pub bg_color: Option<Color>,
+    /// Specifies one of a set of preset patterns to fill the object.
     pub preset: Option<PresetPatternVal>,
+    /// This element specifies the foreground color of a pattern fill.
+    pub fg_color: Option<Color>,
+    /// This element specifies the background color of a Pattern fill.
+    pub bg_color: Option<Color>,
 }
 
 impl PatternFillProperties {
@@ -3213,11 +3455,34 @@ impl PatternFillProperties {
 
 #[derive(Debug, Clone)]
 pub enum FillProperties {
+    /// This element specifies that no fill is applied to the parent element.
     NoFill,
+    /// This element specifies a solid color fill. The shape is filled entirely with the specified color.
     SolidFill(Color),
     GradientFill(Box<GradientFillProperties>),
+    /// This element specifies the type of picture fill that the picture object has. Because a picture has a picture fill
+    /// already by default, it is possible to have two fills specified for a picture object. An example of this is shown
+    /// below.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:pic>
+    ///   ...
+    ///   <p:blipFill>
+    ///     <a:blip r:embed="rId2"/>
+    ///     <a:stretch>
+    ///       <a:fillRect/>
+    ///     </a:stretch>
+    ///   </p:blipFill>
+    ///   ...
+    /// </p:pic>
+    /// ```
     BlipFill(Box<BlipFillProperties>),
+    /// This element specifies a pattern fill. A repeated pattern is used to fill the object.
     PatternFill(Box<PatternFillProperties>),
+    /// This element specifies a group fill. When specified, this setting indicates that the parent element is part of a
+    /// group and should inherit the fill properties of the group.
     GroupFill,
 }
 
@@ -3254,10 +3519,11 @@ impl FillProperties {
     }
 }
 
-/// LineFillProperties
 #[derive(Debug, Clone)]
 pub enum LineFillProperties {
+    /// This element specifies that no fill is applied to the parent element.
     NoFill,
+    /// This element specifies a solid color fill. The shape is filled entirely with the specified color.
     SolidFill(Color),
     GradientFill(Box<GradientFillProperties>),
     PatternFill(Box<PatternFillProperties>),
@@ -3297,10 +3563,13 @@ impl LineFillProperties {
     }
 }
 
-/// DashStop
+/// This element specifies a dash stop primitive. Dashing schemes are built by specifying an ordered list of dash stop
+/// primitive. A dash stop primitive consists of a dash and a space.
 #[derive(Debug, Clone)]
 pub struct DashStop {
+    /// Specifies the length of the dash relative to the line width.
     pub dash_length: PositivePercentage,
+    /// Specifies the length of the space relative to the line width.
     pub space_length: PositivePercentage,
 }
 
@@ -3330,7 +3599,10 @@ impl DashStop {
 /// LineDashProperties
 #[derive(Debug, Clone)]
 pub enum LineDashProperties {
+    /// This element specifies that a preset line dashing scheme should be used.
     PresetDash(PresetLineDashVal),
+    /// This element specifies a custom dashing scheme. It is a list of dash stop elements which represent building block
+    /// atoms upon which the custom dashing scheme is built.
     CustomDash(Vec<DashStop>),
 }
 
@@ -3368,11 +3640,18 @@ impl LineDashProperties {
     }
 }
 
-/// LineJoinProperties
 #[derive(Debug, Clone)]
 pub enum LineJoinProperties {
+    /// This element specifies that lines joined together have a round join.
     Round,
+    /// This element specifies a Bevel Line Join.
+    /// 
+    /// A bevel joint specifies that an angle joint is used to connect lines.
     Bevel,
+    /// This element specifies that a line join shall be mitered.
+    /// 
+    /// The value specifies the amount by which lines is extended to form a miter join - otherwise miter
+    /// joins can extend infinitely far (for lines which are almost parallel).
     Miter(Option<PositivePercentage>),
 }
 
@@ -3400,11 +3679,13 @@ impl LineJoinProperties {
     }
 }
 
-/// LineEndProperties
 #[derive(Default, Debug, Clone)]
 pub struct LineEndProperties {
+    /// Specifies the line end decoration, such as a triangle or arrowhead.
     pub end_type: Option<LineEndType>,
+    /// Specifies the line end width in relation to the line width.
     pub width: Option<LineEndWidth>,
+    /// Specifies the line end length in relation to the line width.
     pub length: Option<LineEndLength>,
 }
 
@@ -3447,7 +3728,9 @@ pub struct LineProperties {
     pub fill_properties: Option<LineFillProperties>,
     pub dash_properties: Option<LineDashProperties>,
     pub join_properties: Option<LineJoinProperties>,
+    /// This element specifies decorations which can be added to the head of a line.
     pub head_end: Option<LineEndProperties>,
+    /// This element specifies decorations which can be added to the tail of a line.
     pub tail_end: Option<LineEndProperties>,
 }
 
@@ -3485,12 +3768,15 @@ impl LineProperties {
     }
 }
 
-/// RelativeRect
 #[derive(Default, Debug, Clone)]
 pub struct RelativeRect {
+    /// Specifies the left edge of the rectangle.
     pub left: Option<Percentage>,
+    /// Specifies the top edge of the rectangle.
     pub top: Option<Percentage>,
+    /// Specifies the right edge of the rectangle.
     pub right: Option<Percentage>,
+    /// Specifies the bottom edge of the rectangle.
     pub bottom: Option<Percentage>,
 }
 
@@ -3514,7 +3800,11 @@ impl RelativeRect {
 
 #[derive(Debug, Clone)]
 pub struct Point2D {
+    /// Specifies a coordinate on the x-axis. The origin point for this coordinate shall be specified
+    /// by the parent XML element.
     pub x: Coordinate,
+    /// Specifies a coordinate on the x-axis. The origin point for this coordinate shall be specified
+    /// by the parent XML element.
     pub y: Coordinate,
 }
 
@@ -3541,7 +3831,11 @@ impl Point2D {
 /// PositiveSize2D
 #[derive(Debug, Clone)]
 pub struct PositiveSize2D {
+    /// Specifies the length of the extents rectangle in EMUs. This rectangle shall dictate the size
+    /// of the object as displayed (the result of any scaling to the original object).
     pub width: PositiveCoordinate,
+    /// Specifies the width of the extents rectangle in EMUs. This rectangle shall dictate the size
+    /// of the object as displayed (the result of any scaling to the original object).
     pub height: PositiveCoordinate,
 }
 
@@ -3587,10 +3881,13 @@ impl StyleMatrixReference {
     }
 }
 
-/// EffectContainer
+/// This element specifies an Effect Container. It is a list of effects.
 #[derive(Default, Debug, Clone)]
 pub struct EffectContainer {
+    /// Specifies the kind of container, either sibling or tree.
     pub container_type: Option<EffectContainerType>,
+    /// Specifies an optional name for this list of effects, so that it can be referred to later. Shall
+    /// be unique across all effect trees and effect containers.
     pub name: Option<String>,
     pub effects: Vec<Effect>,
 }
@@ -3623,9 +3920,13 @@ impl EffectContainer {
     }
 }
 
-/// AlphaBiLevelEffect
+/// This element represents an Alpha Bi-Level Effect.
+/// 
+/// Alpha (Opacity) values less than the threshold are changed to 0 (fully transparent) and alpha values greater than
+/// or equal to the threshold are changed to 100% (fully opaque).
 #[derive(Debug, Clone)]
 pub struct AlphaBiLevelEffect {
+    // Specifies the threshold value for the alpha bi-level effect.
     pub threshold: PositiveFixedPercentage,
 }
 
@@ -3639,7 +3940,9 @@ impl AlphaBiLevelEffect {
     }
 }
 
-/// AlphaInverseEffect
+/// This element represents an alpha inverse effect.
+/// 
+/// Alpha (opacity) values are inverted by subtracting from 100%.
 #[derive(Default, Debug, Clone)]
 pub struct AlphaInverseEffect {
     pub color: Option<Color>,
@@ -3656,7 +3959,10 @@ impl AlphaInverseEffect {
     }
 }
 
-/// AlphaModulateEffect
+/// This element represents an alpha modulate effect.
+/// 
+/// Effect alpha (opacity) values are multiplied by a fixed percentage. The effect container specifies an effect
+/// containing alpha values to modulate.
 #[derive(Debug, Clone)]
 pub struct AlphaModulateEffect {
     pub container: EffectContainer,
@@ -3675,10 +3981,15 @@ impl AlphaModulateEffect {
     }
 }
 
-/// AlphaModulateFixedEffect
+/// This element represents an alpha modulate fixed effect.
+/// 
+/// Effect alpha (opacity) values are multiplied by a fixed percentage.
 #[derive(Default, Debug, Clone)]
 pub struct AlphaModulateFixedEffect {
-    pub amount: Option<PositivePercentage>, // 1.0
+    /// Specifies the percentage amount to scale the alpha.
+    /// 
+    /// Defaults to 100000
+    pub amount: Option<PositivePercentage>,
 }
 
 impl AlphaModulateFixedEffect {
@@ -3692,8 +4003,13 @@ impl AlphaModulateFixedEffect {
     }
 }
 
+/// This element specifies an alpha outset/inset effect.
+/// 
+/// This is equivalent to an alpha ceiling, followed by alpha blur, followed by either an alpha ceiling (positive radius)
+/// or alpha floor (negative radius).
 #[derive(Default, Debug, Clone)]
 pub struct AlphaOutsetEffect {
+    /// Specifies the radius of outset/inset.
     pub radius: Option<Coordinate>,
 }
 
@@ -3708,8 +4024,12 @@ impl AlphaOutsetEffect {
     }
 }
 
+/// This element specifies an alpha replace effect.
+/// 
+/// Effect alpha (opacity) values are replaced by a fixed alpha.
 #[derive(Debug, Clone)]
 pub struct AlphaReplaceEffect {
+    /// Specifies the new opacity value.
     pub alpha: PositiveFixedPercentage,
 }
 
@@ -3724,8 +4044,13 @@ impl AlphaReplaceEffect {
     }
 }
 
+/// This element specifies a bi-level (black/white) effect. Input colors whose luminance is less than the specified
+/// threshold value are changed to black. Input colors whose luminance are greater than or equal the specified
+/// value are set to white. The alpha effect values are unaffected by this effect.
 #[derive(Debug, Clone)]
 pub struct BiLevelEffect {
+    /// Specifies the luminance threshold for the Bi-Level effect. Values greater than or equal to
+    /// the threshold are set to white. Values lesser than the threshold are set to black.
     pub threshold: PositiveFixedPercentage,
 }
 
@@ -3740,8 +4065,11 @@ impl BiLevelEffect {
     }
 }
 
+/// This element specifies a blend of several effects. The container specifies the raw effects to blend while the blend
+/// mode specifies how the effects are to be blended.
 #[derive(Debug, Clone)]
 pub struct BlendEffect {
+    /// Specifies how to blend the two effects.
     pub blend: BlendMode,
     pub container: EffectContainer,
 }
@@ -3763,10 +4091,25 @@ impl BlendEffect {
     }
 }
 
+/// This element specifies a blur effect that is applied to the entire shape, including its fill. All color channels,
+/// including alpha, are affected.
 #[derive(Default, Debug, Clone)]
 pub struct BlurEffect {
-    pub radius: Option<PositiveCoordinate>, // 0
-    pub grow: Option<bool>,                 // true
+    /// Specifies the radius of blur.
+    /// 
+    /// Defaults to 0
+    pub radius: Option<PositiveCoordinate>,
+    /// Specifies whether the bounds of the object should be grown as a result of the blurring.
+    /// True indicates the bounds are grown while false indicates that they are not.
+    /// 
+    /// With grow set to false, the blur effect does not extend beyond the original bounds of the
+    /// object
+    /// 
+    /// With grow set to true, the blur effect can extend beyond the original bounds of the
+    /// object
+    /// 
+    /// Defaults to true
+    pub grow: Option<bool>,
 }
 
 impl BlurEffect {
@@ -3786,10 +4129,19 @@ impl BlurEffect {
     }
 }
 
+/// This element specifies a Color Change Effect. Instances of clrFrom are replaced with instances of clrTo.
 #[derive(Debug, Clone)]
 pub struct ColorChangeEffect {
-    pub use_alpha: Option<bool>, // true
+    /// Specifies whether alpha values are considered for the effect. Effect alpha values are
+    /// considered if use_alpha is true, else they are ignored.
+    /// 
+    /// Defaults to true
+    pub use_alpha: Option<bool>,
+    /// This element specifies a solid color replacement value. All effect colors are changed to a fixed color. Alpha values
+    /// are unaffected.
     pub color_from: Color,
+    /// This element specifies the color which replaces the clrFrom in a clrChange effect. This is the "target" or "to"
+    /// color in the color change effect.
     pub color_to: Color,
 }
 
@@ -3833,6 +4185,8 @@ impl ColorChangeEffect {
     }
 }
 
+/// This element specifies a solid color replacement value. All effect colors are changed to a fixed color. Alpha values
+/// are unaffected.
 #[derive(Debug, Clone)]
 pub struct ColorReplaceEffect {
     pub color: Color,
@@ -3850,9 +4204,13 @@ impl ColorReplaceEffect {
     }
 }
 
+/// This element specifies a luminance effect. Brightness linearly shifts all colors closer to white or black.
+/// Contrast scales all colors to be either closer or further apart.
 #[derive(Default, Debug, Clone)]
 pub struct LuminanceEffect {
+    /// Specifies the percent to change the brightness.
     pub brightness: Option<FixedPercentage>,
+    /// Specifies the percent to change the contrast.
     pub contrast: Option<FixedPercentage>,
 }
 
@@ -3873,6 +4231,9 @@ impl LuminanceEffect {
     }
 }
 
+/// This element specifies a duotone effect.
+/// 
+/// For each pixel, combines clr1 and clr2 through a linear interpolation to determine the new color for that pixel.
 #[derive(Debug, Clone)]
 pub struct DuotoneEffect {
     pub colors: [Color; 2],
@@ -3898,6 +4259,7 @@ impl DuotoneEffect {
     }
 }
 
+/// This element specifies a fill which is one of blipFill, gradFill, grpFill, noFill, pattFill or solidFill.
 #[derive(Debug, Clone)]
 pub struct FillEffect {
     pub fill_properties: FillProperties,
@@ -3915,8 +4277,11 @@ impl FillEffect {
     }
 }
 
+/// This element specifies a fill overlay effect. A fill overlay can be used to specify an additional fill for an object and
+/// blend the two fills together.
 #[derive(Debug, Clone)]
 pub struct FillOverlayEffect {
+    /// Specifies how to blend the fill with the base effect.
     pub blend_mode: BlendMode,
     pub fill: FillProperties,
 }
@@ -3938,9 +4303,13 @@ impl FillOverlayEffect {
     }
 }
 
+/// This element specifies a glow effect, in which a color blurred outline is added outside the edges of the object.
 #[derive(Debug, Clone)]
 pub struct GlowEffect {
-    pub radius: Option<PositiveCoordinate>, // 0
+    /// Specifies the radius of the glow.
+    /// 
+    /// Defaults to 0
+    pub radius: Option<PositiveCoordinate>,
     pub color: Color,
 }
 
@@ -3961,11 +4330,22 @@ impl GlowEffect {
     }
 }
 
+/// This element specifies a hue/saturation/luminance effect. The hue, saturation, and luminance can each be
+/// adjusted relative to its current value.
 #[derive(Default, Debug, Clone)]
 pub struct HslEffect {
-    pub hue: Option<PositiveFixedAngle>,     // 0
-    pub saturation: Option<FixedPercentage>, // 0%
-    pub luminance: Option<FixedPercentage>,  // 0%
+    /// Specifies the number of degrees by which the hue is adjusted.
+    /// 
+    /// Defaults to 0
+    pub hue: Option<PositiveFixedAngle>,
+    /// Specifies the percentage by which the saturation is adjusted.
+    /// 
+    /// Defaults to 0
+    pub saturation: Option<FixedPercentage>,
+    /// Specifies the percentage by which the luminance is adjusted.
+    /// 
+    /// Defaults to 0
+    pub luminance: Option<FixedPercentage>,
 }
 
 impl HslEffect {
@@ -3985,11 +4365,22 @@ impl HslEffect {
     }
 }
 
+/// This element specifies an inner shadow effect. A shadow is applied within the edges of the object according to
+/// the parameters given by the attributes.
 #[derive(Debug, Clone)]
 pub struct InnerShadowEffect {
-    pub blur_radius: Option<PositiveCoordinate>, // 0
-    pub distance: Option<PositiveCoordinate>,    // 0
-    pub direction: Option<PositiveFixedAngle>,   // 0
+    /// Specifies the blur radius.
+    /// 
+    /// Defaults to 0
+    pub blur_radius: Option<PositiveCoordinate>,
+    /// Specifies how far to offset the shadow.
+    /// 
+    /// Defaults to 0
+    pub distance: Option<PositiveCoordinate>,
+    /// Specifies the direction to offset the shadow.
+    /// 
+    /// Defaults to 0
+    pub direction: Option<PositiveFixedAngle>,
     pub color: Color,
 }
 
@@ -4023,23 +4414,46 @@ impl InnerShadowEffect {
     }
 }
 
+/// This element specifies an Outer Shadow Effect.
 #[derive(Debug, Clone)]
 pub struct OuterShadowEffect {
-    pub blur_radius: Option<PositiveCoordinate>, // 0
-    pub distance: Option<PositiveCoordinate>,    // 0
-    pub direction: Option<PositiveFixedAngle>,   // 0
-    /// This element specifies the horizontal ratio for use within a scaling calculation.
+    /// Specifies the blur radius of the shadow.
+    /// 
+    /// Defaults to 0
+    pub blur_radius: Option<PositiveCoordinate>,
+    /// Specifies the how far to offset the shadow.
+    /// 
+    /// Defaults to 0
+    pub distance: Option<PositiveCoordinate>,
+    /// Specifies the direction to offset the shadow.
+    /// 
+    /// Defaults to 0
+    pub direction: Option<PositiveFixedAngle>,
+    /// Specifies the horizontal scaling factor; negative scaling causes a flip.
     /// 
     /// Defaults to 100_000
     pub scale_x: Option<Percentage>,
-    /// This element specifies the vertical ratio for use within a scaling calculation.
+    /// Specifies the vertical scaling factor; negative scaling causes a flip.
     /// 
     /// Defaults to 100_000
     pub scale_y: Option<Percentage>,
-    pub skew_x: Option<FixedAngle>,              // 0
-    pub skew_y: Option<FixedAngle>,              // 0
-    pub alignment: Option<RectAlignment>,        // b
-    pub rotate_with_shape: Option<bool>,         // true
+    /// Specifies the horizontal skew angle.
+    /// 
+    /// Defaults to 0
+    pub skew_x: Option<FixedAngle>,
+    /// Specifies the vertical skew angle.
+    /// 
+    /// Defaults to 0
+    pub skew_y: Option<FixedAngle>,
+    /// Specifies shadow alignment; alignment happens first, effectively setting the origin for
+    /// scale, skew, and offset.
+    /// 
+    /// Defaults to RectAlignment::Bottom
+    pub alignment: Option<RectAlignment>,
+    /// Specifies whether the shadow rotates with the shape if the shape is rotated.
+    /// 
+    /// Defaults to true
+    pub rotate_with_shape: Option<bool>,
     pub color: Color,
 }
 
@@ -4091,11 +4505,23 @@ impl OuterShadowEffect {
     }
 }
 
+/// This element specifies that a preset shadow is to be used. Each preset shadow is equivalent to a specific outer
+/// shadow effect. For each preset shadow, the color element, direction attribute, and distance attribute represent
+/// the color, direction, and distance parameters of the corresponding outer shadow. Additionally, the
+/// rotateWithShape attribute of corresponding outer shadow is always false. Other non-default parameters of
+/// the outer shadow are dependent on the prst attribute.
 #[derive(Debug, Clone)]
 pub struct PresetShadowEffect {
+    /// Specifies which preset shadow to use.
     pub preset: PresetShadowVal,
-    pub distance: Option<PositiveCoordinate>,  // 0
-    pub direction: Option<PositiveFixedAngle>, // 0
+    /// Specifies how far to offset the shadow.
+    /// 
+    /// Defaults to 0
+    pub distance: Option<PositiveCoordinate>,
+    /// Specifies the direction to offset the shadow.
+    /// 
+    /// Defaults to 0
+    pub direction: Option<PositiveFixedAngle>,
     pub color: Color,
 }
 
@@ -4131,28 +4557,65 @@ impl PresetShadowEffect {
     }
 }
 
+/// This element specifies a reflection effect.
 #[derive(Default, Debug, Clone)]
 pub struct ReflectionEffect {
-    pub blur_radius: Option<PositiveCoordinate>,         // 0
-    pub start_opacity: Option<PositiveFixedPercentage>,  // 100000
-    pub start_position: Option<PositiveFixedPercentage>, // 0
-    pub end_opacity: Option<PositiveFixedPercentage>,    // 0
-    pub end_position: Option<PositiveFixedPercentage>,   // 100000
-    pub distance: Option<PositiveCoordinate>,            // 0
-    pub direction: Option<PositiveFixedAngle>,           // 0
-    pub fade_direction: Option<PositiveFixedAngle>,      // 5400000
-    /// This element specifies the horizontal ratio for use within a scaling calculation.
+    /// Specifies the blur radius.
+    /// 
+    /// Defaults to 0
+    pub blur_radius: Option<PositiveCoordinate>,
+    /// Starting reflection opacity.
+    /// 
+    /// Defaults to 100_000
+    pub start_opacity: Option<PositiveFixedPercentage>,
+    /// Specifies the start position (along the alpha gradient ramp) of the start alpha value.
+    /// 
+    /// Defaults to 0
+    pub start_position: Option<PositiveFixedPercentage>,
+    /// Specifies the ending reflection opacity.
+    /// 
+    /// Defaults to 0
+    pub end_opacity: Option<PositiveFixedPercentage>,
+    /// Specifies the end position (along the alpha gradient ramp) of the end alpha value.
+    /// 
+    /// Defaults to 100_000
+    pub end_position: Option<PositiveFixedPercentage>,
+    /// Specifies how far to distance the shadow.
+    /// 
+    /// Defaults to 0
+    pub distance: Option<PositiveCoordinate>,
+    /// Specifies the direction of the alpha gradient ramp relative to the shape itself.
+    /// 
+    /// Defaults to 0
+    pub direction: Option<PositiveFixedAngle>,
+    /// Specifies the direction to offset the reflection.
+    /// 
+    /// Defaults to 5_400_000
+    pub fade_direction: Option<PositiveFixedAngle>,
+    /// Specifies the horizontal scaling factor.
     /// 
     /// Defaults to 100_000
     pub scale_x: Option<Percentage>,
-    /// This element specifies the vertical ratio for use within a scaling calculation.
+    /// Specifies the vertical scaling factor.
     /// 
     /// Defaults to 100_000
     pub scale_y: Option<Percentage>,
-    pub skew_x: Option<FixedAngle>,                      // 0
-    pub skew_y: Option<FixedAngle>,                      // 0
-    pub alignment: Option<RectAlignment>,                // b
-    pub rotate_with_shape: Option<bool>,                 // true
+    /// Specifies the horizontal skew angle.
+    /// 
+    /// Defaults to 0
+    pub skew_x: Option<FixedAngle>,
+    /// Specifies the vertical skew angle.
+    /// 
+    /// Defaults to 0
+    pub skew_y: Option<FixedAngle>,
+    /// Specifies shadow alignment.
+    /// 
+    /// Defaults to RectAlignment::Bottom
+    pub alignment: Option<RectAlignment>,
+    /// Specifies if the reflection rotates with the shape.
+    /// 
+    /// Defaults to true
+    pub rotate_with_shape: Option<bool>,
 }
 
 impl ReflectionEffect {
@@ -4183,10 +4646,18 @@ impl ReflectionEffect {
     }
 }
 
+/// This element specifies a relative offset effect. Sets up a new origin by offsetting relative to the size of the
+/// previous effect.
 #[derive(Default, Debug, Clone)]
 pub struct RelativeOffsetEffect {
-    pub translate_x: Option<Percentage>, // 0
-    pub translate_y: Option<Percentage>, // 0
+    /// Specifies the X offset.
+    /// 
+    /// Defaults to 0
+    pub translate_x: Option<Percentage>,
+    /// Specifies the Y offset.
+    /// 
+    /// Defaults to 0
+    pub translate_y: Option<Percentage>,
 }
 
 impl RelativeOffsetEffect {
@@ -4209,8 +4680,10 @@ impl RelativeOffsetEffect {
     }
 }
 
+/// This element specifies a soft edge effect. The edges of the shape are blurred, while the fill is not affected.
 #[derive(Debug, Clone)]
 pub struct SoftEdgesEffect {
+    /// Specifies the radius of blur to apply to the edges.
     pub radius: PositiveCoordinate,
 }
 
@@ -4226,10 +4699,17 @@ impl SoftEdgesEffect {
     }
 }
 
+/// This element specifies a tint effect. Shifts effect color values towards/away from hue by the specified amount.
 #[derive(Default, Debug, Clone)]
 pub struct TintEffect {
-    pub hue: Option<PositiveFixedAngle>, // 0
-    pub amount: Option<FixedPercentage>, // 0
+    /// Specifies the hue towards which to tint.
+    /// 
+    /// Defaults to 0
+    pub hue: Option<PositiveFixedAngle>,
+    /// Specifies by how much the color value is shifted.
+    /// 
+    /// Defaults to 0
+    pub amount: Option<FixedPercentage>,
 }
 
 impl TintEffect {
@@ -4249,20 +4729,42 @@ impl TintEffect {
     }
 }
 
+/// This element specifies a transform effect. The transform is applied to each point in the shape's geometry using
+/// the following matrix:
+/// 
+/// sx          tan(kx)     tx      x
+/// tan(ky)     sy          ty  *   y
+/// 0           0           1       1
 #[derive(Default, Debug, Clone)]
 pub struct TransformEffect {
-    /// This element specifies the horizontal ratio for use within a scaling calculation.
+    /// Specifies a percentage by which to horizontally scale the object.
     /// 
     /// Defaults to 100_000
     pub scale_x: Option<Percentage>,
-    /// This element specifies the vertical ratio for use within a scaling calculation.
+    /// Specifies a percentage by which to vertically scale the object.
     /// 
     /// Defaults to 100_000
     pub scale_y: Option<Percentage>,
-    pub translate_x: Option<Coordinate>, // 0
-    pub translate_y: Option<Coordinate>, // 0
-    pub skew_x: Option<FixedAngle>,      // 0
-    pub skew_y: Option<FixedAngle>,      // 0
+    /// Specifies an amount by which to shift the object along the x-axis.
+    /// 
+    /// Defaults to 0
+    pub translate_x: Option<Coordinate>,
+    /// Specifies an amount by which to shift the object along the y-axis.
+    /// 
+    /// Defaults to 0
+    pub translate_y: Option<Coordinate>,
+    /// Specifies the horizontal skew angle, defined as the angle between the top-left corner and
+    /// bottom-left corner of the object's original bounding box. If positive, the bottom edge of
+    /// the shape is positioned to the right relative to the top edge.
+    /// 
+    /// Defaults to 0
+    pub skew_x: Option<FixedAngle>,
+    /// Specifies the vertical skew angle, defined as the angle between the top-left corner and
+    /// top-right corner of the object's original bounding box. If positive, the right edge of the
+    /// object is positioned lower relative to the left edge.
+    /// 
+    /// Defaults to 0
+    pub skew_y: Option<FixedAngle>,
 }
 
 impl TransformEffect {
@@ -4289,9 +4791,25 @@ impl TransformEffect {
 #[derive(Debug, Clone)]
 pub enum Effect {
     Container(EffectContainer),
+    /// This element specifies a reference to an existing effect container.
+    /// 
+    /// Its value can be the name of an effect container, or one of four
+    /// special references:
+    /// * fill - refers to the fill effect
+    /// * line - refers to the line effect
+    /// * fillLine - refers to the combined fill and line effects
+    /// * children - refers to the combined effects from logical child shapes or text
     EffectReference(String),
     AlphaBiLevel(AlphaBiLevelEffect),
+    /// This element represents an alpha ceiling effect.
+    ///
+    /// Alpha (opacity) values greater than zero are changed to 100%. In other words, anything partially opaque
+    /// becomes fully opaque.
     AlphaCeiling,
+    /// This element represents an alpha floor effect.
+    /// 
+    /// Alpha (opacity) values less than 100% are changed to zero. In other words, anything partially transparent
+    /// becomes fully transparent.
     AlphaFloor,
     AlphaInverse(AlphaInverseEffect),
     AlphaModulate(AlphaModulateEffect),
@@ -4307,6 +4825,8 @@ pub enum Effect {
     Fill(FillEffect),
     FillOverlay(FillOverlayEffect),
     Glow(GlowEffect),
+    /// This element specifies a gray scale effect. Converts all effect color values to a shade of gray, corresponding to
+    /// their luminance. Effect alpha (opacity) values are unaffected.
     Grayscale,
     Hsl(HslEffect),
     InnerShadow(InnerShadowEffect),
@@ -4417,7 +4937,29 @@ impl EffectList {
 
 #[derive(Debug, Clone)]
 pub enum EffectProperties {
+    /// This element specifies a list of effects. Effects in an effectLst are applied in the default order by the rendering
+    /// engine. The following diagrams illustrate the order in which effects are applied, both for shapes and for group
+    /// shapes.
+    /// 
+    /// # Note
+    /// 
+    /// The output of many effects does not include the input shape. For effects that should be applied to the
+    /// result of previous effects as well as the original shape, a container is used to group the inputs together.
+    /// 
+    /// # Example
+    /// 
+    /// Outer Shadow is applied both to the original shape and the original shape's glow. The result of blur
+    /// contains the original shape, while the result of glow contains only the added glow. Therefore, a container that
+    /// groups the blur result with the glow result is used as the input to Outer Shadow.
     EffectList(Box<EffectList>),
+    /// This element specifies a list of effects. Effects are applied in the order specified by the container type (sibling or
+    /// tree).
+    /// 
+    /// # Note
+    /// 
+    /// An effectDag element can contain multiple effect containers as child elements. Effect containers with
+    /// different styles can be combined in an effectDag to define a directed acyclic graph (DAG) that specifies the order
+    /// in which all effects are applied.
     EffectContainer(Box<EffectContainer>),
 }
 
@@ -4479,7 +5021,15 @@ impl EffectStyleItem {
 #[derive(Debug, Clone)]
 pub enum BlipEffect {
     AlphaBiLevel(AlphaBiLevelEffect),
+    /// This element represents an alpha ceiling effect.
+    ///
+    /// Alpha (opacity) values greater than zero are changed to 100%. In other words, anything partially opaque
+    /// becomes fully opaque.
     AlphaCeiling,
+    /// This element represents an alpha floor effect.
+    /// 
+    /// Alpha (opacity) values less than 100% are changed to zero. In other words, anything partially transparent
+    /// becomes fully transparent.
     AlphaFloor,
     AlphaInverse(AlphaInverseEffect),
     AlphaModulate(AlphaModulateEffect),
@@ -4491,6 +5041,8 @@ pub enum BlipEffect {
     ColorReplace(ColorReplaceEffect),
     Duotone(DuotoneEffect),
     FillOverlay(FillOverlayEffect),
+    /// This element specifies a gray scale effect. Converts all effect color values to a shade of gray, corresponding to
+    /// their luminance. Effect alpha (opacity) values are unaffected.
     Grayscale,
     Hsl(HslEffect),
     Luminance(LuminanceEffect),
@@ -4546,8 +5098,14 @@ impl BlipEffect {
 /// Blip
 #[derive(Default, Debug, Clone)]
 pub struct Blip {
+    /// Specifies the identification information for an embedded picture. This attribute is used to
+    /// specify an image that resides locally within the file.
     pub embed_rel_id: Option<RelationshipId>,
+    /// Specifies the identification information for a linked picture. This attribute is used to
+    /// specify an image that does not reside within this file.
     pub linked_rel_id: Option<RelationshipId>,
+    /// Specifies the compression state with which the picture is stored. This allows the
+    /// application to specify the amount of compression that has been applied to a picture.
     pub compression: Option<BlipCompression>,
     pub effects: Vec<BlipEffect>,
 }
@@ -6563,10 +7121,21 @@ impl Media {
 
 #[derive(Default, Debug, Clone)]
 pub struct Transform2D {
-    pub rotate_angle: Option<Angle>,   // 0
-    pub flip_horizontal: Option<bool>, // false
-    pub flip_vertical: Option<bool>,   // false
+    /// Specifies the rotation of the Graphic Frame. The units for which this attribute is specified
+    /// in reside within the simple type definition referenced below.
+    pub rotate_angle: Option<Angle>,
+    /// Specifies a horizontal flip. When true, this attribute defines that the shape is flipped
+    /// horizontally about the center of its bounding box.
+    /// 
+    /// Defaults to false
+    pub flip_horizontal: Option<bool>,
+    /// Specifies a vertical flip. When true, this attribute defines that the group is flipped
+    /// vertically about the center of its bounding box.
+    pub flip_vertical: Option<bool>,
+    /// This element specifies the location of the bounding box of an object. Effects on an object are not included in this
+    /// bounding box.
     pub offset: Option<Point2D>,
+    /// This element specifies the size of the bounding box enclosing the referenced object.
     pub extents: Option<PositiveSize2D>,
 }
 
@@ -6600,9 +7169,16 @@ pub struct GroupTransform2D {
     pub rotate_angle: Option<Angle>,   // 0
     pub flip_horizontal: Option<bool>, // false
     pub flip_vertical: Option<bool>,   // false
+    /// This element specifies the location of the bounding box of an object. Effects on an object are not included in this
+    /// bounding box.
     pub offset: Option<Point2D>,
+    /// This element specifies the size of the bounding box enclosing the referenced object.
     pub extents: Option<PositiveSize2D>,
+    /// This element specifies the location of the child extents rectangle and is used for calculations of grouping, scaling,
+    /// and rotation behavior of shapes placed within a group.
     pub child_offset: Option<Point2D>,
+    /// This element specifies the size dimensions of the child extents rectangle and is used for calculations of grouping,
+    /// scaling, and rotation behavior of shapes placed within a group.
     pub child_extents: Option<PositiveSize2D>,
 }
 
@@ -6636,6 +7212,8 @@ impl GroupTransform2D {
 #[derive(Default, Debug, Clone)]
 pub struct GroupShapeProperties {
     pub black_and_white_mode: Option<BlackWhiteMode>,
+    /// This element is nearly identical to the representation of 2-D transforms for ordinary shapes. The only
+    /// addition is a member to represent the Child offset and the Child extents.
     pub transform: Option<Box<GroupTransform2D>>,
     pub fill_properties: Option<FillProperties>,
     pub effect_properties: Option<EffectProperties>,
@@ -7224,6 +7802,7 @@ pub struct ShapeProperties {
     /// necessarily a black and white picture. This attribute instead sets the rendering mode that
     /// the picture has applied to when rendering.
     pub black_and_white_mode: Option<BlackWhiteMode>,
+    /// This element represents 2-D transforms for ordinary shapes.
     pub transform: Option<Box<Transform2D>>,
     pub geometry: Option<Geometry>,
     pub fill_properties: Option<FillProperties>,
@@ -7622,13 +8201,102 @@ impl AnimationChartBuildProperties {
 
 #[derive(Debug, Clone)]
 pub struct OfficeStyleSheet {
-    pub name: Option<String>, // ""
+    pub name: Option<String>,
+    /// This element defines the theme formatting options for the theme and is the workhorse of the theme. This is
+    /// where the bulk of the shared theme information is contained and used by a document. This element contains
+    /// the color scheme, font scheme, and format scheme elements which define the different formatting aspects of
+    /// what a theme defines.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <themeElements>
+    ///   <clrScheme name="sample">
+    ///     ...
+    ///   </clrScheme>
+    ///   <fontScheme name="sample">
+    ///     ...
+    ///   </fontScheme>
+    ///   <fmtScheme name="sample">
+    ///     <fillStyleLst>
+    ///       ...
+    ///     </fillStyleLst>
+    ///     <lnStyleLst>
+    ///       ...
+    ///     </lnStyleLst>
+    ///     <effectStyleLst>
+    ///       ...
+    ///     </effectStyleLst>
+    ///     <bgFillStyleLst>
+    ///       ...
+    ///     </bgFillStyleLst>
+    ///   </fmtScheme>
+    /// </themeElements>
+    /// ```
+    /// 
+    /// In this example, we see the basic structure of how a theme elements is defined and have left out the true guts of
+    /// each individual piece to save room. Each part (color scheme, font scheme, format scheme) is defined elsewhere
+    /// within DrawingML.
     pub theme_elements: Box<BaseStyles>,
+    /// This element allows for the definition of default shape, line, and textbox formatting properties. An application
+    /// can use this information to format a shape (or text) initially on insertion into a document.
     pub object_defaults: Option<ObjectStyleDefaults>,
+    /// This element is a container for the list of extra color schemes present in a document.
+    /// 
+    /// An ColorSchemeAndMapping element defines an auxiliary color scheme, which includes both a color scheme and
+    /// color mapping. This is mainly used for backward compatibility concerns and roundtrips information required by
+    /// earlier versions.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <extraClrScheme>
+    ///   <clrScheme name="extraColorSchemeSample">
+    ///     <dk1>
+    ///       <sysClr val="windowText"/>
+    ///     </dk1>
+    ///     <lt1>
+    ///       <sysClr val="window"/>
+    ///     </lt1>
+    ///     <dk2>
+    ///       <srgbClr val="04617B"/>
+    ///     </dk2>
+    ///     <lt2>
+    ///       <srgbClr val="DBF5F9"/>
+    ///     </lt2>
+    ///     <accent1>
+    ///       <srgbClr val="0F6FC6"/>
+    ///     </accent1>
+    ///     <accent2>
+    ///       <srgbClr val="009DD9"/>
+    ///     </accent2>
+    ///     <accent3>
+    ///       <srgbClr val="0BD0D9"/>
+    ///     </accent3>
+    ///     <accent4>
+    ///       <srgbClr val="10CF9B"/>
+    ///     </accent4>
+    ///     <accent5>
+    ///       <srgbClr val="7CCA62"/>
+    ///     </accent5>
+    ///     <accent6>
+    ///       <srgbClr val="A5C249"/>
+    ///     </accent6>
+    ///     <hlink>
+    ///       <srgbClr val="FF9800"/>
+    ///     </hlink>
+    ///     <folHlink>
+    ///       <srgbClr val="F45511"/>
+    ///     </folHlink>
+    ///   </clrScheme>
+    ///   <clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1"
+    ///     accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5"
+    ///     accent6="accent6" hlink="hlink" folHlink="folHlink"/>
+    /// </extraClrScheme>
+    /// ```
     pub extra_color_scheme_list: Vec<ColorSchemeAndMapping>,
-    /// This element defines a custom color. The custom colors are used within a custom color list to define custom
-    /// colors that are extra colors that can be appended to a theme. This is useful within corporate scenarios where
-    /// there is a set corporate color palette from which to work.
+    /// This element allows for a custom color palette to be created and which shows up alongside other color schemes.
+    /// This can be very useful, for example, when someone would like to maintain a corporate color palette.
     pub custom_color_list: Vec<CustomColor>,
 }
 
