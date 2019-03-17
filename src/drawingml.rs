@@ -2292,7 +2292,6 @@ impl ColorTransform {
     }
 }
 
-/// ScRgbColor
 #[derive(Debug, Clone)]
 pub struct ScRgbColor {
     /// Specifies the percentage of red.
@@ -2340,7 +2339,6 @@ impl ScRgbColor {
     }
 }
 
-/// SRgbColor
 #[derive(Debug, Clone)]
 pub struct SRgbColor {
     pub value: u32,
@@ -2369,7 +2367,6 @@ impl SRgbColor {
     }
 }
 
-/// HslColor
 #[derive(Debug, Clone)]
 pub struct HslColor {
     /// Specifies the angular value describing the wavelength. Expressed in 1/6000ths of a
@@ -2421,7 +2418,6 @@ impl HslColor {
     }
 }
 
-/// SystemColor
 #[derive(Debug, Clone)]
 pub struct SystemColor {
     /// Specifies the system color value.
@@ -2462,7 +2458,6 @@ impl SystemColor {
     }
 }
 
-/// PresetColor
 #[derive(Debug, Clone)]
 pub struct PresetColor {
     pub value: PresetColorVal,
@@ -2491,7 +2486,6 @@ impl PresetColor {
     }
 }
 
-/// SchemeColor
 #[derive(Debug, Clone)]
 pub struct SchemeColor {
     pub value: SchemeColorVal,
@@ -2520,7 +2514,6 @@ impl SchemeColor {
     }
 }
 
-/// Color
 #[derive(Debug, Clone)]
 pub enum Color {
     /// This element specifies a color using the red, green, blue RGB color model. Each component, red, green, and blue
@@ -3596,7 +3589,6 @@ impl DashStop {
     }
 }
 
-/// LineDashProperties
 #[derive(Debug, Clone)]
 pub enum LineDashProperties {
     /// This element specifies that a preset line dashing scheme should be used.
@@ -3828,7 +3820,6 @@ impl Point2D {
     }
 }
 
-/// PositiveSize2D
 #[derive(Debug, Clone)]
 pub struct PositiveSize2D {
     /// Specifies the length of the extents rectangle in EMUs. This rectangle shall dictate the size
@@ -5017,7 +5008,6 @@ impl EffectStyleItem {
     }
 }
 
-/// BlipEffect
 #[derive(Debug, Clone)]
 pub enum BlipEffect {
     AlphaBiLevel(AlphaBiLevelEffect),
@@ -5142,7 +5132,6 @@ impl Blip {
     }
 }
 
-/// TextFont
 #[derive(Debug, Clone)]
 pub struct TextFont {
     pub typeface: TextTypeFace,
@@ -5211,7 +5200,6 @@ impl SupplementalFont {
     }
 }
 
-/// TextSpacing
 #[derive(Debug, Clone)]
 pub enum TextSpacing {
     Percent(TextSpacingPercent),
@@ -5238,7 +5226,6 @@ impl TextSpacing {
     }
 }
 
-/// TextBulletColor
 #[derive(Debug, Clone)]
 pub enum TextBulletColor {
     FollowText,
@@ -5268,7 +5255,6 @@ impl TextBulletColor {
     }
 }
 
-/// TextBulletSize
 #[derive(Debug, Clone)]
 pub enum TextBulletSize {
     FollowText,
@@ -5304,7 +5290,6 @@ impl TextBulletSize {
     }
 }
 
-/// TextBulletTypeface
 #[derive(Debug, Clone)]
 pub enum TextBulletTypeface {
     FollowText,
@@ -5328,7 +5313,6 @@ impl TextBulletTypeface {
     }
 }
 
-/// TextBullet
 #[derive(Debug, Clone)]
 pub enum TextBullet {
     None,
@@ -5366,7 +5350,6 @@ impl TextBullet {
     }
 }
 
-/// TextAutonumberedBullet
 #[derive(Debug, Clone)]
 pub struct TextAutonumberedBullet {
     pub scheme: TextAutonumberScheme,
@@ -5392,7 +5375,6 @@ impl TextAutonumberedBullet {
     }
 }
 
-/// TextTabStop
 #[derive(Default, Debug, Clone)]
 pub struct TextTabStop {
     pub position: Option<Coordinate32>,
@@ -5539,7 +5521,6 @@ impl Hyperlink {
     }
 }
 
-/// TextCharacterProperties
 #[derive(Default, Debug, Clone)]
 pub struct TextCharacterProperties {
     pub kumimoji: Option<bool>,
@@ -5648,7 +5629,6 @@ impl TextCharacterProperties {
     }
 }
 
-/// TextParagraphProperties
 #[derive(Default, Debug, Clone)]
 pub struct TextParagraphProperties {
     pub margin_left: Option<TextMargin>,
@@ -5887,7 +5867,6 @@ impl TextField {
     }
 }
 
-/// TextListStyle
 #[derive(Default, Debug, Clone)]
 pub struct TextListStyle {
     pub def_paragraph_props: Option<Box<TextParagraphProperties>>,
