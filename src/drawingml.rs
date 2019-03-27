@@ -5989,6 +5989,73 @@ pub struct TextBodyProperties {
     pub force_antialias: Option<bool>,
     pub upright: Option<bool>,
     pub compatible_line_spacing: Option<bool>,
+    /// This element specifies when a preset geometric shape should be used to transform a piece of text. This
+    /// operation is known formally as a text warp. The generating application should be able to render all preset
+    /// geometries enumerated in the TextShapeType list.
+    /// 
+    /// Using any of the presets listed under the ST_TextShapeType list below it is possible to apply a text warp to a run
+    /// of DrawingML text via the following steps.
+    /// 
+    /// If you look at any of the text warps in the file format you notice that each consists of two paths. This
+    /// corresponds to a top path (first one specified) and a bottom path (second one specified). Now the top path and
+    /// the bottom path represent the top line and base line that the text needs to be warped to. This is done in the
+    /// following way:
+    /// 
+    /// 1. Compute the rectangle that the unwarped text resides in. (tightest possible rectangle around text, no
+    ///    white space except for “space characters”)
+    /// 2. Take each of the quadratic and cubic Bezier curves that are used to calculate the original character and
+    ///    change their end points and control points by the following method…
+    /// 3. Move a vertical line horizontally along the original text rectangle and find the horizontal percentage that
+    ///    a given end point or control point lives at. (.5 for the middle for instance)
+    /// 4. Now do the same thing for this point vertically. Find the vertical percentage that this point lives at with
+    ///    the top and bottom of this text rectangle being the respective top and bottom bounds. (0.0 and 1.0
+    ///    respectively)
+    /// 5. Now that we have the percentages for a given point in a Bezier equation we can map that to the new
+    ///    point in the warped text environment.
+    /// 6. Going back to the top and bottom paths specified in the file format we can take these and flatten them
+    ///    out to a straight arc (top and bottom might be different lengths)
+    /// 7. After they are straight we can measure them both horizontally to find the same percentage point that
+    ///    we found within the original text rectangle. (0.5 let’s say)
+    /// 8. So then we measure 50% along the top path and 50% along the bottom path, putting the paths back to
+    ///    their original curvy shapes.
+    /// 9. Once we have these two points we can draw a line between them that serves as our vertical line in the
+    ///    original text rectangle (This might not be truly vertical as 50% on the top does not always line up
+    ///    with 50% on the bottom. end)
+    /// 10. Taking this new line we then follow it from top to bottom the vertical percentage amount that we got
+    ///     from step 4.
+    /// 11. This is then the new point that should be used in place of the old point in the original text rectangle.
+    /// 12. We then continue doing these same steps for each of the end points and control points within the body
+    ///     of text. (is applied to a whole body of text only)
+    /// 
+    /// # Xml example
+    /// 
+    /// Consider the case where the user wishes to accent a piece of text by warping it's shape. For this to
+    /// occur a preset shape is chosen from the TextShapeType list and applied to the entire body of text.
+    /// 
+    /// ```xml
+    /// <p:sp>
+    ///   <p:txBody>
+    ///     <a:bodyPr wrap="none" rtlCol="0">
+    ///       <a:prstTxWarp prst="textInflate">
+    ///       </a:prstTxWarp>
+    ///       <a:spAutoFit/>
+    ///     </a:bodyPr>
+    ///     <a:lstStyle/>
+    ///     <a:p>
+    ///       …
+    ///       <a:t>Sample Text</a:t>
+    ///       …
+    ///     </a:p>
+    ///   </p:txBody>
+    /// </p:sp>
+    /// ```
+    /// 
+    /// # Note
+    /// 
+    /// Horizontal percentages begin at 0.0 and continue to 1.0, left to right. Vertical percentages begin at 0.0
+    /// and continue to 1.0, top to bottom.
+    /// 
+    /// Since this is a shape it does have both a shape coordinate system and a path coordinate system.
     pub preset_text_warp: Option<Box<PresetTextShape>>,
     pub auto_fit_type: Option<TextAutoFit>,
     // TODO implement
@@ -6093,6 +6160,32 @@ impl TextNormalAutoFit {
 
 #[derive(Debug, Clone)]
 pub struct PresetTextShape {
+    /// Specifies the preset geometry that is used for a shape warp on a piece of text. This preset
+    /// can have any of the values in the enumerated list for TextShapeType. This attribute
+    /// is required in order for a text warp to be rendered.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:sp>
+    ///   <p:txBody>
+    ///     <a:bodyPr wrap="none" rtlCol="0">
+    ///       <a:prstTxWarp prst="textInflate">
+    ///         </a:prstTxWarp>
+    ///       <a:spAutoFit/>
+    ///     </a:bodyPr>
+    ///     <a:lstStyle/>
+    ///     <a:p>
+    ///       …
+    ///       <a:t>Sample Text</a:t>
+    ///       …
+    ///     </a:p>
+    ///   </p:txBody>
+    /// </p:sp>
+    /// ```
+    /// 
+    /// In the above example a preset text shape geometry has been used to define the warping
+    /// shape. The shape utilized here is the sun shape.
     pub preset: TextShapeType,
     pub adjust_value_list: Vec<GeomGuide>,
 }
@@ -7266,6 +7359,32 @@ pub enum Geometry {
     /// </a:custGeom>
     /// ```
     Custom(Box<CustomGeometry2D>),
+    /// This element specifies when a preset geometric shape should be used instead of a custom geometric shape. The
+    /// generating application should be able to render all preset geometries enumerated in the ShapeType enum.
+    /// 
+    /// # Xml example
+    /// 
+    /// Consider the scenario when a user does not wish to specify all the lines and curves that make up the
+    /// desired shape but instead chooses to use a preset geometry. The following DrawingML would specify such a
+    /// case.
+    /// 
+    /// ```xml
+    /// <p:sp>
+    ///   <p:nvSpPr>
+    ///     <p:cNvPr id="4" name="My Preset Shape"/>
+    ///     <p:cNvSpPr/>
+    ///     <p:nvPr/>
+    ///   </p:nvSpPr>
+    ///   <p:spPr>
+    ///     <a:xfrm>
+    ///       <a:off x="1981200" y="533400"/>
+    ///       <a:ext cx="1143000" cy="1066800"/>
+    ///     </a:xfrm>
+    ///     <a:prstGeom prst="heart">
+    ///     </a:prstGeom>
+    ///   </p:spPr>
+    /// </p:sp>
+    /// ```
     Preset(Box<PresetGeometry2D>),
 }
 
@@ -7559,9 +7678,71 @@ impl FromStr for AdjAngle {
     }
 }
 
+/// This element specifies an x-y coordinate within the path coordinate space. This coordinate space is determined
+/// by the width and height attributes defined within the path element. A point is utilized by one of it's parent
+/// elements to specify the next point of interest in custom geometry shape. Depending on the parent element used
+/// the point can either have a line drawn to it or the cursor can simply be moved to this new location.
+/// 
+/// Specifies a position coordinate within the shape bounding box. It should be noted that this coordinate is placed
+/// within the shape bounding box using the transform coordinate system which is also called the shape coordinate
+/// system, as it encompasses the entire shape. The width and height for this coordinate system are specified within
+/// the ext transform element.
+/// 
+/// # Note
+/// 
+/// When specifying a point coordinate in path coordinate space it should be noted that the top left of the
+/// coordinate space is x=0, y=0 and the coordinate points for x grow to the right and for y grow down.
+/// 
+/// # Xml example
+/// 
+/// To highlight the differences in the coordinate systems consider the drawing of the following triangle.
+/// Notice that the dimensions of the triangle are specified using the shape coordinate system with EMUs as the
+/// units via the ext transform element. Thus we see this shape is 1705233 EMUs wide by 679622 EMUs tall.
+/// However when looking at how the path for this shape is drawn we see that the x and y values fall between 0 and
+/// 2. This is because the path coordinate system has the arbitrary dimensions of 2 for the width and 2 for the
+/// height. Thus we see that a y coordinate of 2 within the path coordinate system specifies a y coordinate of
+/// 679622 within the shape coordinate system for this particular case.
+/// 
+/// ```xml
+/// <a:xfrm>
+///   <a:off x="3200400" y="1600200"/>
+///   <a:ext cx="1705233" cy="679622"/>
+/// </a:xfrm>
+/// <a:custGeom>
+///   <a:avLst/>
+///   <a:gdLst/>
+///   <a:ahLst/>
+///   <a:cxnLst/>
+///   <a:rect l="0" t="0" r="0" b="0"/>
+///   <a:pathLst>
+///     <a:path w="2" h="2">
+///       <a:moveTo>
+///         <a:pt x="0" y="2"/>
+///       </a:moveTo>
+///       <a:lnTo>
+///         <a:pt x="2" y="2"/>
+///       </a:lnTo>
+///       <a:lnTo>
+///         <a:pt x="1" y="0"/>
+///       </a:lnTo>
+///       <a:close/>
+///     </a:path>
+///   </a:pathLst>
+/// </a:custGeom>
+/// ```
 #[derive(Debug, Clone)]
 pub struct AdjPoint2D {
+    /// Specifies the x coordinate for this position coordinate. The units for this coordinate space
+    /// are defined by the width of the path coordinate system. This coordinate system is
+    /// overlayed on top of the shape coordinate system thus occupying the entire shape
+    /// bounding box. Because the units for within this coordinate space are determined by the
+    /// path width and height an exact measurement unit cannot be specified here.
     pub x: AdjCoordinate,
+    /// Specifies the y coordinate for this position coordinate. The units for this coordinate space
+    /// are defined by the height of the path coordinate system. This coordinate system is
+    /// overlayed on top of the shape coordinate system thus occupying the entire shape
+    /// bounding box. Because the units for within this coordinate space are determined by the
+    /// path width and height an exact measurement unit cannot be specified here.
     pub y: AdjCoordinate,
 }
 
@@ -7587,9 +7768,25 @@ impl AdjPoint2D {
 
 #[derive(Debug, Clone)]
 pub struct GeomRect {
+    /// Specifies the x coordinate of the left edge for a shape text rectangle. The units for this
+    /// edge is specified in EMUs as the positioning here is based on the shape coordinate
+    /// system. The width and height for this coordinate system are specified within the ext
+    /// transform element.
     pub left: AdjCoordinate,
+    /// Specifies the y coordinate of the top edge for a shape text rectangle. The units for this
+    /// edge is specified in EMUs as the positioning here is based on the shape coordinate
+    /// system. The width and height for this coordinate system are specified within the ext
+    /// transform element.
     pub top: AdjCoordinate,
+    /// Specifies the x coordinate of the right edge for a shape text rectangle. The units for this
+    /// edge is specified in EMUs as the positioning here is based on the shape coordinate
+    /// system. The width and height for this coordinate system are specified within the ext
+    /// transform element.
     pub right: AdjCoordinate,
+    /// Specifies the y coordinate of the bottom edge for a shape text rectangle. The units for
+    /// this edge is specified in EMUs as the positioning here is based on the shape coordinate
+    /// system. The width and height for this coordinate system are specified within the ext
+    /// transform element.
     pub bottom: AdjCoordinate,
 }
 
@@ -7648,6 +7845,53 @@ pub struct XYAdjustHandle {
     /// attribute is omitted, then it is assumed that this adjust handle cannot move in the y
     /// direction. That is the maxY and minY are equal.
     pub max_y: Option<AdjCoordinate>,
+    /// Specifies a position coordinate within the shape bounding box. It should be noted that this coordinate is placed
+    /// within the shape bounding box using the transform coordinate system which is also called the shape coordinate
+    /// system, as it encompasses the entire shape. The width and height for this coordinate system are specified within
+    /// the ext transform element.
+    /// 
+    /// # Note
+    /// 
+    /// When specifying a point coordinate in path coordinate space it should be noted that the top left of the
+    /// coordinate space is x=0, y=0 and the coordinate points for x grow to the right and for y grow down.
+    /// 
+    /// # Xml example
+    /// 
+    /// To highlight the differences in the coordinate systems consider the drawing of the following triangle.
+    /// Notice that the dimensions of the triangle are specified using the shape coordinate system with EMUs as the
+    /// units via the ext transform element. Thus we see this shape is 1705233 EMUs wide by 679622 EMUs tall.
+    /// However when looking at how the path for this shape is drawn we see that the x and y values fall between 0 and
+    /// 2. This is because the path coordinate system has the arbitrary dimensions of 2 for the width and 2 for the
+    /// height. Thus we see that a y coordinate of 2 within the path coordinate system specifies a y coordinate of
+    /// 679622 within the shape coordinate system for this particular case.
+    /// 
+    /// ```xml
+    /// <a:xfrm>
+    ///   <a:off x="3200400" y="1600200"/>
+    ///   <a:ext cx="1705233" cy="679622"/>
+    /// </a:xfrm>
+    /// <a:custGeom>
+    ///   <a:avLst/>
+    ///   <a:gdLst/>
+    ///   <a:ahLst/>
+    ///   <a:cxnLst/>
+    ///   <a:rect l="0" t="0" r="0" b="0"/>
+    ///   <a:pathLst>
+    ///     <a:path w="2" h="2">
+    ///       <a:moveTo>
+    ///         <a:pt x="0" y="2"/>
+    ///       </a:moveTo>
+    ///       <a:lnTo>
+    ///         <a:pt x="2" y="2"/>
+    ///       </a:lnTo>
+    ///       <a:lnTo>
+    ///         <a:pt x="1" y="0"/>
+    ///       </a:lnTo>
+    ///       <a:close/>
+    ///     </a:path>
+    ///   </a:pathLst>
+    /// </a:custGeom>
+    /// ```
     pub position: AdjPoint2D,
 }
 
@@ -7879,13 +8123,55 @@ pub enum Path2DCommand {
     /// generating application should connect the last point with the first via a straight line, thus creating a closed shape
     /// geometry.
     Close,
+    /// This element specifies a set of new coordinates to move the shape cursor to. This element is only used for
+    /// drawing a custom geometry. When this element is utilized the pt element is used to specify a new set of shape
+    /// coordinates that the shape cursor should be moved to. This does not draw a line or curve to this new position
+    /// from the old position but simply move the cursor to a new starting position. It is only when a path drawing
+    /// element such as lnTo is used that a portion of the path is drawn.
+    /// 
+    /// # Xml example
+    /// 
+    /// Consider the case where a user wishes to begin drawing a custom geometry not at the default starting
+    /// coordinates of x=0 , y=0 but at coordinates further inset into the shape coordinate space. The following
+    /// DrawingML would specify such a case.
+    /// 
+    /// ```xml
+    /// <a:custGeom>
+    ///   <a:pathLst>
+    ///     <a:path w="2824222" h="590309">
+    ///       <a:moveTo>
+    ///         <a:pt x="0" y="428263"/>
+    ///       </a:moveTo>
+    ///       <a:lnTo>
+    ///         <a:pt x="1620455" y="590309"/>
+    ///       </a:lnTo>
+    ///       <a:lnTo>
+    ///         <a:pt x="2824222" y="173620"/>
+    ///       </a:lnTo>
+    ///       <a:lnTo>
+    ///         <a:pt x="1562582" y="0"/>
+    ///       </a:lnTo>
+    ///       <a:close/>
+    ///     </a:path>
+    ///   </a:pathLst>
+    /// </a:custGeom>
+    /// ```
+    /// 
+    /// Notice the moveTo element advances the y coordinates before any actual lines are drawn
     MoveTo(AdjPoint2D),
+    /// This element specifies the drawing of a straight line from the current pen position to the new point specified.
+    /// This line becomes part of the shape geometry, representing a side of the shape. The coordinate system used
+    /// when specifying this line is the path coordinate system.
     LineTo(AdjPoint2D),
     /// This element specifies the existence of an arc within a shape path. It draws an arc with the specified parameters
     /// from the current pen position to the new point specified. An arc is a line that is bent based on the shape of a
     /// supposed circle. The length of this arc is determined by specifying both a start angle and an ending angle that
     /// act together to effectively specify an end point for the arc.
     ArcTo(Path2DArcTo),
+    /// This element specifies to draw a quadratic bezier curve along the specified points. To specify a quadratic bezier
+    /// curve there needs to be 2 points specified. The first is a control point used in the quadratic bezier calculation
+    /// and the last is the ending point for the curve. The coordinate system used for this type of curve is the path
+    /// coordinate system as this element is path specific.
     QuadBezierTo(AdjPoint2D, AdjPoint2D),
     /// This element specifies to draw a cubic bezier curve along the specified points. To specify a cubic bezier curve
     /// there needs to be 3 points specified. The first two are control points used in the cubic bezier calculation and the
@@ -8016,13 +8302,74 @@ impl Path2DArcTo {
     }
 }
 
+/// This element specifies a creation path consisting of a series of moves, lines and curves that when combined
+/// forms a geometric shape. This element is only utilized if a custom geometry is specified.
+/// 
+/// # Note
+/// 
+/// Since multiple paths are allowed the rules for drawing are that the path specified later in the pathLst is
+/// drawn on top of all previous paths.
+/// 
+/// # Xml example
+/// 
+/// ```xml
+/// <a:custGeom>
+///   <a:pathLst>
+///     <a:path w="2824222" h="590309">
+///       <a:moveTo>
+///         <a:pt x="0" y="428263"/>
+///       </a:moveTo>
+///       <a:lnTo>
+///         <a:pt x="1620455" y="590309"/>
+///       </a:lnTo>
+///       <a:lnTo>
+///         <a:pt x="2824222" y="173620"/>
+///       </a:lnTo>
+///       <a:lnTo>
+///         <a:pt x="1562582" y="0"/>
+///       </a:lnTo>
+///       <a:close/>
+///     </a:path>
+///   </a:pathLst>
+/// </a:custGeom>
+/// ```
+/// 
+/// In the above example there is specified a four sided geometric shape that has all straight sides. While we only
+/// see three lines being drawn via the lnTo element there are actually four sides because the last point of
+/// (x=1562585, y=0) is connected to the first point in the creation path via a lnTo element
 #[derive(Default, Debug, Clone)]
 pub struct Path2D {
-    pub width: Option<PositiveCoordinate>,  // 0
-    pub height: Option<PositiveCoordinate>, // 0
-    pub fill_mode: Option<PathFillMode>,    // norm
-    pub stroke: Option<bool>,               // true
-    pub extrusion_ok: Option<bool>,         // true
+    /// Specifies the width, or maximum x coordinate that should be used for within the path
+    /// coordinate system. This value determines the horizontal placement of all points within
+    /// the corresponding path as they are all calculated using this width attribute as the max x
+    /// coordinate.
+    /// 
+    /// Defaults to 0
+    pub width: Option<PositiveCoordinate>,
+    /// Specifies the height, or maximum y coordinate that should be used for within the path
+    /// coordinate system. This value determines the vertical placement of all points within the
+    /// corresponding path as they are all calculated using this height attribute as the max y
+    /// coordinate.
+    /// 
+    /// Defaults to 0
+    pub height: Option<PositiveCoordinate>,
+    /// Specifies how the corresponding path should be filled. If this attribute is omitted, a value
+    /// of "norm" is assumed.
+    /// 
+    /// Defaults to PathFillMode::Norm
+    pub fill_mode: Option<PathFillMode>,
+    /// Specifies if the corresponding path should have a path stroke shown. This is a boolean
+    /// value that affect the outline of the path. If this attribute is omitted, a value of true is
+    /// assumed.
+    /// 
+    /// Defaults to true
+    pub stroke: Option<bool>,
+    /// Specifies that the use of 3D extrusions are possible on this path. This allows the
+    /// generating application to know whether 3D extrusion can be applied in any form. If this
+    /// attribute is omitted then a value of 0, or false is assumed.
+    /// 
+    /// Defaults to true
+    pub extrusion_ok: Option<bool>,
     pub commands: Vec<Path2DCommand>,
 }
 
@@ -8113,7 +8460,53 @@ pub struct CustomGeometry2D {
     /// defining a point within the shape bounding box that can have a cxnSp element attached to it. These connection
     /// sites are specified using the shape coordinate system that is specified within the ext transform element.
     pub connection_site_list: Option<Vec<ConnectionSite>>,
+    /// This element specifies the rectangular bounding box for text within a custGeom shape. The default for this
+    /// rectangle is the bounding box for the shape. This can be modified using this elements four attributes to inset or
+    /// extend the text bounding box.
+    /// 
+    /// # Note
+    /// 
+    /// Text specified to reside within this shape text rectangle can flow outside this bounding box. Depending on
+    /// the autofit options within the txBody element the text might not entirely reside within this shape text rectangle.
     pub rect: Option<Box<GeomRect>>,
+    /// This element specifies the entire path that is to make up a single geometric shape. The path_list can consist of
+    /// many individual paths within it.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <a:custGeom>
+    ///   <a:pathLst>
+    ///     <a:path w="2824222" h="590309">
+    ///       <a:moveTo>
+    ///         <a:pt x="0" y="428263"/>
+    ///       </a:moveTo>
+    ///       <a:lnTo>
+    ///         <a:pt x="1620455" y="590309"/>
+    ///       </a:lnTo>
+    ///       <a:lnTo>
+    ///         <a:pt x="2824222" y="173620"/>
+    ///       </a:lnTo>
+    ///       <a:lnTo>
+    ///         <a:pt x="1562582" y="0"/>
+    ///       </a:lnTo>
+    ///       <a:close/>
+    ///     </a:path>
+    ///   </a:pathLst>
+    /// </a:custGeom>
+    /// ```
+    /// 
+    /// In the above example there is specified a four sided geometric shape that has all straight sides. While we only
+    /// see three lines being drawn via the lnTo element there are actually four sides because the last point of
+    /// (x=1562585, y=0) is connected to the first point in the creation path via a lnTo element.
+    /// 
+    /// # Note
+    /// 
+    /// A geometry with multiple paths within it should be treated visually as if each path were a distinct shape.
+    /// That is each creation path has its first point and last point joined to form a closed shape. However, the
+    /// generating application should then connect the last point to the first point of the new shape. If a close element
+    /// is encountered at the end of the previous creation path then this joining line should not be rendered by the
+    /// generating application. The rendering should resume with the first line or curve on the new creation path.
     pub path_list: Vec<Box<Path2D>>,
 }
 
@@ -8167,8 +8560,34 @@ impl CustomGeometry2D {
 
 #[derive(Debug, Clone)]
 pub struct PresetGeometry2D {
-    pub adjust_value_list: Vec<GeomGuide>,
+    /// Specifies the preset geometry that is used for this shape. This preset can have any of the
+    /// values in the enumerated list for ShapeType. This attribute is required in order for a
+    /// preset geometry to be rendered.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:sp>
+    ///   <p:nvSpPr>
+    ///     <p:cNvPr id="4" name="Sun 3"/>
+    ///     <p:cNvSpPr/>
+    ///     <p:nvPr/>
+    ///   </p:nvSpPr>
+    ///   <p:spPr>
+    ///     <a:xfrm>
+    ///       <a:off x="1981200" y="533400"/>
+    ///       <a:ext cx="1143000" cy="1066800"/>
+    ///     </a:xfrm>
+    ///     <a:prstGeom prst="sun">
+    ///     </a:prstGeom>
+    ///   </p:spPr>
+    /// </p:sp>
+    /// ```
+    /// 
+    /// In the above example a preset geometry has been used to define a shape. The shape
+    /// utilized here is the sun shape.
     pub preset: ShapeType,
+    pub adjust_value_list: Vec<GeomGuide>,
 }
 
 impl PresetGeometry2D {
