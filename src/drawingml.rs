@@ -13,21 +13,62 @@ use enum_from_str_derive::FromStr;
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
 pub type Guid = String; // TODO: move to shared common types. pattern="\{[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\}"
+/// This simple type specifies that its contents will contain a percentage value. See the union's member types for
+/// details.
 pub type Percentage = f32;
-pub type PositivePercentage = f32; // TODO: 0 <= n < inf
-pub type PositiveFixedPercentage = f32; // TODO: 0 <= n <= 100000
-pub type FixedPercentage = f32; // TODO: -100000 <= n <= 100000
+/// This simple type specifies that its contents will contain a positive percentage value. See the union's member
+/// types for details.
+pub type PositivePercentage = f32;
+/// This simple type specifies that its contents will contain a positive percentage value from zero through one
+/// hundred percent.
+/// 
+/// Values represented by this type are restricted to: 0 <= n <= 100000
+pub type PositiveFixedPercentage = f32;
+/// This simple type represents a fixed percentage from negative one hundred to positive one hundred percent. See
+/// the union's member types for details.
+/// 
+/// Values represented by this type are restricted to: -100000 <= n <= 100000
+pub type FixedPercentage = f32;
 pub type HexColorRGB = String;
+/// This simple type represents a one dimensional position or length as either:
+/// 
+/// * EMUs.
+/// * A number followed immediately by a unit identifier.
 pub type Coordinate = i64;
+/// This simple type represents a positive position or length in EMUs.
 pub type PositiveCoordinate = u64;
+/// This simple type specifies a coordinate within the document. This can be used for measurements or spacing; its
+/// maximum size is 2147483647 EMUs.
+/// 
+/// Its contents can contain either:
+/// 
+/// * A whole number, whose contents consist of a measurement in EMUs (English Metric Units)
+/// * A number immediately followed by a unit identifier
 pub type Coordinate32 = i32;
+/// This simple type specifies the a positive coordinate point that has a maximum size of 32 bits.
+/// 
+/// The units of measurement used here are EMUs (English Metric Units).
 pub type PositiveCoordinate32 = u32;
+/// This simple type specifies the width of a line in EMUs. 1 pt = 12700 EMUs
+/// 
+/// Values represented by this type are restricted to: 0 <= n <= 20116800
 pub type LineWidth = Coordinate32;
+/// This simple type specifies a unique integer identifier for each drawing element.
 pub type DrawingElementId = u32;
+/// This simple type represents an angle in 60,000ths of a degree. Positive angles are clockwise (i.e., towards the
+/// positive y axis); negative angles are counter-clockwise (i.e., towards the negative y axis).
 pub type Angle = i32;
-pub type FixedAngle = Angle; // TODO: -5400000 <= n <= 5400000
-pub type PositiveFixedAngle = Angle; // TODO: 0 <= n <= 21600000
+/// This simple type represents a fixed range angle in 60000ths of a degree. Range from (-90, 90 degrees).
+/// 
+/// Values represented by this type are restricted to: -5400000 <= n <= 5400000
+pub type FixedAngle = Angle;
+/// This simple type represents a positive angle in 60000ths of a degree. Range from [0, 360 degrees).
+/// 
+/// Values represented by this type are restricted to: 0 <= n <= 21600000
+pub type PositiveFixedAngle = Angle;
+/// This simple type specifies a geometry guide name.
 pub type GeomGuideName = String;
+/// This simple type specifies a geometry guide formula.
 pub type GeomGuideFormula = String;
 pub type StyleMatrixColumnIndex = u32;
 pub type TextColumnCount = i32; // TODO: 1 <= n <= 16
@@ -82,18 +123,26 @@ pub enum RectAlignment {
     Center,
 }
 
+/// This simple type specifies the manner in which a path should be filled. The lightening and darkening of a path
+/// allow for certain parts of the shape to be colored lighter of darker depending on user preference.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum PathFillMode {
+    /// This specifies that the corresponding path should have no fill.
     #[from_str = "none"]
     None,
+    /// This specifies that the corresponding path should have a normally shaded color applied to it’s fill.
     #[from_str = "norm"]
     Norm,
+    /// This specifies that the corresponding path should have a lightly shaded color applied to it’s fill.
     #[from_str = "lighten"]
     Lighten,
+    /// This specifies that the corresponding path should have a slightly lighter shaded color applied to it’s fill.
     #[from_str = "lightenLess"]
     LightenLess,
+    /// This specifies that the corresponding path should have a darker shaded color applied to it’s fill.
     #[from_str = "darken"]
     Darken,
+    /// This specifies that the corresponding path should have a slightly darker shaded color applied to it’s fill.
     #[from_str = "darkenLess"]
     DarkenLess,
 }
@@ -476,34 +525,48 @@ pub enum ShapeType {
     ChartPlus,
 }
 
+/// This simple type specifies how to cap the ends of lines. This also affects the ends of line segments for dashed
+/// lines.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum LineCap {
+    /// Rounded ends. Semi-circle protrudes by half line width.
     #[from_str = "rnd"]
     Round,
+    /// Square protrudes by half line width.
     #[from_str = "sq"]
     Square,
+    /// Line ends at end point.
     #[from_str = "flat"]
     Flat,
 }
 
+/// This simple type specifies the compound line type that is to be used for lines with text such as underlines.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum CompoundLine {
+    /// Single line: one normal width
     #[from_str = "sng"]
     Single,
+    /// Double lines of equal width
     #[from_str = "dbl"]
     Double,
+    /// Double lines: one thick, one thin
     #[from_str = "thickThin"]
     ThickThin,
+    /// Double lines: one thin, one thick
     #[from_str = "thinThick"]
     ThinThick,
+    /// Three lines: thin, thick, thin
     #[from_str = "tri"]
     Triple,
 }
 
+/// This simple type specifies the Pen Alignment type for use within a text body.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum PenAlignment {
+    /// Center pen (line drawn at center of path stroke).
     #[from_str = "ctr"]
     Center,
+    /// Inset pen (the pen is aligned on the inside of the edge of the path).
     #[from_str = "in"]
     Inset,
 }
@@ -534,6 +597,8 @@ pub enum PresetLineDashVal {
     SysDashDotDot,
 }
 
+/// This simple type represents the shape decoration that appears at the ends of lines. For example, one choice is an
+/// arrow head.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum LineEndType {
     #[from_str = "none"]
@@ -550,6 +615,8 @@ pub enum LineEndType {
     Arrow,
 }
 
+/// This simple type represents the width of the line end decoration (e.g., arrowhead) relative to the width of the
+/// line itself.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum LineEndWidth {
     #[from_str = "sm"]
@@ -560,6 +627,8 @@ pub enum LineEndWidth {
     Large,
 }
 
+/// This simple type represents the length of the line end decoration (e.g., arrowhead) relative to the width of the
+/// line itself.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum LineEndLength {
     #[from_str = "sm"]
@@ -614,56 +683,89 @@ pub enum PresetShadowVal {
     Shdw20,
 }
 
+/// This simple type determines the relationship between effects in a container, either sibling or tree.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum EffectContainerType {
+    /// Each effect is separately applied to the parent object.
+    /// 
+    /// # Example
+    /// 
+    /// If the parent element contains an outer shadow and a reflection, the resulting effect is a
+    /// shadow around the parent object and a reflection of the object. The reflection does not have a shadow.
     #[from_str = "sib"]
     Sib,
+    /// Each effect is applied to the result of the previous effect.
+    /// 
+    /// # Example
+    /// 
+    /// If the parent element contains an outer shadow followed by a glow, the shadow is first applied
+    /// to the parent object. Then, the glow is applied to the shadow (rather than the original object). The resulting
+    /// effect would be a glowing shadow.
     #[from_str = "tree"]
     Tree,
 }
 
+/// This simple type represents one of the fonts associated with the style.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum FontCollectionIndex {
+    /// The major font of the style's font scheme.
     #[from_str = "major"]
     Major,
+    /// The minor font of the style's font scheme.
     #[from_str = "minor"]
     Minor,
+    /// No font reference.
     #[from_str = "none"]
     None,
 }
 
+/// This simple type specifies an animation build step within a diagram animation.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum DgmBuildStep {
+    /// Animate a diagram shape for this animation build step
     #[from_str = "sp"]
     Shape,
+    /// Animate the diagram background for this animation build step
     #[from_str = "bg"]
     Background,
 }
 
+/// This simple type specifies an animation build step within a chart animation.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum ChartBuildStep {
+    /// Animate a chart category for this animation build step
     #[from_str = "category"]
     Category,
+    /// Animate a point in a chart category for this animation build step
     #[from_str = "ptInCategory"]
     PtInCategory,
+    /// Animate a chart series for this animation build step
     #[from_str = "series"]
     Series,
+    /// Animate a point in a chart series for this animation build step
     #[from_str = "ptInSeries"]
     PtInSeries,
+    /// Animate all points within the chart for this animation build step
     #[from_str = "allPts"]
     AllPts,
+    /// Animate the chart grid and legend for this animation build step
     #[from_str = "gridLegend"]
     GridLegend,
 }
 
+/// This simple type represents whether a style property should be applied.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum OnOffStyleType {
+    /// Property is on.
     #[from_str = "on"]
     On,
+    /// Property is off.
     #[from_str = "off"]
     Off,
+    /// Follow parent settings. For a themed property, follow the theme settings. For an unthemed property, follow
+    /// the parent setting in the property inheritance chain.
     #[from_str = "def"]
-    Def,
+    Default,
 }
 
 #[derive(Debug, Clone, Copy, FromStr)]
@@ -730,386 +832,577 @@ pub enum SystemColorVal {
     MenuBar,
 }
 
+/// This simple type represents a preset color value.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum PresetColorVal {
+    /// Specifies a color with RGB value (240,248,255)
     #[from_str = "aliceBlue"]
     AliceBlue,
+    /// Specifies a color with RGB value (250,235,215)
     #[from_str = "antiqueWhite"]
     AntiqueWhite,
+    /// Specifies a color with RGB value (0,255,255)
     #[from_str = "aqua"]
     Aqua,
+    /// Specifies a color with RGB value (127,255,212)
     #[from_str = "aquamarine"]
     Aquamarine,
+    /// Specifies a color with RGB value (240,255,255)
     #[from_str = "azure"]
     Azure,
+    ///Specifies a color with RGB value (245,245,220)
     #[from_str = "beige"]
     Beige,
+    /// Specifies a color with RGB value (255,228,196)
     #[from_str = "bisque"]
     Bisque,
+    /// Specifies a color with RGB value (0,0,0)
     #[from_str = "black"]
     Black,
+    /// Specifies a color with RGB value (255,235,205)
     #[from_str = "blanchedAlmond"]
     BlanchedAlmond,
+    /// Specifies a color with RGB value (0,0,255)
     #[from_str = "blue"]
     Blue,
+    /// Specifies a color with RGB value (138,43,226)
     #[from_str = "blueViolet"]
     BlueViolet,
+    /// Specifies a color with RGB value (165,42,42)
     #[from_str = "brown"]
     Brown,
+    /// Specifies a color with RGB value (222,184,135)
     #[from_str = "burlyWood"]
     BurlyWood,
+    /// Specifies a color with RGB value (95,158,160)
     #[from_str = "cadetBlue"]
     CadetBlue,
+    /// Specifies a color with RGB value (127,255,0)
     #[from_str = "chartreuse"]
     Chartreuse,
+    /// Specifies a color with RGB value (210,105,30)
     #[from_str = "chocolate"]
     Chocolate,
+    /// Specifies a color with RGB value (255,127,80)
     #[from_str = "coral"]
     Coral,
+    /// Specifies a color with RGB value (100,149,237)
     #[from_str = "cornflowerBlue"]
     CornflowerBlue,
+    /// Specifies a color with RGB value (255,248,220)
     #[from_str = "cornsilk"]
     Cornsilk,
+    /// Specifies a color with RGB value (220,20,60)
     #[from_str = "crimson"]
     Crimson,
+    /// Specifies a color with RGB value (0,255,255)
     #[from_str = "cyan"]
     Cyan,
+    /// Specifies a color with RGB value (0,0,139)
     #[from_str = "darkBlue"]
     DarkBlue,
+    /// Specifies a color with RGB value (0,139,139)
     #[from_str = "darkCyan"]
     DarkCyan,
+    /// Specifies a color with RGB value (184,134,11)
     #[from_str = "darkGoldenrod"]
     DarkGoldenrod,
+    /// Specifies a color with RGB value (169,169,169)
     #[from_str = "darkGray"]
     DarkGray,
+    /// Specifies a color with RGB value (169,169,169)
     #[from_str = "darkGrey"]
     DarkGrey,
+    /// Specifies a color with RGB value (0,100,0)
     #[from_str = "darkGreen"]
     DarkGreen,
+    /// Specifies a color with RGB value (189,183,107)
     #[from_str = "darkKhaki"]
     DarkKhaki,
+    /// Specifies a color with RGB value (139,0,139)
     #[from_str = "darkMagenta"]
     DarkMagenta,
+    /// Specifies a color with RGB value (85,107,47)
     #[from_str = "darkOliveGreen"]
     DarkOliveGreen,
+    /// Specifies a color with RGB value (255,140,0)
     #[from_str = "darkOrange"]
     DarkOrange,
+    /// Specifies a color with RGB value (153,50,204)
     #[from_str = "darkOrchid"]
     DarkOrchid,
+    /// Specifies a color with RGB value (139,0,0)
     #[from_str = "darkRed"]
     DarkRed,
+    /// Specifies a color with RGB value (233,150,122)
     #[from_str = "darkSalmon"]
     DarkSalmon,
+    /// Specifies a color with RGB value (143,188,143)
     #[from_str = "darkSeaGreen"]
     DarkSeaGreen,
+    /// Specifies a color with RGB value (72,61,139)
     #[from_str = "darkSlateBlue"]
     DarkSlateBlue,
+    /// Specifies a color with RGB value (47,79,79)
     #[from_str = "darkSlateGray"]
     DarkSlateGray,
+    /// Specifies a color with RGB value (47,79,79)
     #[from_str = "darkSlateGrey"]
     DarkSlateGrey,
+    /// Specifies a color with RGB value (0,206,209)
     #[from_str = "darkTurquoise"]
     DarkTurqoise,
+    /// Specifies a color with RGB value (148,0,211)
     #[from_str = "darkViolet"]
     DarkViolet,
+    /// Specifies a color with RGB value (0,0,139)
     #[from_str = "dkBlue"]
     DkBlue,
+    /// Specifies a color with RGB value (0,139,139)
     #[from_str = "dkCyan"]
     DkCyan,
+    /// Specifies a color with RGB value (184,134,11)
     #[from_str = "dkGoldenrod"]
     DkGoldenrod,
+    /// Specifies a color with RGB value (169,169,169)
     #[from_str = "dkGray"]
     DkGray,
+    /// Specifies a color with RGB value (169,169,169)
     #[from_str = "dkGrey"]
     DkGrey,
+    /// Specifies a color with RGB value (0,100,0)
     #[from_str = "dkGreen"]
     DkGreen,
+    /// Specifies a color with RGB value (189,183,107)
     #[from_str = "dkKhaki"]
     DkKhaki,
+    /// Specifies a color with RGB value (139,0,139)
     #[from_str = "dkMagenta"]
     DkMagenta,
+    /// Specifies a color with RGB value (85,107,47)
     #[from_str = "dkOliveGreen"]
     DkOliveGreen,
+    /// Specifies a color with RGB value (255,140,0)
     #[from_str = "dkOrange"]
     DkOrange,
+    /// Specifies a color with RGB value (153,50,204)
     #[from_str = "dkOrchid"]
     DkOrchid,
+    /// Specifies a color with RGB value (139,0,0)
     #[from_str = "dkRed"]
     DkRed,
+    /// Specifies a color with RGB value (233,150,122)
     #[from_str = "dkSalmon"]
     DkSalmon,
+    /// Specifies a color with RGB value (143,188,139)
     #[from_str = "dkSeaGreen"]
     DkSeaGreen,
+    /// Specifies a color with RGB value (72,61,139)
     #[from_str = "dkSlateBlue"]
     DkSlateBlue,
+    /// Specifies a color with RGB value (47,79,79)
     #[from_str = "dkSlateGray"]
     DkSlateGray,
+    /// Specifies a color with RGB value (47,79,79)
     #[from_str = "dkSlateGrey"]
     DkSlateGrey,
+    /// Specifies a color with RGB value (0,206,209)
     #[from_str = "dkTurquoise"]
     DkTurquoise,
+    /// Specifies a color with RGB value (148,0,211)
     #[from_str = "dkViolet"]
     DkViolet,
+    /// Specifies a color with RGB value (255,20,147)
     #[from_str = "deepPink"]
     DeepPink,
+    /// Specifies a color with RGB value (0,191,255)
     #[from_str = "deepSkyBlue"]
     DeepSkyBlue,
+    /// Specifies a color with RGB value (105,105,105)
     #[from_str = "dimGray"]
     DimGray,
+    /// Specifies a color with RGB value (105,105,105)
     #[from_str = "dimGrey"]
     DimGrey,
+    /// Specifies a color with RGB value (30,144,255)
     #[from_str = "dodgerBlue"]
     DodgerBluet,
+    /// Specifies a color with RGB value (178,34,34)
     #[from_str = "firebrick"]
     Firebrick,
+    /// Specifies a color with RGB value (255,250,240)
     #[from_str = "floralWhite"]
     FloralWhite,
+    /// Specifies a color with RGB value (34,139,34)
     #[from_str = "forestGreen"]
     ForestGreen,
+    /// Specifies a color with RGB value (255,0,255)
     #[from_str = "fuchsia"]
     Fuchsia,
+    /// Specifies a color with RGB value (220,220,220)
     #[from_str = "gainsboro"]
     Gainsboro,
+    /// Specifies a color with RGB value (248,248,255)
     #[from_str = "ghostWhite"]
     GhostWhite,
+    /// Specifies a color with RGB value (255,215,0)
     #[from_str = "gold"]
     Gold,
+    /// Specifies a color with RGB value (218,165,32)
     #[from_str = "goldenrod"]
     Goldenrod,
+    /// Specifies a color with RGB value (128,128,128)
     #[from_str = "gray"]
     Gray,
+    /// Specifies a color with RGB value (128,128,128)
     #[from_str = "grey"]
     Grey,
+    /// Specifies a color with RGB value (0,128,0)
     #[from_str = "green"]
     Green,
+    /// Specifies a color with RGB value (173,255,47)
     #[from_str = "greenYellow"]
     GreenYellow,
+    /// Specifies a color with RGB value (240,255,240)
     #[from_str = "honeydew"]
     Honeydew,
+    /// Specifies a color with RGB value (255,105,180)
     #[from_str = "hotPink"]
     HotPink,
+    /// Specifies a color with RGB value (205,92,92)
     #[from_str = "indianRed"]
     IndianRed,
+    /// Specifies a color with RGB value (75,0,130)
     #[from_str = "indigo"]
     Indigo,
+    /// Specifies a color with RGB value (255,255,240)
     #[from_str = "ivory"]
     Ivory,
+    /// Specifies a color with RGB value (240,230,140)
     #[from_str = "khaki"]
     Khaki,
+    /// Specifies a color with RGB value (230,230,250)
     #[from_str = "lavender"]
     Lavender,
+    /// Specifies a color with RGB value (255,240,245)
     #[from_str = "lavenderBlush"]
     LavenderBlush,
+    /// Specifies a color with RGB value (124,252,0)
     #[from_str = "lawnGreen"]
     LawnGreen,
+    /// Specifies a color with RGB value (255,250,205)
     #[from_str = "lemonChiffon"]
     LemonChiffon,
+    /// Specifies a color with RGB value (173,216,230)
     #[from_str = "lightBlue"]
     LightBlue,
+    /// Specifies a color with RGB value (240,128,128)
     #[from_str = "lightCoral"]
     LightCoral,
+    /// Specifies a color with RGB value (224,255,255)
     #[from_str = "lightCyan"]
     LightCyan,
+    /// Specifies a color with RGB value (250,250,210)
     #[from_str = "lightGoldenrodYellow"]
     LightGoldenrodYellow,
+    /// Specifies a color with RGB value (211,211,211)
     #[from_str = "lightGray"]
     LightGray,
+    /// Specifies a color with RGB value (211,211,211)
     #[from_str = "lightGrey"]
     LightGrey,
+    /// Specifies a color with RGB value (144,238,144)
     #[from_str = "lightGreen"]
     LightGreen,
+    /// Specifies a color with RGB value (255,182,193)
     #[from_str = "lightPink"]
     LightPink,
+    /// Specifies a color with RGB value (255,160,122)
     #[from_str = "lightSalmon"]
     LightSalmon,
+    /// Specifies a color with RGB value (32,178,170)
     #[from_str = "lightSeaGreen"]
     LightSeaGreen,
+    /// Specifies a color with RGB value (135,206,250)
     #[from_str = "lightSkyBlue"]
     LightSkyBlue,
+    /// Specifies a color with RGB value (119,136,153)
     #[from_str = "lightSlateGray"]
     LightSlateGray,
+    /// Specifies a color with RGB value (119,136,153)
     #[from_str = "lightSlateGrey"]
     LightSlateGrey,
+    /// Specifies a color with RGB value (176,196,222)
     #[from_str = "lightSteelBlue"]
     LightSteelBlue,
+    /// Specifies a color with RGB value (255,255,224)
     #[from_str = "lightYellow"]
     LightYellow,
+    /// Specifies a color with RGB value (173,216,230)
     #[from_str = "ltBlue"]
     LtBlue,
+    /// Specifies a color with RGB value (240,128,128)
     #[from_str = "ltCoral"]
     LtCoral,
+    /// Specifies a color with RGB value (224,255,255)
     #[from_str = "ltCyan"]
     LtCyan,
+    /// Specifies a color with RGB value (250,250,120)
     #[from_str = "ltGoldenrodYellow"]
     LtGoldenrodYellow,
+    /// Specifies a color with RGB value (211,211,211)
     #[from_str = "ltGray"]
     LtGray,
+    /// Specifies a color with RGB value (211,211,211)
     #[from_str = "ltGrey"]
     LtGrey,
+    /// Specifies a color with RGB value (144,238,144)
     #[from_str = "ltGreen"]
     LtGreen,
+    /// Specifies a color with RGB value (255,182,193)
     #[from_str = "ltPink"]
     LtPink,
+    /// Specifies a color with RGB value (255,160,122)
     #[from_str = "ltSalmon"]
     LtSalmon,
+    /// Specifies a color with RGB value (32,178,170)
     #[from_str = "ltSeaGreen"]
     LtSeaGreen,
+    /// Specifies a color with RGB value (135,206,250)
     #[from_str = "ltSkyBlue"]
     LtSkyBlue,
+    /// Specifies a color with RGB value (119,136,153)
     #[from_str = "ltSlateGray"]
     LtSlateGray,
+    /// Specifies a color with RGB value (119,136,153)
     #[from_str = "ltSlateGrey"]
     LtSlateGrey,
+    /// Specifies a color with RGB value (176,196,222)
     #[from_str = "ltSteelBlue"]
     LtSteelBlue,
+    /// Specifies a color with RGB value (255,255,224)
     #[from_str = "ltYellow"]
     LtYellow,
+    /// Specifies a color with RGB value (0,255,0)
     #[from_str = "lime"]
     Lime,
+    /// Specifies a color with RGB value (50,205,50)
     #[from_str = "limeGreen"]
     LimeGreen,
+    /// Specifies a color with RGB value (250,240,230)
     #[from_str = "linen"]
     Linen,
+    /// Specifies a color with RGB value (255,0,255)
     #[from_str = "magenta"]
     Magenta,
+    /// Specifies a color with RGB value (128,0,0)
     #[from_str = "maroon"]
     Maroon,
+    /// Specifies a color with RGB value (102,205,170)
     #[from_str = "medAquamarine"]
     MedAquamarine,
+    /// Specifies a color with RGB value (0,0,205)
     #[from_str = "medBlue"]
     MedBlue,
+    /// Specifies a color with RGB value (186,85,211)
     #[from_str = "medOrchid"]
     MedOrchid,
+    /// Specifies a color with RGB value (147,112,219)
     #[from_str = "medPurple"]
     MedPurple,
+    /// Specifies a color with RGB value (60,179,113)
     #[from_str = "medSeaGreen"]
     MedSeaGreen,
+    /// Specifies a color with RGB value (123,104,238)
     #[from_str = "medSlateBlue"]
     MedSlateBlue,
+    /// Specifies a color with RGB value (0,250,154)
     #[from_str = "medSpringGreen"]
     MedSpringGreen,
+    /// Specifies a color with RGB value (72,209,204)
     #[from_str = "medTurquoise"]
     MedTurquoise,
+    /// Specifies a color with RGB value (199,21,133)
     #[from_str = "medVioletRed"]
     MedVioletRed,
+    /// Specifies a color with RGB value (102,205,170)
     #[from_str = "mediumAquamarine"]
     MediumAquamarine,
+    /// Specifies a color with RGB value (0,0,205)
     #[from_str = "mediumBlue"]
     MediumBlue,
+    /// Specifies a color with RGB value (186,85,211)
     #[from_str = "mediumOrchid"]
     MediumOrchid,
+    /// Specifies a color with RGB value (147,112,219)
     #[from_str = "mediumPurple"]
     MediumPurple,
+    /// Specifies a color with RGB value (60,179,113)
     #[from_str = "mediumSeaGreen"]
     MediumSeaGreen,
+    /// Specifies a color with RGB value (123,104,238)
     #[from_str = "mediumSlateBlue"]
     MediumSlateBlue,
+    /// Specifies a color with RGB value (0,250,154)
     #[from_str = "mediumSpringGreen"]
     MediumSpringGreen,
+    /// Specifies a color with RGB value (72,209,204)
     #[from_str = "mediumTurquoise"]
     MediumTurquoise,
+    /// Specifies a color with RGB value (199,21,133)
     #[from_str = "mediumVioletRed"]
     MediumVioletRed,
+    /// Specifies a color with RGB value (25,25,112)
     #[from_str = "midnightBlue"]
     MidnightBlue,
+    /// Specifies a color with RGB value (245,255,250)
     #[from_str = "mintCream"]
     MintCream,
+    /// Specifies a color with RGB value (255,228,225)
     #[from_str = "mistyRose"]
     MistyRose,
+    /// Specifies a color with RGB value (255,228,181)
     #[from_str = "moccasin"]
     Moccasin,
+    /// Specifies a color with RGB value (255,222,173)
     #[from_str = "navajoWhite"]
     NavajoWhite,
+    /// Specifies a color with RGB value (0,0,128)
     #[from_str = "navy"]
     Navy,
+    /// Specifies a color with RGB value (253,245,230)
     #[from_str = "oldLace"]
     OldLace,
+    /// Specifies a color with RGB value (128,128,0)
     #[from_str = "olive"]
     Olive,
+    /// Specifies a color with RGB value (107,142,35)
     #[from_str = "oliveDrab"]
     OliveDrab,
+    /// Specifies a color with RGB value (255,165,0)
     #[from_str = "orange"]
     Orange,
+    /// Specifies a color with RGB value (255,69,0)
     #[from_str = "orangeRed"]
     OrangeRed,
+    /// Specifies a color with RGB value (218,112,214)
     #[from_str = "orchid"]
     Orchid,
+    /// Specifies a color with RGB value (238,232,170)
     #[from_str = "paleGoldenrod"]
     PaleGoldenrod,
+    /// Specifies a color with RGB value (152,251,152)
     #[from_str = "paleGreen"]
     PaleGreen,
+    /// Specifies a color with RGB value (175,238,238)
     #[from_str = "paleTurquoise"]
     PaleTurquoise,
+    /// Specifies a color with RGB value (219,112,147)
     #[from_str = "paleVioletRed"]
     PaleVioletRed,
+    /// Specifies a color with RGB value (255,239,213)
     #[from_str = "papayaWhip"]
     PapayaWhip,
+    /// Specifies a color with RGB value (255,218,185)
     #[from_str = "peachPuff"]
     PeachPuff,
+    /// Specifies a color with RGB value (205,133,63)
     #[from_str = "peru"]
     Peru,
+    /// Specifies a color with RGB value (255,192,203)
     #[from_str = "pink"]
     Pink,
+    /// Specifies a color with RGB value (221,160,221)
     #[from_str = "plum"]
     Plum,
+    /// Specifies a color with RGB value (176,224,230)
     #[from_str = "powderBlue"]
     PowderBlue,
+    /// Specifies a color with RGB value (128,0,128)
     #[from_str = "purple"]
     Purple,
+    /// Specifies a color with RGB value (255,0,0)
     #[from_str = "red"]
     Red,
+    /// Specifies a color with RGB value (188,143,143)
     #[from_str = "rosyBrown"]
     RosyBrown,
+    /// Specifies a color with RGB value (65,105,225)
     #[from_str = "royalBlue"]
     RoyalBlue,
+    /// Specifies a color with RGB value (139,69,19)
     #[from_str = "saddleBrown"]
     SaddleBrown,
+    /// Specifies a color with RGB value (250,128,114)
     #[from_str = "salmon"]
     Salmon,
+    /// Specifies a color with RGB value (244,164,96)
     #[from_str = "sandyBrown"]
     SandyBrown,
+    /// Specifies a color with RGB value (46,139,87)
     #[from_str = "seaGreen"]
     SeaGreen,
+    /// Specifies a color with RGB value (255,245,238)
     #[from_str = "seaShell"]
     SeaShell,
+    /// Specifies a color with RGB value (160,82,45)
     #[from_str = "sienna"]
     Sienna,
+    /// Specifies a color with RGB value (192,192,192)
     #[from_str = "silver"]
     Silver,
+    /// Specifies a color with RGB value (135,206,235)
     #[from_str = "skyBlue"]
     SkyBlue,
+    /// Specifies a color with RGB value (106,90,205)
     #[from_str = "slateBlue"]
     SlateBlue,
+    /// Specifies a color with RGB value (112,128,144)
     #[from_str = "slateGray"]
     SlateGray,
+    /// Specifies a color with RGB value (112,128,144)
     #[from_str = "slateGrey"]
     SlateGrey,
+    /// Specifies a color with RGB value (255,250,250)
     #[from_str = "snow"]
     Snow,
+    /// Specifies a color with RGB value (0,255,127)
     #[from_str = "springGreen"]
     SpringGreen,
+    /// Specifies a color with RGB value (70,130,180)
     #[from_str = "steelBlue"]
     SteelBlue,
+    /// Specifies a color with RGB value (210,180,140)
     #[from_str = "tan"]
     Tan,
+    /// Specifies a color with RGB value (0,128,128)
     #[from_str = "teal"]
     Teal,
+    /// Specifies a color with RGB value (216,191,216)
     #[from_str = "thistle"]
     Thistle,
+    /// Specifies a color with RGB value (255,99,71)
     #[from_str = "tomato"]
     Tomato,
+    /// Specifies a color with RGB value (64,224,208)
     #[from_str = "turquoise"]
     Turquoise,
+    /// Specifies a color with RGB value (238,130,238)
     #[from_str = "violet"]
     Violet,
+    /// Specifies a color with RGB value (245,222,179)
     #[from_str = "wheat"]
     Wheat,
+    /// Specifies a color with RGB value (255,255,255)
     #[from_str = "white"]
     White,
+    /// Specifies a color with RGB value (245,245,245)
     #[from_str = "whiteSmoke"]
     WhiteSmoke,
+    /// Specifies a color with RGB value (255,255,0)
     #[from_str = "yellow"]
     Yellow,
+    /// Specifies a color with RGB value (154,205,50)
     #[from_str = "yellowGreen"]
     YellowGreen,
 }
@@ -1150,6 +1443,7 @@ pub enum SchemeColorVal {
     Light2,
 }
 
+/// A reference to a color in the color scheme.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum ColorSchemeIndex {
     #[from_str = "dk1"]
@@ -1296,12 +1590,16 @@ pub enum TextAutonumberScheme {
     HindiAlpha1Period,
 }
 
+/// This simple type describes the shape of path to follow for a path gradient shade.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum PathShadeType {
+    /// Gradient follows the shape
     #[from_str = "shape"]
     Shape,
+    /// Gradient follows a circular path
     #[from_str = "circle"]
     Circle,
+    /// Gradient follows a rectangular pat
     #[from_str = "rect"]
     Rect,
 }
@@ -1418,6 +1716,7 @@ pub enum PresetPatternVal {
     ZigZag,
 }
 
+/// This simple type describes how to render effects one on top of another.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum BlendMode {
     #[from_str = "over"]
@@ -1648,48 +1947,68 @@ pub enum TextAnchoringType {
     Distributed,
 }
 
+/// This simple type specifies how an object should be rendered when specified to be in black and white mode.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum BlackWhiteMode {
+    /// Object rendered with normal coloring
     #[from_str = "clr"]
     Color,
+    /// Object rendered with automatic coloring
     #[from_str = "auto"]
     Auto,
+    /// Object rendered with gray coloring
     #[from_str = "gray"]
     Gray,
+    /// Object rendered with light gray coloring
     #[from_str = "ltGray"]
     LightGray,
+    /// Object rendered with inverse gray coloring
     #[from_str = "invGray"]
     InverseGray,
+    /// Object rendered within gray and white coloring
     #[from_str = "grayWhite"]
     GrayWhite,
+    /// Object rendered with black and gray coloring
     #[from_str = "blackGray"]
     BlackGray,
+    /// Object rendered within black and white coloring
     #[from_str = "blackWhite"]
     BlackWhite,
+    /// Object rendered with black-only coloring
     #[from_str = "black"]
     Black,
+    /// Object rendered within white coloirng
     #[from_str = "white"]
     White,
+    /// Object rendered with hidden coloring
     #[from_str = "hidden"]
     Hidden,
 }
 
+/// This simple type specifies the ways that an animation can be built, or animated.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum AnimationBuildType {
     #[from_str = "allAtOnce"]
     AllAtOnce,
 }
 
+/// This simple type specifies the build options available only for animating a diagram. These options specify the
+/// manner in which the objects within the chart should be grouped and animated.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum AnimationDgmOnlyBuildType {
+    /// Animate the diagram by elements. For a tree diagram the animation occurs by branch within the diagram tree.
     #[from_str = "one"]
     One,
+    /// Animate the diagram by the elements within a level, animating them one level element at a time.
     #[from_str = "lvlOne"]
     LvlOne,
+    /// Animate the diagram one level at a time, animating the whole level as one object
     #[from_str = "lvlAtOnce"]
     LvlAtOnce,
 }
 
+/// This simple type specifies the ways that a diagram animation can be built. That is, it specifies the way in which
+/// the objects within the diagram graphical object should be animated.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum AnimationDgmBuildType {
     #[from_str = "allAtOnce"]
@@ -1702,18 +2021,26 @@ pub enum AnimationDgmBuildType {
     LvlAtOnce,
 }
 
+/// This simple type specifies the build options available only for animating a chart. These options specify the
+/// manner in which the objects within the chart should be grouped and animated.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum AnimationChartOnlyBuildType {
+    /// Animate by each series
     #[from_str = "series"]
     Series,
+    /// Animate by each category
     #[from_str = "category"]
     Category,
+    /// Animate by each element within the series
     #[from_str = "seriesElement"]
     SeriesElement,
+    /// Animate by each element within the category
     #[from_str = "categoryElement"]
     CategoryElement,
 }
 
+/// This simple type specifies the ways that a chart animation can be built. That is, it specifies the way in which the
+/// objects within the chart should be animated.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum AnimationChartBuildType {
     #[from_str = "allAtOnce"]
@@ -1728,16 +2055,23 @@ pub enum AnimationChartBuildType {
     CategoryElement,
 }
 
+/// This type specifies the amount of compression that has been used for a particular binary large image or picture
+/// (blip).
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum BlipCompression {
+    /// Compression size suitable for inclusion with email
     #[from_str = "email"]
     Email,
+    /// Compression size suitable for viewing on screen
     #[from_str = "screen"]
     Screen,
+    /// Compression size suitable for printing
     #[from_str = "print"]
     Print,
+    /// Compression size suitable for high quality printing
     #[from_str = "hqprint"]
     HqPrint,
+    /// No compression was used
     #[from_str = "none"]
     None,
 }
@@ -7644,6 +7978,8 @@ impl AdjustHandle {
     }
 }
 
+/// This simple type is an adjustable coordinate is either an absolute coordinate position or a reference to a
+/// geometry guide.
 #[derive(Debug, Clone)]
 pub enum AdjCoordinate {
     Coordinate(Coordinate),
@@ -7661,6 +7997,8 @@ impl FromStr for AdjCoordinate {
     }
 }
 
+/// This simple type is an adjustable angle, either an absolute angle or a reference to a geometry guide. The units
+/// for an adjustable angle are 60,000ths of a degree.
 #[derive(Debug, Clone)]
 pub enum AdjAngle {
     Angle(Angle),
