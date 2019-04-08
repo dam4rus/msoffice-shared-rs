@@ -70,6 +70,9 @@ pub type PositiveFixedAngle = Angle;
 pub type GeomGuideName = String;
 /// This simple type specifies a geometry guide formula.
 pub type GeomGuideFormula = String;
+/// This simple type specifies an index into one of the lists in the style matrix specified by the
+/// BaseStyles::format_scheme element (StyleMatrix::bg_fill_style_list, StyleMatrix::effect_style_list,
+/// StyleMatrix::fill_style_list, or StyleMatrix::line_style_list).
 pub type StyleMatrixColumnIndex = u32;
 pub type TextColumnCount = i32; // TODO: 1 <= n <= 16
 pub type TextFontScalePercent = Percentage; // TODO: 1000 <= n <= 100000
@@ -87,6 +90,7 @@ pub type TextBulletStartAtNum = i32; // TODO: 1 <= n <= 32767
 pub type Lang = String;
 pub type TextNonNegativePoint = i32; // TODO: 0 <= n <= 400000
 pub type TextPoint = i32; // TODO: -400000 <= n <= 400000
+/// Specifies the shape ID for legacy shape identification purposes.
 pub type ShapeId = String;
 
 #[derive(Debug, Clone, Copy, FromStr)]
@@ -101,6 +105,7 @@ pub enum TileFlipMode {
     XY,
 }
 
+/// This simple type describes how to position two rectangles relative to each other.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum RectAlignment {
     #[from_str = "l"]
@@ -147,6 +152,145 @@ pub enum PathFillMode {
     DarkenLess,
 }
 
+/// This simple type specifies the preset shape geometry that is to be used for a shape. An enumeration of this
+/// simple type is used so that a custom geometry does not have to be specified but instead can be constructed
+/// automatically by the generating application. For each enumeration listed there is also the corresponding
+/// DrawingML code that would be used to construct this shape were it a custom geometry. Within the construction
+/// code for each of these preset shapes there are predefined guides that the generating application shall maintain
+/// for calculation purposes at all times. The necessary guides should have the following values.
+/// 
+/// * **3/4 of a Circle ('3cd4') - Constant value of "16200000.0"**
+/// 
+///     The units here are in 60,000ths of a degree. This is equivalent to 270 degrees.
+/// 
+/// * **3/8 of a Circle ('3cd8') - Constant value of "8100000.0"**
+/// 
+///     The units here are in 60,000ths of a degree. This is equivalent to 135 degrees.
+/// 
+/// * **5/8 of a Circle ('5cd8') - Constant value of "13500000.0"**
+/// 
+///     The units here are in 60,000ths of a degree. This is equivalent to 225 degrees.
+/// 
+/// * **7/8 of a Circle ('7cd8') - Constant value of "18900000.0"**
+/// 
+///     The units here are in 60,000ths of a degree. This is equivalent to 315 degrees.
+/// 
+/// * **Shape Bottom Edge ('b') - Constant value of "h"**
+/// 
+///     This is the bottom edge of the shape and since the top edge of the shape is considered the 0 point, the
+///     bottom edge is thus the shape height.
+/// 
+/// * **1/2 of a Circle ('cd2') - Constant value of "10800000.0"**
+/// 
+///     The units here are in 60,000ths of a degree. This is equivalent to 180 degrees.
+/// 
+/// * **1/4 of a Circle ('cd4') - Constant value of "5400000.0"**
+/// 
+///     The units here are in 60,000ths of a degree. This is equivalent to 90 degrees.
+/// 
+/// * **1/8 of a Circle ('cd8') - Constant value of "2700000.0"**
+/// 
+///     The units here are in 60,000ths of a degree. This is equivalent to 45 degrees.
+/// 
+/// * **Shape Height ('h')**
+/// 
+///     This is the variable height of the shape defined in the shape properties. This value is received from the shape
+///     transform listed within the <spPr> element.
+/// 
+/// * **Horizontal Center ('hc') - Calculated value of "\*/ w 1.0 2.0"**
+/// 
+///     This is the horizontal center of the shape which is just the width divided by 2.
+/// 
+/// * **1/2 of Shape Height ('hd2') - Calculated value of "\*/ h 1.0 2.0"**
+/// 
+///     This is 1/2 the shape height.
+/// 
+/// * **1/4 of Shape Height ('hd4') - Calculated value of "\*/ h 1.0 4.0"**
+/// 
+///     This is 1/4 the shape height.
+/// 
+/// * **1/5 of Shape Height ('hd5') - Calculated value of "\*/ h 1.0 5.0"**
+/// 
+///     This is 1/5 the shape height.
+/// 
+/// * **1/6 of Shape Height ('hd6') - Calculated value of "\*/ h 1.0 6.0"**
+/// 
+///     This is 1/6 the shape height.
+/// 
+/// * **1/8 of Shape Height ('hd8') - Calculated value of "\*/ h 1.0 8.0"**
+/// 
+///     This is 1/8 the shape height.
+/// 
+/// * **Shape Left Edge ('l') - Constant value of "0"**
+/// 
+///     This is the left edge of the shape and the left edge of the shape is considered the horizontal 0 point.
+/// 
+/// * **Longest Side of Shape ('ls') - Calculated value of "max w h"**
+/// 
+///     This is the longest side of the shape. This value is either the width or the height depending on which is greater.
+/// 
+/// * **Shape Right Edge ('r') - Constant value of "w"**
+/// 
+///     This is the right edge of the shape and since the left edge of the shape is considered the 0 point, the right edge
+///     is thus the shape width.
+/// 
+/// * **Shortest Side of Shape ('ss') - Calculated value of "min w h"**
+/// 
+///     This is the shortest side of the shape. This value is either the width or the height depending on which is
+///     smaller.
+/// 
+/// * **1/2 Shortest Side of Shape ('ssd2') - Calculated value of "\*/ ss 1.0 2.0"**
+/// 
+///     This is 1/2 the shortest side of the shape.
+/// 
+/// * **1/4 Shortest Side of Shape ('ssd4') - Calculated value of "\*/ ss 1.0 4.0"**
+/// 
+///     This is 1/4 the shortest side of the shape.
+/// 
+/// * **1/6 Shortest Side of Shape ('ssd6') - Calculated value of "\*/ ss 1.0 6.0"**
+/// 
+///     This is 1/6 the shortest side of the shape.
+/// 
+/// * **1/8 Shortest Side of Shape ('ssd8') - Calculated value of "\*/ ss 1.0 8.0"**
+/// 
+///     This is 1/8 the shortest side of the shape.
+/// 
+/// * **Shape Top Edge ('t') - Constant value of "0"**
+/// 
+///     This is the top edge of the shape and the top edge of the shape is considered the vertical 0 point.
+/// 
+/// * **Vertical Center of Shape ('vc') - Calculated value of "\*/ h 1.0 2.0"**
+/// 
+///     This is the vertical center of the shape which is just the height divided by 2.
+/// 
+/// * **Shape Width ('w')**
+/// 
+///     This is the variable width of the shape defined in the shape properties. This value is received from the shape
+///     transform listed within the <spPr> element.
+/// 
+/// * **1/2 of Shape Width ('wd2') - Calculated value of "\*/ w 1.0 2.0"**
+/// 
+///     This is 1/2 the shape width.
+/// 
+/// * **1/4 of Shape Width ('wd4') - Calculated value of "\*/ w 1.0 4.0"**
+/// 
+///     This is 1/4 the shape width.
+/// 
+/// * **1/5 of Shape Width ('wd5') - Calculated value of "\*/ w 1.0 5.0"**
+/// 
+///     This is 1/5 the shape width.
+/// 
+/// * **1/6 of Shape Width ('wd6') - Calculated value of "\*/ w 1.0 6.0"**
+/// 
+///     This is 1/6 the shape width.
+/// 
+/// * **1/8 of Shape Width ('wd8') - Calculated value of "\*/ w 1.0 8.0"**
+/// 
+///     This is 1/8 the shape width.
+/// 
+/// * **1/10 of Shape Width ('wd10') - Calculated value of "\*/ w 1.0 10.0"**
+/// 
+///     This is 1/10 the shape width.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum ShapeType {
     #[from_str = "line"]
@@ -571,30 +715,45 @@ pub enum PenAlignment {
     Inset,
 }
 
+/// This simple type represents preset line dash values. The description for each style shows an illustration of the
+/// line style. Each style also contains a precise binary representation of the repeating dash style. Each 1
+/// corresponds to a line segment of the same length as the line width, and each 0 corresponds to a space of the
+/// same length as the line width.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum PresetLineDashVal {
+    /// 1
     #[from_str = "solid"]
     Solid,
+    /// 1000
     #[from_str = "dot"]
     Dot,
+    /// 1111000
     #[from_str = "dash"]
     Dash,
+    /// 11111111000
     #[from_str = "lgDash"]
-    LgDash,
+    LargeDash,
+    /// 11110001000
     #[from_str = "dashDot"]
     DashDot,
+    /// 111111110001000
     #[from_str = "lgDashDot"]
-    LgDashDot,
+    LargeDashDot,
+    /// 1111111100010001000
     #[from_str = "ldDashDotDot"]
-    LgDashDotDot,
+    LargeDashDotDot,
+    /// 1110
     #[from_str = "sysDash"]
-    SysDash,
+    SystemDash,
+    /// 10
     #[from_str = "sysDot"]
-    SysDot,
+    SystemDot,
+    /// 111010
     #[from_str = "sysDashDot"]
-    SysDashDot,
+    SystemDashDot,
+    /// 11101010
     #[from_str = "sysDashDotDot"]
-    SysDashDotDot,
+    SystemDashDotDot,
 }
 
 /// This simple type represents the shape decoration that appears at the ends of lines. For example, one choice is an
@@ -639,48 +798,117 @@ pub enum LineEndLength {
     Large,
 }
 
+/// This simple type indicates one of 20 preset shadow types. Each enumeration value description illustrates the
+/// type of shadow represented by the value. Each description contains the parameters to the outer shadow effect
+/// represented by the preset, in addition to those attributes common to all prstShdw effects.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum PresetShadowVal {
+    /// No additional attributes specified.
     #[from_str = "shdw1"]
-    Shdw1,
+    TopLeftDropShadow,
+    /// No additional attributes specified.
     #[from_str = "shdw2"]
-    Shdw2,
+    TopRightDropShadow,
+    /// align = "b"
+    /// ky = 40.89°
+    /// sy = 50%
     #[from_str = "shdw3"]
-    Shdw3,
+    BackLeftPerspectiveShadow,
+    /// align = "b"
+    /// kx = -40.89°
+    /// sy = 50%
     #[from_str = "shdw4"]
-    Shdw4,
+    BackRightPerspectiveShadow,
+    /// No additional attributes specified.
     #[from_str = "shdw5"]
-    Shdw5,
+    BottomLeftDropShadow,
+    /// No additional attributes specified.
     #[from_str = "shdw6"]
-    Shdw6,
+    BottomRightDropShadow,
+    /// align = "b"
+    /// kx = 40.89°
+    /// sy = -50%
     #[from_str = "shdw7"]
-    Shdw7,
+    FrontLeftPerspectiveShadow,
+    /// align = "b"
+    /// kx = -40.89°
+    /// sy = -50%
     #[from_str = "shdw8"]
-    Shdw8,
+    FrontRightPerspectiveShadow,
+    /// align = "tl"
+    /// sx = 75%
+    /// sy = 75%
     #[from_str = "shdw9"]
-    Shdw9,
+    TopLeftSmallDropShadow,
+    /// align = "br"
+    /// sx = 125%
+    /// sy = 125%
     #[from_str = "shdw10"]
-    Shdw10,
+    TopLeftLargeDropShadow,
+    /// align = "b"
+    /// kx = 40.89°
+    /// sy = 50%
     #[from_str = "shdw11"]
-    Shdw11,
+    BackLeftLongPerspectiveShadow,
+    /// align = "b"
+    /// kx = -40.89°
+    /// sy = 50%
     #[from_str = "shdw12"]
-    Shdw12,
+    BackRightLongPerspectiveShadow,
+    /// Equivalent to two outer shadow effects.
+    /// 
+    /// Shadow 1:
+    /// No additional attributes specified.
+    /// 
+    /// Shadow 2:
+    /// color = min(1, shadow 1's color (0 <= r, g, b <= 1) +
+    /// 102/255), per r, g, b component
+    /// dist = 2 * shadow 1's distance
     #[from_str = "shdw13"]
-    Shdw13,
+    TopLeftDoubleDropShadow,
+    /// No additional attributes specified.
     #[from_str = "shdw14"]
-    Shdw14,
+    BottomRightSmallDropShadow,
+    /// align = "b"
+    /// kx = 40.89°
+    /// sy = -50%
     #[from_str = "shdw15"]
-    Shdw15,
+    FrontLeftLongPerspectiveShadow,
+    /// align = "b"
+    /// kx = -40.89°
+    /// sy = -50%
     #[from_str = "shdw16"]
-    Shdw16,
+    FrontRightLongPerspectiveShadow,
+    /// Equivalent to two outer shadow effects.
+    /// 
+    /// Shadow 1:
+    /// No additional attributes specified.
+    /// 
+    /// Shadow 2:
+    /// color = min(1, shadow 1's color (0 <= r, g, b <= 1) +
+    /// 102/255), per r, g, b component
+    /// dir = shadow 1's direction + 180°
     #[from_str = "shdw17"]
-    Shdw17,
+    ThreeDOuterBoxShadow,
+    /// Equivalent to two outer shadow effects.
+    /// 
+    /// Shadow 1:
+    /// No additional attributes specified.
+    /// 
+    /// Shadow 2:
+    /// color = min(1, shadow 1's color (0 <= r, g, b <= 1) +
+    /// 102/255), per r, g, b component
+    /// dir = shadow 1's direction + 180°
     #[from_str = "shdw18"]
-    Shdw18,
+    ThreeDInnerBoxShadow,
+    /// align = "b"
+    /// sy = 50°
     #[from_str = "shdw19"]
-    Shdw19,
+    BackCenterPerspectiveShadow,
+    /// align = "b"
+    /// sy = -100°
     #[from_str = "shdw20"]
-    Shdw20,
+    FrontBottomShadow,
 }
 
 /// This simple type determines the relationship between effects in a container, either sibling or tree.
@@ -768,66 +996,105 @@ pub enum OnOffStyleType {
     Default,
 }
 
+/// This simple type specifies a system color value. This color is based upon the value that this color currently has
+/// within the system on which the document is being viewed.
+/// 
+/// Applications shall use the lastClr attribute to determine the absolute value of the last color used if system colors
+/// are not supported.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum SystemColorVal {
+    /// Specifies the scroll bar gray area color.
     #[from_str = "scrollBar"]
     ScrollBar,
+    ///Specifies the desktop background color.
     #[from_str = "background"]
     Background,
+    /// Specifies the active window title bar color. In particular the left side color in the color gradient of an
+    /// active window's title bar if the gradient effect is enabled.
     #[from_str = "activeCaption"]
     ActiveCaption,
+    /// Specifies the color of the Inactive window caption.
+    /// Specifies the left side color in the color gradient of an inactive window's title bar if the gradient effect is
+    /// enabled.
     #[from_str = "inactiveCaption"]
     InactiveCaption,
+    /// Specifies the menu background color.
     #[from_str = "menu"]
     Menu,
+    /// Specifies window background color.
     #[from_str = "window"]
     Window,
+    /// Specifies the window frame color.
     #[from_str = "windowFrame"]
     WindowFrame,
+    /// Specifies the color of Text in menus.
     #[from_str = "menuText"]
     MenuText,
+    /// Specifies the color of text in windows.
     #[from_str = "windowText"]
     WindowText,
+    /// Specifies the color of text in the caption, size box, and scroll bar arrow box.
     #[from_str = "captionText"]
     CaptionText,
+    /// Specifies an Active Window Border Color.
     #[from_str = "activeBorder"]
     ActiveBorder,
+    /// Specifies the color of the Inactive window border.
     #[from_str = "inactiveBorder"]
     InactiveBorder,
+    /// Specifies the Background color of multiple document interface (MDI) applications
     #[from_str = "appWorkspace"]
     AppWorkspace,
+    /// Specifies the color of Item(s) selected in a control.
     #[from_str = "highlight"]
     Highlight,
+    /// Specifies the text color of item(s) selected in a control.
     #[from_str = "highlightText"]
     HighlightText,
+    /// Specifies the face color for three-dimensional display elements and for dialog box backgrounds.
     #[from_str = "btnFace"]
-    BtnFace,
+    ButtonFace,
+    /// Specifies the shadow color for three-dimensional display elements (for edges facing away from the light source).
     #[from_str = "btnShadow"]
-    BtnShadow,
+    ButtonShadow,
+    /// Specifies a grayed (disabled) text. This color is set to 0 if the current display driver does not support a
+    /// solid gray color.
     #[from_str = "grayText"]
     GrayText,
+    /// Specifies the color of text on push buttons.
     #[from_str = "btnText"]
-    BtnText,
+    ButtonText,
+    /// Specifies the color of text in an inactive caption.
     #[from_str = "inactiveCaptionText"]
     InactiveCaptionText,
+    /// Specifies the highlight color for three-dimensional display elements (for edges facing the light source).
     #[from_str = "btnHighlight"]
-    BtnHighlight,
+    ButtonHighlight,
+    /// Specifies a Dark shadow color for three-dimensional display elements.
     #[from_str = "3dDkShadow"]
-    DkShadow3d,
+    DarkShadow3d,
+    /// Specifies a Light color for three-dimensional display elements (for edges facing the light source).
     #[from_str = "3dLight"]
     Light3d,
+    /// Specifies the text color for tooltip controls.
     #[from_str = "infoText"]
     InfoText,
+    /// Specifies the background color for tooltip controls.
     #[from_str = "infoBk"]
-    InfoBk,
+    InfoBack,
     #[from_str = "hotLight"]
+    /// Specifies the color for a hyperlink or hot-tracked item.
     HotLight,
     #[from_str = "gradientActiveCaption"]
+    /// Specifies the right side color in the color gradient of an active window's title bar.
     GradientActiveCaption,
+    /// Specifies the right side color in the color gradient of an inactive window's title bar.
     #[from_str = "gradientInactiveCaption"]
     GradientInactiveCaption,
+    /// Specifies the color used to highlight menu items when the menu appears as a flat menu.
     #[from_str = "menuHighlight"]
     MenuHighlight,
+    /// Specifies the background color for the menu bar when menus appear as flat menus.
     #[from_str = "menubar"]
     MenuBar,
 }
@@ -1407,6 +1674,7 @@ pub enum PresetColorVal {
     YellowGreen,
 }
 
+/// This simple type represents a scheme color value.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum SchemeColorVal {
     #[from_str = "bg1"]
@@ -1431,6 +1699,7 @@ pub enum SchemeColorVal {
     Hypelinglink,
     #[from_str = "folHlink"]
     FollowedHyperlink,
+    /// A color used in theme definitions which means to use the color of the style.
     #[from_str = "phClr"]
     PlaceholderColor,
     #[from_str = "dk1"]
@@ -1604,6 +1873,13 @@ pub enum PathShadeType {
     Rect,
 }
 
+/// This simple type indicates a preset type of pattern fill. The description of each value contains an illustration of
+/// the fill type.
+/// 
+/// # Note
+/// 
+/// These presets correspond to members of the HatchStyle enumeration in the Microsoft .NET Framework.
+/// A reference for this type can be found at http://msdn2.microsoft.com/enus/library/system.drawing.drawing2d.hatchstyle.aspx
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum PresetPatternVal {
     #[from_str = "pct5"]
