@@ -74,22 +74,54 @@ pub type GeomGuideFormula = String;
 /// BaseStyles::format_scheme element (StyleMatrix::bg_fill_style_list, StyleMatrix::effect_style_list,
 /// StyleMatrix::fill_style_list, or StyleMatrix::line_style_list).
 pub type StyleMatrixColumnIndex = u32;
-pub type TextColumnCount = i32; // TODO: 1 <= n <= 16
-pub type TextFontScalePercent = Percentage; // TODO: 1000 <= n <= 100000
+/// This simple type specifies the number of columns.
+/// 
+/// Values represented by this type are restricted to: 1 <= n <= 16
+pub type TextColumnCount = i32;
+/// Values represented by this type are restricted to: 1000 <= n <= 100000
+pub type TextFontScalePercent = Percentage;
 pub type TextSpacingPercent = Percentage; // TODO: 0 <= n <= 13200000
 pub type TextSpacingPoint = i32; // TODO: 0 <= n <= 158400
-pub type TextMargin = Coordinate32; // TODO: 0 <= n <= 51206400
-pub type TextIndent = Coordinate32; // TODO: -51206400 <= n <= 51206400
-pub type TextIndentLevelType = i32; // TODO; 0 <= n <= 8
-pub type TextBulletSizePercent = Percentage; // TODO: 0.25 <= n <= 4.0
-pub type TextFontSize = i32; // TODO: 100 <= n <= 400000
+/// This simple type specifies the margin that is used and its corresponding size.
+/// 
+/// Values represented by this type are restricted to: 0 <= n <= 51206400
+pub type TextMargin = Coordinate32;
+/// This simple type specifies the text indentation amount to be used.
+/// 
+/// Values represented by this type are restricted to: -51206400 <= n <= 51206400
+pub type TextIndent = Coordinate32;
+/// This simple type specifies the indent level type. We support list level 0 to 8, and we use -1 and -2 for outline
+/// mode levels that should only exist in memory.
+/// 
+/// Values represented by this type are restricted to: 0 <= n <= 8
+pub type TextIndentLevelType = i32;
+/// This simple type specifies the range that the bullet percent can be. A bullet percent is the size of the bullet with
+/// respect to the text that should follow it.
+/// 
+/// Values represented by this type are restricted to: 25000 <= n <= 400000
+pub type TextBulletSizePercent = Percentage;
+/// This simple type specifies the size of any text in hundredths of a point. Shall be at least 1 point.
+/// 
+/// Values represented by this type are restricted to: 100 <= n <= 400000
+pub type TextFontSize = i32;
 pub type TextTypeFace = String;
 pub type TextLanguageID = String;
 pub type Panose = String; // TODO: hex, length=10
-pub type TextBulletStartAtNum = i32; // TODO: 1 <= n <= 32767
+/// This simple type specifies the range that the start at number for a bullet's auto-numbering sequence can begin
+/// at. When the numbering is alphabetical, then the numbers map to the appropriate letter. 1->a, 2->b, etc. If the
+/// numbers go above 26, then the numbers begin to double up. For example, 27->aa and 53->aaa.
+/// 
+/// Values represented by this type are restricted to: 1 <= n <= 32767
+pub type TextBulletStartAtNum = i32;
 pub type Lang = String;
-pub type TextNonNegativePoint = i32; // TODO: 0 <= n <= 400000
-pub type TextPoint = i32; // TODO: -400000 <= n <= 400000
+/// This simple type specifies a non-negative font size in hundredths of a point.
+/// 
+/// Values represented by this type are restricted to: 0 <= n <= 400000
+pub type TextNonNegativePoint = i32;
+/// This simple type specifies a coordinate within the document. This can be used for measurements or spacing
+/// 
+/// Values represented by this type are restricted to: -400000 <= n <= 400000
+pub type TextPoint = i32;
 /// Specifies the shape ID for legacy shape identification purposes.
 pub type ShapeId = String;
 
@@ -157,7 +189,7 @@ pub enum PathFillMode {
 /// automatically by the generating application. For each enumeration listed there is also the corresponding
 /// DrawingML code that would be used to construct this shape were it a custom geometry. Within the construction
 /// code for each of these preset shapes there are predefined guides that the generating application shall maintain
-/// for calculation purposes at all times. The necessary guides should have the following values.
+/// for calculation purposes at all times. The necessary guides should have the following values:
 /// 
 /// * **3/4 of a Circle ('3cd4') - Constant value of "16200000.0"**
 /// 
@@ -1741,120 +1773,179 @@ pub enum ColorSchemeIndex {
     FollowedHyperlink,
 }
 
+/// This simple type specifies the text alignment types
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum TextAlignType {
+    /// Align text to the left margin.
     #[from_str = "l"]
     Left,
+    /// Align text in the center.
     #[from_str = "ctr"]
     Center,
+    /// Align text to the right margin.
     #[from_str = "r"]
     Right,
+    /// Align text so that it is justified across the whole line. It is smart in the sense that it does not justify
+    /// sentences which are short.
     #[from_str = "just"]
     Justified,
+    /// Aligns the text with an adjusted kashida length for Arabic text.
     #[from_str = "justLow"]
     JustifiedLow,
+    /// Distributes the text words across an entire text line.
     #[from_str = "dist"]
-    Distritbuted,
+    Distributed,
+    /// Distributes Thai text specially, because each character is treated as a word.
     #[from_str = "thaiDist"]
     ThaiDistributed,
 }
 
+/// This simple type specifies the different kinds of font alignment.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum TextFontAlignType {
+    /// When the text flow is horizontal or simple vertical same as fontBaseline but for other vertical modes
+    /// same as fontCenter.
     #[from_str = "auto"]
     Auto,
+    /// The letters are anchored to the top baseline of a single line.
     #[from_str = "t"]
     Top,
+    /// The letters are anchored between the two baselines of a single line.
     #[from_str = "ctr"]
     Center,
+    /// The letters are anchored to the bottom baseline of a single line.
     #[from_str = "base"]
     Baseline,
+    /// The letters are anchored to the very bottom of a single line. This is different than the bottom baseline because
+    /// of letters such as "g," "q," "y," etc.
     #[from_str = "b"]
     Bottom,
 }
 
+/// This simple type specifies a list of automatic numbering schemes.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum TextAutonumberScheme {
+    /// (a), (b), (c), …
     #[from_str = "alphaLcParenBoth"]
     AlphaLcParenBoth,
+    /// (A), (B), (C), …
     #[from_str = "alphaUcParenBoth"]
     AlphaUcParenBoth,
+    /// a), b), c), …
     #[from_str = "alphaLcParenR"]
     AlphaLcParenR,
+    /// A), B), C), …
     #[from_str = "alphaUcParenR"]
     AlphaUcParenR,
+    /// a., b., c., …
     #[from_str = "alphaLcPeriod"]
     AlphaLcPeriod,
+    /// A., B., C., …
     #[from_str = "alphaUcPeriod"]
     AlphaUcPeriod,
+    /// (1), (2), (3), …
     #[from_str = "arabicParenBoth"]
     ArabicParenBoth,
+    /// 1), 2), 3), …
     #[from_str = "arabicParenR"]
     ArabicParenR,
+    /// 1., 2., 3., …
     #[from_str = "arabicPeriod"]
     ArabicPeriod,
+    /// 1, 2, 3, …
     #[from_str = "arabicPlain"]
     ArabicPlain,
+    /// (i), (ii), (iii), …
     #[from_str = "romanLcParenBoth"]
     RomanLcParenBoth,
+    /// (I), (II), (III), …
     #[from_str = "romanUcParenBoth"]
     RomanUcParenBoth,
+    /// i), ii), iii), …
     #[from_str = "romanLcParenR"]
     RomanLcParenR,
+    /// I), II), III), …
     #[from_str = "romanUcParenR"]
     RomanUcParenR,
+    /// i., ii., iii., …
     #[from_str = "romanLcPeriod"]
     RomanLcPeriod,
+    /// I., II., III., …
     #[from_str = "romanUcPeriod"]
     RomanUcPeriod,
+    /// Dbl-byte circle numbers (1-10 circle[0x2460-], 11-arabic numbers)
     #[from_str = "circleNumDbPlain"]
     CircleNumDbPlain,
+    /// Wingdings black circle numbers
     #[from_str = "circleNumWdBlackPlain"]
     CircleNumWdBlackPlain,
+    /// Wingdings white circle numbers (0-10 circle[0x0080-], 11- arabic numbers)
     #[from_str = "circleNumWdWhitePlain"]
     CircleNumWdWhitePlain,
+    /// Dbl-byte Arabic numbers w/ double-byte period
     #[from_str = "arabicDbPeriod"]
     ArabicDbPeriod,
+    /// Dbl-byte Arabic numbers
     #[from_str = "arabicDbPlain"]
     ArabicDbPlain,
+    /// EA: Simplified Chinese w/ single-byte period
     #[from_str = "ea1ChsPeriod"]
     Ea1ChsPeriod,
+    /// EA: Simplified Chinese (TypeA 1-99, TypeC 100-)
     #[from_str = "ea1ChsPlain"]
     Ea1ChsPlain,
+    /// EA: Traditional Chinese w/ single-byte period
     #[from_str = "ea1ChtPeriod"]
     Ea1ChtPeriod,
+    /// EA: Traditional Chinese (TypeA 1-19, TypeC 20-)
     #[from_str = "ea1ChtPlain"]
     Ea1ChtPlain,
+    /// EA: Japanese w/ double-byte period
     #[from_str = "ea1JpnChsDbPeriod"]
     Ea1JpnChsDbPeriod,
+    /// EA: Japanese/Korean (TypeC 1-)
     #[from_str = "ea1JpnKorPlain"]
     Ea1JpnKorPlain,
+    /// EA: Japanese/Korean w/ single-byte period
     #[from_str = "ea1JpnKorPeriod"]
     Ea1JpnKorPeriod,
+    /// Bidi Arabic 1 (AraAlpha) with ANSI minus symbol
     #[from_str = "arabic1Minus"]
     Arabic1Minus,
+    /// Bidi Arabic 2 (AraAbjad) with ANSI minus symbol
     #[from_str = "arabic2Minus"]
     Arabic2Minus,
+    /// Bidi Hebrew 2 with ANSI minus symbol
     #[from_str = "hebrew2Minus"]
     Hebrew2Minus,
+    /// Thai alphabet period
     #[from_str = "thaiAlphaPeriod"]
     ThaiAlphaPeriod,
+    /// Thai alphabet parentheses - right
     #[from_str = "thaiAlphaParenR"]
     ThaiAlphaParenR,
+    /// Thai alphabet parentheses - both
     #[from_str = "thaiAlphaParenBoth"]
     ThaiAlphaParenBoth,
+    /// Thai numerical period
     #[from_str = "thaiNumPeriod"]
     ThaiNumPeriod,
+    /// Thai numerical parentheses - right
     #[from_str = "thaiNumParenR"]
     ThaiNumParenR,
+    /// Thai numerical period
     #[from_str = "thaiNumParenBoth"]
     ThaiNumParenBoth,
+    /// Hindi alphabet period - consonants
     #[from_str = "hindiAlphaPeriod"]
     HindiAlphaPeriod,
+    /// Hindi numerical period
     #[from_str = "hindiNumPeriod"]
     HindiNumPeriod,
+    /// Hindi numerical parentheses - right
     #[from_str = "hindiNumParenR"]
     HindiNumParenR,
+    /// Hindi alphabet period - consonants
     #[from_str = "hindiAlpha1Period"]
     HindiAlpha1Period,
 }
@@ -2069,16 +2160,29 @@ pub enum TextStrikeType {
     DoubleStrike,
 }
 
+/// This simple type specifies the cap types of the text.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum TextCapsType {
+    /// The reason we cannot implicitly have noCaps be the scenario where capitalization is not specified is
+    /// because not being specified implies deriving from a particular style and the user might want to override
+    /// that and make some text not have a capitalization scheme even though the style says otherwise.
     #[from_str = "none"]
     None,
+    /// Apply small caps to the text. All letters are converted to lower case.
     #[from_str = "small"]
     Small,
+    /// Apply all caps on the text. All lower case letters are converted to upper case even though they are stored
+    /// differently in the backing store.
     #[from_str = "all"]
     All,
 }
 
+/// This simple type specifies the preset text shape geometry that is to be used for a shape. An enumeration of this
+/// simple type is used so that a custom geometry does not have to be specified but instead can be constructed
+/// automatically by the generating application. For each enumeration listed there is also the corresponding
+/// DrawingML code that would be used to construct this shape were it a custom geometry. Within the construction
+/// code for each of these preset text shapes there are predefined guides that the generating application shall
+/// maintain for calculation purposes at all times. See [ShapeType](enum.ShapeType.html) to see the necessary guide values.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum TextShapeType {
     #[from_str = "textNoShape"]
@@ -2175,10 +2279,13 @@ pub enum TextVertOverflowType {
     Clip,
 }
 
+/// This simple type specifies the text horizontal overflow types
 #[derive(Debug, Clone, Copy, FromStr)]
-pub enum TextHorzOverflowType {
+pub enum TextHorizontalOverflowType {
+    /// When a big character does not fit into a line, allow a horizontal overflow.
     #[from_str = "overflow"]
     Overflow,
+    /// When a big character does not fit into a line, clip it at the proper horizontal overflow.
     #[from_str = "clip"]
     Clip,
 }
@@ -2209,16 +2316,29 @@ pub enum TextWrappingType {
     Square,
 }
 
+/// This simple type specifies a list of available anchoring types for text.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum TextAnchoringType {
+    /// Anchor the text at the top of the bounding rectangle.
     #[from_str = "t"]
     Top,
+    /// Anchor the text at the middle of the bounding rectangle.
     #[from_str = "ctr"]
     Center,
+    /// Anchor the text at the bottom of the bounding rectangle.
     #[from_str = "b"]
     Bottom,
+    /// Anchor the text so that it is justified vertically. When text is horizontal, this spaces out the actual lines of
+    /// text and is almost always identical in behavior to 'distrib' (special case: if only 1 line, then anchored at
+    /// top). When text is vertical, then it justifies the letters vertically. This is different than anchorDistributed,
+    /// because in some cases such as very little text in a line, it does not justify.
     #[from_str = "just"]
     Justified,
+    /// Anchor the text so that it is distributed vertically.
+    /// When text is horizontal, this spaces out the actual lines of text and is almost always identical in behavior to
+    /// anchorJustified (special case: if only 1 line, then anchored in middle). When text is vertical, then it
+    /// distributes the letters vertically. This is different than anchorJustified, because it always forces
+    /// distribution of the words, even if there are only one or two words in a line.
     #[from_str = "dist"]
     Distributed,
 }
@@ -6583,7 +6703,7 @@ pub struct TextBodyProperties {
     pub rotate_angle: Option<Angle>,
     pub paragraph_spacing: Option<bool>,
     pub vertical_overflow: Option<TextVertOverflowType>,
-    pub horizontal_overflow: Option<TextHorzOverflowType>,
+    pub horizontal_overflow: Option<TextHorizontalOverflowType>,
     pub vertical_type: Option<TextVerticalType>,
     pub wrap_type: Option<TextWrappingType>,
     pub left_inset: Option<Coordinate32>,
