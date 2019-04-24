@@ -81,7 +81,10 @@ pub type TextColumnCount = i32;
 /// Values represented by this type are restricted to: 1000 <= n <= 100000
 pub type TextFontScalePercent = Percentage;
 pub type TextSpacingPercent = Percentage; // TODO: 0 <= n <= 13200000
-pub type TextSpacingPoint = i32; // TODO: 0 <= n <= 158400
+/// This simple type specifies the Text Spacing that is used in terms of font point size.
+/// 
+/// Values represented by this type are restricted to: 0 <= n <= 158400
+pub type TextSpacingPoint = i32;
 /// This simple type specifies the margin that is used and its corresponding size.
 /// 
 /// Values represented by this type are restricted to: 0 <= n <= 51206400
@@ -104,6 +107,7 @@ pub type TextBulletSizePercent = Percentage;
 /// 
 /// Values represented by this type are restricted to: 100 <= n <= 400000
 pub type TextFontSize = i32;
+/// This simple type specifies the way we represent a font typeface.
 pub type TextTypeFace = String;
 pub type TextLanguageID = String;
 pub type Panose = String; // TODO: hex, length=10
@@ -125,6 +129,8 @@ pub type TextPoint = i32;
 /// Specifies the shape ID for legacy shape identification purposes.
 pub type ShapeId = String;
 
+/// This simple type indicates whether/how to flip the contents of a tile region when using it to fill a larger fill
+/// region.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum TileFlipMode {
     #[from_str = "none"]
@@ -2098,58 +2104,86 @@ pub enum BlendMode {
     Darken,
 }
 
+/// This simple type specifies the text tab alignment types.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum TextTabAlignType {
+    /// The text at this tab stop is left aligned.
     #[from_str = "l"]
     Left,
+    /// The text at this tab stop is center aligned.
     #[from_str = "ctr"]
     Center,
+    /// The text at this tab stop is right aligned.
     #[from_str = "r"]
     Right,
+    /// At this tab stop, the decimals are lined up. From a user's point of view, the text here behaves as right
+    /// aligned until the decimal, and then as left aligned after the decimal.
     #[from_str = "dec"]
     Decimal,
 }
 
+/// This simple type specifies the text underline types that is used.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum TextUnderlineType {
+    /// The reason we cannot implicitly have noUnderline be the scenario where underline is not specified is
+    /// because not being specified implies deriving from a particular style and the user might want to override
+    /// that and make some text not be underlined even though the style says otherwise.
     #[from_str = "none"]
     None,
+    /// Underline just the words and not the spaces between them.
     #[from_str = "words"]
     Words,
+    /// Underline the text with a single line of normal thickness.
     #[from_str = "sng"]
     Single,
+    /// Underline the text with two lines of normal thickness.
     #[from_str = "dbl"]
     Double,
+    /// Underline the text with a single, thick line.
     #[from_str = "heavy"]
     Heavy,
+    /// Underline the text with a single, dotted line of normal thickness.
     #[from_str = "dotted"]
     Dotted,
+    /// Underline the text with a single, thick, dotted line.
     #[from_str = "dottedHeavy"]
     DottedHeavy,
+    /// Underline the text with a single, dashed line of normal thickness.
     #[from_str = "dash"]
     Dash,
+    /// Underline the text with a single, dashed, thick line.
     #[from_str = "dashHeavy"]
     DashHeavy,
+    /// Underline the text with a single line consisting of long dashes of normal thickness.
     #[from_str = "dashLong"]
     DashLong,
+    /// Underline the text with a single line consisting of long, thick dashes.
     #[from_str = "dashLongHeavy"]
     DashLongHeavy,
+    /// Underline the text with a single line of normal thickness consisting of repeating dots and dashes.
     #[from_str = "dotDash"]
     DotDash,
+    /// Underline the text with a single, thick line consisting of repeating dots and dashes.
     #[from_str = "dotDashHeavy"]
     DotDashHeavy,
+    /// Underline the text with a single line of normal thickness consisting of repeating two dots and dashes.
     #[from_str = "dotDotDash"]
     DotDotDash,
+    /// Underline the text with a single, thick line consisting of repeating two dots and dashes.
     #[from_str = "dotDotDashHeavy"]
     DotDotDashHeavy,
+    /// Underline the text with a single wavy line of normal thickness.
     #[from_str = "wavy"]
     Wavy,
+    /// Underline the text with a single, thick wavy line.
     #[from_str = "wavyHeavy"]
     WavyHeavy,
+    /// Underline just the words and not the spaces between them.
     #[from_str = "wavyDbl"]
     WavyDouble,
 }
 
+/// This simple type specifies the strike type.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum TextStrikeType {
     #[from_str = "noStrike"]
@@ -2269,12 +2303,16 @@ pub enum TextShapeType {
     CascadeDown,
 }
 
+/// This simple type specifies the text vertical overflow.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum TextVertOverflowType {
+    /// Overflow the text and pay no attention to top and bottom barriers.
     #[from_str = "overflow"]
     Overflow,
+    /// Pay attention to top and bottom barriers. Use an ellipsis to denote that there is text which is not visible.
     #[from_str = "ellipsis"]
     Ellipsis,
+    /// Pay attention to top and bottom barriers. Provide no indication that there is text which is not visible.
     #[from_str = "clip"]
     Clip,
 }
@@ -2290,28 +2328,44 @@ pub enum TextHorizontalOverflowType {
     Clip,
 }
 
+/// If there is vertical text, determines what kind of vertical text is going to be used.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum TextVerticalType {
+    /// Horizontal text. This should be default.
     #[from_str = "horz"]
     Horizontal,
+    /// Determines if all of the text is vertical orientation (each line is 90 degrees rotated clockwise, so it goes
+    /// from top to bottom; each next line is to the left from the previous one).
     #[from_str = "vert"]
     Vertical,
+    /// Determines if all of the text is vertical orientation (each line is 270 degrees rotated clockwise, so it goes
+    /// from bottom to top; each next line is to the right from the previous one).
     #[from_str = "vert270"]
     Vertical270,
+    /// Determines if all of the text is vertical ("one letter on top of another").
     #[from_str = "wordArtVert"]
     WordArtVertical,
+    /// A special version of vertical text, where some fonts are displayed as if rotated by 90 degrees while some fonts
+    /// (mostly East Asian) are displayed vertical.
     #[from_str = "eaVert"]
     EastAsianVertical,
+    /// A special version of vertical text, where some fonts are displayed as if rotated by 90 degrees while some fonts
+    /// (mostly East Asian) are displayed vertical. The difference between this and the eastAsianVertical is
+    /// the text flows top down then LEFT RIGHT, instead of RIGHT LEFT
     #[from_str = "mongolianVert"]
     MongolianVertical,
+    /// Specifies that vertical WordArt should be shown from right to left rather than left to right.
     #[from_str = "wordArtVertRtl"]
     WordArtVerticalRtl,
 }
 
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum TextWrappingType {
+    /// No wrapping occurs on this text body. Words spill out without paying attention to the bounding rectangle
+    /// boundaries.
     #[from_str = "none"]
     None,
+    /// Determines whether we wrap words within the bounding rectangle.
     #[from_str = "square"]
     Square,
 }
@@ -6700,24 +6754,266 @@ impl TextBody {
 
 #[derive(Default, Debug, Clone)]
 pub struct TextBodyProperties {
+    /// Specifies the rotation that is being applied to the text within the bounding box. If it not
+    /// specified, the rotation of the accompanying shape is used. If it is specified, then this is
+    /// applied independently from the shape. That is the shape can have a rotation applied in
+    /// addition to the text itself having a rotation applied to it. If this attribute is omitted, then a
+    /// value of 0, is implied.
+    /// 
+    /// # Xml example
+    /// 
+    /// Consider the case where a shape has a rotation of 5400000, or 90 degrees
+    /// clockwise applied to it. In addition to this, the text body itself has a rotation of -5400000,
+    /// or 90 degrees counter-clockwise applied to it. Then the resulting shape would appear to
+    /// be rotated but the text within it would appear as though it had not been rotated at all.
+    /// The DrawingML specifying this would look like the following:
+    /// 
+    /// ```xml
+    /// <p:sp>
+    ///   <p:spPr>
+    ///     <a:xfrm rot="5400000">
+    ///     …
+    ///     </a:xfrm>
+    ///   </p:spPr>
+    ///   …
+    ///   <p:txBody>
+    ///     <a:bodyPr rot="-5400000" … />
+    ///     …
+    ///     (Some text)
+    ///     …
+    ///   </p:txBody>
+    /// </p:sp>
+    /// ```
     pub rotate_angle: Option<Angle>,
+    /// Specifies whether the before and after paragraph spacing defined by the user is to be
+    /// respected. While the spacing between paragraphs is helpful, it is additionally useful to be
+    /// able to set a flag as to whether this spacing is to be followed at the edges of the text
+    /// body, in other words the first and last paragraphs in the text body. More precisely since
+    /// this is a text body level property it should only effect the before paragraph spacing of the
+    /// first paragraph and the after paragraph spacing of the last paragraph for a given text
+    /// body. If this attribute is omitted, then a value of 0, or false is implied.
+    /// 
+    /// # Xml example
+    /// 
+    /// Consider the case where spacing has been defined between multiple
+    /// paragraphs within a text body using the spcBef and spcAft paragraph spacing attributes.
+    /// For this text body however the user would like to not have this followed for the edge
+    /// paragraphs and thus we have the following DrawingML.
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   <a:bodyPr spcFirstLastPara="0" … />
+    ///   …
+    ///   <a:p>
+    ///     <a:pPr>
+    ///       <a:spcBef>
+    ///         <a:spcPts val="1800"/>
+    ///       </a:spcBef>
+    ///       <a:spcAft>
+    ///         <a:spcPts val="600"/>
+    ///       </a:spcAft>
+    ///     </a:pPr>
+    ///     …
+    ///     (Some text)
+    ///     …
+    ///   </a:p>
+    ///   <a:p>
+    ///     <a:pPr>
+    ///       <a:spcBef>
+    ///         <a:spcPts val="1800"/>
+    ///       </a:spcBef>
+    ///       <a:spcAft>
+    ///         <a:spcPts val="600"/>
+    ///       </a:spcAft>
+    ///     </a:pPr>
+    ///     …
+    ///     (Some text)
+    ///     …
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
     pub paragraph_spacing: Option<bool>,
+    /// Determines whether the text can flow out of the bounding box vertically. This is used to
+    /// determine what happens in the event that the text within a shape is too large for the
+    /// bounding box it is contained within. If this attribute is omitted, then a value of overflow
+    /// is implied.
+    /// 
+    /// # Xml example
+    /// 
+    /// Consider the case where we have multiply paragraphs within a shape and the
+    /// second causes text to flow outside the shape. By applying the clip value of the
+    /// vertOverflow attribute as a body property this overflowing text is now cut off instead of
+    /// extending beyond the bounds of the shape.
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   <a:bodyPr vertOverflow="clip" … />
+    ///   …
+    ///   <a:p>
+    ///     …
+    ///     (Some text)
+    ///     …
+    ///   </a:p>
+    ///   <a:p>
+    ///     …
+    ///     (Some longer text)
+    ///     …
+    ///   </a:p>
+    /// </p:txBody>
+    /// ```
     pub vertical_overflow: Option<TextVertOverflowType>,
+    /// Determines whether the text can flow out of the bounding box horizontally. This is used
+    /// to determine what happens in the event that the text within a shape is too large for the
+    /// bounding box it is contained within. If this attribute is omitted, then a value of overflow
+    /// is implied.
+    /// 
+    /// # Xml example
+    /// 
+    /// Consider the case where we have multiply paragraphs within a shape and the
+    /// second is greater in length and causes text to flow outside the shape. By applying the clip
+    /// value of the horzOverflow attribute as a body property this overflowing text now is cut
+    /// off instead of extending beyond the bounds of the shape.
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   <a:bodyPr horzOverflow="clip" … />
+    ///   …
+    ///   <a:p>
+    ///   …
+    ///   (Some text)
+    ///   …
+    ///   </a:p>
+    ///   <a:p>
+    ///   …
+    ///   (Some more text)
+    ///   …
+    ///   </a:p>
+    /// </p:txBody>
+    /// ```
     pub horizontal_overflow: Option<TextHorizontalOverflowType>,
+    /// Determines if the text within the given text body should be displayed vertically. If this
+    /// attribute is omitted, then a value of horz, or no vertical text is implied.
+    /// 
+    /// # Xml example
+    /// 
+    /// Consider the case where the user needs to display text that appears vertical
+    /// and has a right to left flow with respect to its columns.
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   <a:bodyPr vert="wordArtVertRtl" … />
+    ///   …
+    ///   <a:p>
+    ///     …
+    ///     <a:t>This is</a:t>
+    ///     …
+    ///   </a:p>
+    ///   <a:p>
+    ///     …
+    ///     <a:t>some text.</a:t>
+    ///     …
+    ///   </a:p>
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// In the above sample DrawingML there are two paragraphs denoting a separation
+    /// between the text otherwise which are known as either a line or paragraph break.
+    /// Because wordArtVertRtl is used here this text is not only displayed in a stacked manner
+    /// flowing from top to bottom but also have the first paragraph be displayed to the right of
+    /// the second. This is because it is both vertical text and right to left.
     pub vertical_type: Option<TextVerticalType>,
+    /// Specifies the wrapping options to be used for this text body. If this attribute is omitted,
+    /// then a value of square is implied which wraps the text using the bounding text box.
     pub wrap_type: Option<TextWrappingType>,
+    /// Specifies the left inset of the bounding rectangle. Insets are used just as internal margins
+    /// for text boxes within shapes. If this attribute is omitted, then a value of 91440 or 0.1
+    /// inches is implied.
     pub left_inset: Option<Coordinate32>,
+    /// Specifies the top inset of the bounding rectangle. Insets are used just as internal margins
+    /// for text boxes within shapes. If this attribute is omitted, then a value of 45720 or 0.05
+    /// inches is implied.
     pub top_inset: Option<Coordinate32>,
+    /// Specifies the right inset of the bounding rectangle. Insets are used just as internal
+    /// margins for text boxes within shapes. If this attribute is omitted, then a value of 91440 or
+    /// 0.1 inches is implied.
     pub right_inset: Option<Coordinate32>,
+    /// Specifies the bottom inset of the bounding rectangle. Insets are used just as internal
+    /// margins for text boxes within shapes. If this attribute is omitted, a value of 45720 or 0.05
+    /// inches is implied.
     pub bottom_inset: Option<Coordinate32>,
+    /// Specifies the number of columns of text in the bounding rectangle. When applied to a
+    /// text run this property takes the width of the bounding box for the text and divides it by
+    /// the number of columns specified. These columns are then treated as overflow containers
+    /// in that when the previous column has been filled with text the next column acts as the
+    /// repository for additional text. When all columns have been filled and text still remains
+    /// then the overflow properties set for this text body are used and the text is reflowed to
+    /// make room for additional text. If this attribute is omitted, then a value of 1 is implied.
     pub column_count: Option<TextColumnCount>,
+    /// Specifies the space between text columns in the text area. This should only apply when
+    /// there is more than 1 column present. If this attribute is omitted, then a value of 0 is
+    /// implied.
     pub space_between_columns: Option<PositiveCoordinate32>,
+    /// Specifies whether columns are used in a right-to-left or left-to-right order. The usage of
+    /// this attribute only sets the column order that is used to determine which column
+    /// overflow text should go to next. If this attribute is omitted, then a value of 0 or falseis
+    /// implied in which case text starts in the leftmost column and flow to the right.
+    /// 
+    /// # Note
+    /// 
+    /// This attribute in no way determines the direction of text but merely the direction
+    /// in which multiple columns are used.
     pub rtl_columns: Option<bool>,
+    /// Specifies that text within this textbox is converted text from a WordArt object. This is
+    /// more of a backwards compatibility attribute that is useful to the application from a
+    /// tracking perspective. WordArt was the former way to apply text effects and therefore
+    /// this attribute is useful in document conversion scenarios. If this attribute is omitted, then
+    /// a value of 0 or false is implied.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   <a:bodyPr wrap="none" fromWordArt="1" …/>
+    ///   …
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// Because of the presence of the fromWordArt attribute the text within this shape can be
+    /// mapped back to the corresponding WordArt during document conversion.
     pub is_from_word_art: Option<bool>,
+    /// Specifies the anchoring position of the txBody within the shape. If this attribute is
+    /// omitted, then a value of t, or top is implied.
     pub anchor: Option<TextAnchoringType>,
+    /// Specifies the centering of the text box. The way it works fundamentally is to determine
+    /// the smallest possible "bounds box" for the text and then to center that "bounds box"
+    /// accordingly. This is different than paragraph alignment, which aligns the text within the
+    /// "bounds box" for the text. This flag is compatible with all of the different kinds of
+    /// anchoring. If this attribute is omitted, then a value of 0 or false is implied.
+    /// 
+    /// # Example
+    /// 
+    /// The text within this shape has been both vertically centered with the anchor
+    /// attribute and horizontally centered with the anchorCtr attribute.
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   <a:bodyPr anchor="ctr" anchorCtr="1" … />
+    ///   …
+    /// </p:txBody>
+    /// ```
     pub anchor_center: Option<bool>,
+    /// Forces the text to be rendered anti-aliased regardless of the font size. Certain fonts can
+    /// appear grainy around their edges unless they are anti-aliased. Therefore this attribute
+    /// allows for the specifying of which bodies of text should always be anti-aliased and which
+    /// ones should not. If this attribute is omitted, then a value of 0 or false is implied.
     pub force_antialias: Option<bool>,
+    /// Specifies whether text should remain upright, regardless of the transform applied to it
+    /// and the accompanying shape transform. If this attribute is omitted, then a value of 0, or
+    /// false is implied.
     pub upright: Option<bool>,
+    /// Specifies that the line spacing for this text body is decided in a simplistic manner using
+    /// the font scene. If this attribute is omitted, a value of 0 or false is implied.
     pub compatible_line_spacing: Option<bool>,
     /// This element specifies when a preset geometric shape should be used to transform a piece of text. This
     /// operation is known formally as a text warp. The generating application should be able to render all preset
@@ -7069,10 +7365,79 @@ impl FontCollection {
 
 #[derive(Debug, Clone)]
 pub struct NonVisualDrawingProps {
+    /// Specifies a unique identifier for the current DrawingML object within the current
+    /// document. This ID can be used to assist in uniquely identifying this object so that it can
+    /// be referred to by other parts of the document.
+    /// 
+    /// If multiple objects within the same document share the same id attribute value, then the
+    /// document shall be considered non-conformant.
+    /// 
+    /// # Example
+    /// 
+    /// Consider a DrawingML object defined as follows:
+    /// 
+    /// <… id="10" … >
+    /// 
+    /// The id attribute has a value of 10, which is the unique identifier for this DrawingML
+    /// object.
     pub id: DrawingElementId,
+    /// Specifies the name of the object.
+    /// 
+    /// # Note
+    /// 
+    /// Typically, this is used to store the original file name of a picture object.
+    /// 
+    /// # Example
+    /// 
+    /// Consider a DrawingML object defined as follows:
+    /// 
+    /// < … name="foo.jpg" >
+    /// 
+    /// The name attribute has a value of foo.jpg, which is the name of this DrawingML object.
     pub name: String,
+    /// Specifies alternative text for the current DrawingML object, for use by assistive
+    /// technologies or applications which do not display the current object.
+    /// 
+    /// If this element is omitted, then no alternative text is present for the parent object.
+    /// 
+    /// # Example
+    /// 
+    /// Consider a DrawingML object defined as follows:
+    /// 
+    /// <… descr="A picture of a bowl of fruit">
+    /// 
+    /// The descr attribute contains alternative text which can be used in place of the actual
+    /// DrawingML object.
     pub description: Option<String>,
-    pub hidden: Option<bool>, // false
+    /// Specifies whether this DrawingML object is displayed. When a DrawingML object is
+    /// displayed within a document, that object can be hidden (i.e., present, but not visible).
+    /// This attribute determines whether the object is rendered or made hidden. [Note: An
+    /// application can have settings which allow this object to be viewed. end note]
+    /// 
+    /// If this attribute is omitted, then the parent DrawingML object shall be displayed (i.e., not
+    /// hidden).
+    /// 
+    /// Defaults to false
+    /// 
+    /// # Example
+    /// 
+    /// Consider an inline DrawingML object which must be hidden within the
+    /// document's content. This setting would be specified as follows:
+    /// 
+    /// <… hidden="true" />
+    /// 
+    /// The hidden attribute has a value of true, which specifies that the DrawingML object is
+    /// hidden and not displayed when the document is displayed.
+    pub hidden: Option<bool>,
+    /// Specifies the title (caption) of the current DrawingML object.
+    /// 
+    /// If this attribute is omitted, then no title text is present for the parent object.
+    /// 
+    /// # Example
+    /// 
+    /// Consider a DrawingML object defined as follows:
+    /// 
+    /// <… title="Process Flow Diagram">
     pub title: Option<String>,
     pub hyperlink_click: Option<Box<Hyperlink>>,
     /// This element specifies the hyperlink information to be activated when the user's mouse is hovered over the
@@ -7469,7 +7834,23 @@ impl NonVisualConnectorProperties {
 
 #[derive(Default, Debug, Clone)]
 pub struct NonVisualPictureProperties {
-    pub prefer_relative_resize: Option<bool>, // true
+    /// Specifies if the user interface should show the resizing of the picture based on the
+    /// picture's current size or its original size. If this attribute is set to true, then scaling is
+    /// relative to the original picture size as opposed to the current picture size.
+    /// 
+    /// Defaults to true
+    /// 
+    /// # Example
+    /// 
+    /// Consider the case where a picture has been resized within a document and is
+    /// now 50% of the originally inserted picture size. Now if the user chooses to make a later
+    /// adjustment to the size of this picture within the generating application, then the value of
+    /// this attribute should be checked.
+    /// 
+    /// If this attribute is set to true then a value of 50% is shown. Similarly, if this attribute is set
+    /// to false, then a value of 100% should be shown because the picture has not yet been
+    /// resized from its current (smaller) size.
+    pub prefer_relative_resize: Option<bool>,
     pub picture_locks: Option<PictureLocking>,
 }
 
