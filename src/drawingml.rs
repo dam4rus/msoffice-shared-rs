@@ -5918,10 +5918,89 @@ impl Blip {
 
 #[derive(Debug, Clone)]
 pub struct TextFont {
+    /// Specifies the typeface, or name of the font that is to be used. The typeface is a string
+    /// name of the specific font that should be used in rendering the presentation. If this font is
+    /// not available within the font list of the generating application than font substitution logic
+    /// should be utilized in order to select an alternate font.
     pub typeface: TextTypeFace,
+
+    /// Specifies the Panose-1 classification number for the current font using the mechanism
+    /// defined in §5.2.7.17 of ISO/IEC 14496-22.
     pub panose: Option<Panose>,
-    pub pitch_family: Option<i32>, // 0
-    pub charset: Option<i32>,      // 1
+
+    /// Specifies the font pitch as well as the font family for the corresponding font. Because the
+    /// value of this attribute is determined by an octet value this value shall be interpreted as
+    /// follows:
+    /// 
+    /// | Value     | Description                                   |
+    /// |-----------|-----------------------------------------------|
+    /// | 0x00      | DEFAULT PITCH + UNKNOWN FONT FAMILY           |
+    /// | 0x01      | FIXED PITCH + UNKNOWN FONT FAMILY             |
+    /// | 0x02      | VARIABLE PITCH + UNKNOWN FONT FAMILY          |
+    /// | 0x10      | DEFAULT PITCH + ROMAN FONT FAMILY             |
+    /// | 0x11      | FIXED PITCH + ROMAN FONT FAMILY               |
+    /// | 0x12      | VARIABLE PITCH + ROMAN FONT FAMILY            |
+    /// | 0x20      | DEFAULT PITCH + SWISS FONT FAMILY             |
+    /// | 0x21      | FIXED PITCH + SWISS FONT FAMILY               |
+    /// | 0x22      | VARIABLE PITCH + SWISS FONT FAMILY            |
+    /// | 0x30      | DEFAULT PITCH + MODERN FONT FAMILY            |
+    /// | 0x31      | FIXED PITCH + MODERN FONT FAMILY              |
+    /// | 0x32      | VARIABLE PITCH + MODERN FONT FAMILY           |
+    /// | 0x40      | DEFAULT PITCH + SCRIPT FONT FAMILY            |
+    /// | 0x41      | FIXED PITCH + SCRIPT FONT FAMILY              |
+    /// | 0x42      | VARIABLE PITCH + SCRIPT FONT FAMILY           |
+    /// | 0x50      | DEFAULT PITCH + DECORATIVE FONT FAMILY        |
+    /// | 0x51      | FIXED PITCH + DECORATIVE FONT FAMIL           |
+    /// | 0x52      | VARIABLE PITCH + DECORATIVE FONT FAMILY       |
+    /// 
+    /// This information is determined by querying the font when present and shall not be
+    /// modified when the font is not available. This information can be used in font substitution
+    /// logic to locate an appropriate substitute font when this font is not available.
+    /// 
+    /// Defaults to 0x00
+    /// 
+    /// # Note
+    /// 
+    /// Although the attribute name is pitchFamily, the integer value of this attribute
+    /// specifies the font family with higher 4 bits and the font pitch with lower 4 bits.
+    pub pitch_family: Option<i32>,
+    
+    /// Specifies the character set which is supported by the parent font. This information can be
+    /// used in font substitution logic to locate an appropriate substitute font when this font is
+    /// not available. This information is determined by querying the font when present and shall
+    /// not be modified when the font is not available.
+    /// 
+    /// The value of this attribute shall be interpreted as follows:
+    /// 
+    /// | Value     | Description                                                               |
+    /// |-----------|---------------------------------------------------------------------------|
+    /// | 0x00      | Specifies the ANSI character set. (IANA name *iso-8859-1*)                |
+    /// | 0x01      | Specifies the default character set.                                      |
+    /// | 0x02      | Specifies the Symbol character set. This value specifies that the         |
+    /// |           | characters in the Unicode private use area (U+FF00 to U+FFFF) of the      |
+    /// |           | font should be used to display characters in the range U+0000 to          |
+    /// |           | U+00FF.                                                                   |
+    /// | 0x4D      | Specifies a Macintosh (Standard Roman) character set. (IANA name          |
+    /// |           | *macintosh*)                                                              |
+    /// | 0x80      | Specifies the JIS character set. (IANA name *shift_jis*)                  |
+    /// | 0x81      | Specifies the Hangul character set. (IANA name *ks_c_5601-1987*)          |
+    /// | 0x82      | Specifies a Johab character set. (IANA name *KS C-5601-1992*)             |
+    /// | 0x86      | Specifies the GB-2312 character set. (IANA name *GBK*)                    |
+    /// | 0x88      | Specifies the Chinese Big Five character set. (IANA name *Big5*)          |
+    /// | 0xA1      | Specifies a Greek character set. (IANA name *windows-1253*)               |
+    /// | 0xA2      | Specifies a Turkish character set. (IANA name *iso-8859-9*)               |
+    /// | 0xA3      | Specifies a Vietnamese character set. (IANA name *windows-1258*)          |
+    /// | 0xB1      | Specifies a Hebrew character set. (IANA name *windows-1255*)              |
+    /// | 0xB2      | Specifies an Arabic character set. (IANA name *windows-1256*)             |
+    /// | 0xBA      | Specifies a Baltic character set. (IANA name *windows-1257*)              |
+    /// | 0xCC      | Specifies a Russian character set. (IANA name *windows-1251*)             |
+    /// | 0xDE      | Specifies a Thai character set. (IANA name *windows-874*)                 |
+    /// | 0xEE      | Specifies an Eastern European character set. (IANA name *windows-1250*)   |
+    /// | 0xFF      | Specifies an OEM character set not defined by ECMA-376.                   |
+    /// | _         | Application-defined, can be ignored.                                      |
+    /// 
+    /// Defaults to 0x01
+    pub charset: Option<i32>,
 }
 
 impl TextFont {
@@ -5986,7 +6065,60 @@ impl SupplementalFont {
 
 #[derive(Debug, Clone)]
 pub enum TextSpacing {
+    /// This element specifies the amount of white space that is to be used between lines and paragraphs in the form of
+    /// a percentage of the text size. The text size that is used to calculate the spacing here is the text for each run, with
+    /// the largest text size having precedence. That is if there is a run of text with 10 point font and within the same
+    /// paragraph on the same line there is a run of text with a 12 point font size then the 12 point should be used to
+    /// calculate the spacing to be used.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:pPr …>
+    ///       <a:spcBef>
+    ///         <a:spcPct val="200%"/>
+    ///       </a:spcBef>
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Sample Text</a:t>
+    ///     …
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// The above paragraph of text is formatted to have a spacing before the paragraph text. This spacing is 200% of
+    /// the size of the largest text on each line.
     Percent(TextSpacingPercent),
+
+    /// This element specifies the amount of white space that is to be used between lines and paragraphs in the form of
+    /// a text point size. The size is specified using points where 100 is equal to 1 point font and 1200 is equal to 12
+    /// point.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:pPr …>
+    ///       <a:spcBef>
+    ///         <a:spcPts val="1400"/>
+    ///       </a:spcBef>
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Sample Text</a:t>
+    ///     …
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// The above paragraph of text is formatted to have a spacing before the paragraph text. This spacing is a size of 14
+    /// points due to val="1400".
     Point(TextSpacingPoint),
 }
 
@@ -6159,26 +6291,59 @@ impl TextAutonumberedBullet {
     }
 }
 
+/// This element specifies a single tab stop to be used on a line of text when there are one or more tab characters
+/// present within the text. When there is more than one present than they should be utilized in increasing position
+/// order which is specified via the pos attribute.
+/// 
+/// # Xml example
+/// 
+/// ```xml
+/// <p:txBody>
+///   …
+///   <a:p>
+///     <a:pPr …>
+///       <a:tabLst>
+///         <a:tab pos="2292350" algn="l"/>
+///         <a:tab pos="2627313" algn="l"/>
+///         <a:tab pos="2743200" algn="l"/>
+///         <a:tab pos="2974975" algn="l"/>
+///       </a:tabLst>
+///     </a:pPr>
+///     …
+///     <a:t>Sample Text</a:t>
+///     …
+///   </a:p>
+///   …
+/// </p:txBody>
+/// ```
+/// 
+/// The paragraph within which this <a:tab> information resides has a total of 4 unique tab stops that should be
+/// listed in order of increasing position. Along with specifying the tab position each tab allows for the specifying of
+/// an alignment.
 #[derive(Default, Debug, Clone)]
 pub struct TextTabStop {
+    /// Specifies the position of the tab stop relative to the left margin. If this attribute is omitted
+    /// then the application default for tab stops is used.
     pub position: Option<Coordinate32>,
+
+    /// Specifies the alignment that is to be applied to text using this tab stop. If this attribute is
+    /// omitted then the application default for the generating application.
     pub alignment: Option<TextTabAlignType>,
 }
 
 impl TextTabStop {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<TextTabStop> {
-        let mut position = None;
-        let mut alignment = None;
+        let mut instance: Self = Default::default();
 
         for (attr, value) in &xml_node.attributes {
             match attr.as_str() {
-                "pos" => position = Some(value.parse::<Coordinate32>()?),
-                "algn" => alignment = Some(value.parse::<TextTabAlignType>()?),
+                "pos" => instance.position = Some(value.parse::<Coordinate32>()?),
+                "algn" => instance.alignment = Some(value.parse::<TextTabAlignType>()?),
                 _ => (),
             }
         }
 
-        Ok(Self { position, alignment })
+        Ok(instance)
     }
 }
 
@@ -6440,6 +6605,12 @@ pub struct TextCharacterProperties {
     pub text_underline_fill: Option<TextUnderlineFill>,
     pub latin_font: Option<TextFont>,
     pub east_asian_font: Option<TextFont>,
+
+    /// This element specifies that a complex script font be used for a specific run of text. This font is specified with a
+    /// typeface attribute much like the others but is specifically classified as a complex script font.
+    /// 
+    /// If the specified font is not available on a system being used for rendering, then the attributes of this element can
+    /// be utilized to select an alternative font.
     pub complex_script_font: Option<TextFont>,
     pub symbol_font: Option<TextFont>,
     pub hyperlink_click: Option<Box<Hyperlink>>,
@@ -6892,13 +7063,73 @@ pub struct TextParagraphProperties {
     /// This paragraph has two lines of text that have percentage based vertical spacing. This kind of spacing should
     /// change based on the size of the text involved as its size is calculated as a percentage of this.
     pub line_spacing: Option<TextSpacing>,
+
+    /// This element specifies the amount of vertical white space that is present before a paragraph. This space is
+    /// specified in either percentage or points via the child elements spcPct and spcPts.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:pPr …>
+    ///       <a:spcBef>
+    ///         <a:spcPts val="1800"/>
+    ///       </a:spcBef>
+    ///       <a:spcAft>
+    ///         <a:spcPts val="600"/>
+    ///       </a:spcAft>
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Sample Text</a:t>
+    ///     …
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// The above paragraph of text is formatted to have a spacing both before and after the paragraph text. The
+    /// spacing before is a size of 18 points, or value=1800 and the spacing after is a size of 6 points, or value=600.
     pub space_before: Option<TextSpacing>,
+
+    /// This element specifies the amount of vertical white space that is present after a paragraph. This space is
+    /// specified in either percentage or points via the child elements spcPct and spcPts.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:pPr …>
+    ///       <a:spcBef>
+    ///         <a:spcPts val="1800"/>
+    ///       </a:spcBef>
+    ///       <a:spcAft>
+    ///         <a:spcPts val="600"/>
+    ///       </a:spcAft>
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Sample Text</a:t>
+    ///     …
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// The above paragraph of text is formatted to have a spacing both before and after the paragraph text. The
+    /// spacing before is a size of 18 points, or value=1800 and the spacing after is a size of 6 points, or value=600.
     pub space_after: Option<TextSpacing>,
     pub bullet_color: Option<TextBulletColor>,
     pub bullet_size: Option<TextBulletSize>,
     pub bullet_typeface: Option<TextBulletTypeface>,
     pub bullet: Option<TextBullet>,
-    pub tab_stop_list: Vec<TextTabStop>,
+
+    /// This element specifies the list of all tab stops that are to be used within a paragraph. These tabs should be used
+    /// when describing any custom tab stops within the document. If these are not specified then the default tab stops
+    /// of the generating application should be used.
+    pub tab_stop_list: Option<Vec<TextTabStop>>,
     pub default_run_properties: Option<Box<TextCharacterProperties>>,
 }
 
@@ -6955,7 +7186,25 @@ impl TextParagraphProperties {
                             .ok_or_else(|| MissingChildNodeError::new(child_node.name.clone(), "spcAft child"))?;
                         instance.space_after = Some(TextSpacing::from_xml_element(space_after_node)?);
                     }
-                    "tabLst" => instance.tab_stop_list.push(TextTabStop::from_xml_element(child_node)?),
+                    "tabLst" => {
+                        let mut vec = Vec::new();
+
+                        for tab_node in &child_node.child_nodes {
+                            vec.push(TextTabStop::from_xml_element(tab_node)?);
+                        }
+
+                        if vec.len() > 32 {
+                            return Err(Box::new(LimitViolationError::new(
+                                xml_node.name.clone(),
+                                "tabLst",
+                                Limit::Value(0),
+                                Limit::Value(32),
+                                vec.len() as u32,
+                            )));
+                        }
+
+                        instance.tab_stop_list = Some(vec);
+                    },
                     "defRPr" => {
                         instance.default_run_properties =
                             Some(Box::new(TextCharacterProperties::from_xml_element(child_node)?))
