@@ -4489,6 +4489,7 @@ pub struct LineProperties {
     /// Specifies the width to be used for the underline stroke. If this attribute is omitted, then a
     /// value of 0 is assumed.
     pub width: Option<LineWidth>,
+
     /// Specifies the ending caps that should be used for this line. If this attribute is omitted, than a value of
     /// square is assumed.
     /// 
@@ -4496,16 +4497,20 @@ pub struct LineProperties {
     /// 
     /// Examples of cap types are rounded, flat, etc.
     pub cap: Option<LineCap>,
+
     /// Specifies the compound line type to be used for the underline stroke. If this attribute is
     /// omitted, then a value of CompoundLine::Single is assumed.
     pub compound: Option<CompoundLine>,
+
     /// Specifies the alignment to be used for the underline stroke.
     pub pen_alignment: Option<PenAlignment>,
     pub fill_properties: Option<LineFillProperties>,
     pub dash_properties: Option<LineDashProperties>,
     pub join_properties: Option<LineJoinProperties>,
+
     /// This element specifies decorations which can be added to the head of a line.
     pub head_end: Option<LineEndProperties>,
+
     /// This element specifies decorations which can be added to the tail of a line.
     pub tail_end: Option<LineEndProperties>,
 }
@@ -6349,7 +6354,51 @@ impl TextTabStop {
 
 #[derive(Debug, Clone)]
 pub enum TextUnderlineLine {
+    /// This element specifies that the stroke style of an underline for a run of text should be of the same as the text run
+    /// within which it is contained.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:r>
+    ///       <a:rPr …>
+    ///         <a:uLnTx>
+    ///       </a:rPr>
+    ///       …
+    ///       <a:t>Sample Text</a:t>
+    ///       …
+    ///     </a:r>
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// The underline stroke of the above text follows the stroke of the run text within which it resides.
     FollowText,
+
+    /// This element specifies the properties for the stroke of the underline that is present within a run of text.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:r>
+    ///       <a:rPr …>
+    ///         <a:uLn algn="r">
+    ///       </a:rPr>
+    ///       …
+    ///       <a:t>Sample Text</a:t>
+    ///       …
+    ///     </a:r>
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
     Line(Option<Box<LineProperties>>),
 }
 
@@ -6375,7 +6424,55 @@ impl TextUnderlineLine {
 
 #[derive(Debug, Clone)]
 pub enum TextUnderlineFill {
+    /// This element specifies that the fill color of an underline for a run of text should be of the same color as the text
+    /// run within which it is contained.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:r>
+    ///       <a:rPr …>
+    ///         <a:uFillTx>
+    ///       </a:rPr>
+    ///       …
+    ///       <a:t>Sample Text</a:t>
+    ///       …
+    ///     </a:r>
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
     FollowText,
+
+    /// This element specifies the fill color of an underline for a run of text.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:r>
+    ///       <a:rPr …>
+    ///         <a:uFill>
+    ///           <a:solidFill>
+    ///             <a:srgbClr val="FFFF00"/>
+    ///           </a:solidFill>
+    ///         </a:uFill>
+    ///       </a:rPr>
+    ///       …
+    ///       <a:t>Sample Text</a:t>
+    ///       …
+    ///     </a:r>
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// 
     Fill(FillProperties),
 }
 
@@ -6407,28 +6504,34 @@ pub struct Hyperlink {
     /// Specifies the relationship id that when looked up in this slides relationship file contains
     /// the target of this hyperlink. This attribute cannot be omitted.
     pub relationship_id: Option<RelationshipId>,
+
     /// Specifies the URL when it has been determined by the generating application that the
     /// URL is invalid. That is the generating application can still store the URL but it is known
     /// that this URL is not correct.
     pub invalid_url: Option<String>,
+
     /// Specifies an action that is to be taken when this hyperlink is activated. This can be used to
     /// specify a slide to be navigated to or a script of code to be run.
     pub action: Option<String>,
+
     /// Specifies the target frame that is to be used when opening this hyperlink. When the
     /// hyperlink is activated this attribute is used to determine if a new window is launched for
     /// viewing or if an existing one can be used. If this attribute is omitted, than a new window
     /// is opened.
     pub target_frame: Option<String>,
+
     /// Specifies the tooltip that should be displayed when the hyperlink text is hovered over
     /// with the mouse. If this attribute is omitted, than the hyperlink text itself can be
     /// displayed.
     pub tooltip: Option<String>,
+
     /// Specifies whether to add this URI to the history when navigating to it. This allows for the
     /// viewing of this presentation without the storing of history information on the viewing
     /// machine. If this attribute is omitted, then a value of 1 or true is assumed.
     /// 
     /// Defaults to true
     pub history: Option<bool>,
+
     /// Specifies if this attribute has already been used within this document. That is when a
     /// hyperlink has already been visited that this attribute would be utilized so the generating
     /// application can determine the color of this text. If this attribute is omitted, then a value
@@ -6436,6 +6539,7 @@ pub struct Hyperlink {
     /// 
     /// Defaults to false
     pub highlight_click: Option<bool>,
+
     /// Specifies if the URL in question should stop all sounds that are playing when it is clicked.
     /// 
     /// Defaults to false
@@ -6600,10 +6704,64 @@ pub struct TextCharacterProperties {
     pub line_properties: Option<Box<LineProperties>>,
     pub fill_properties: Option<FillProperties>,
     pub effect_properties: Option<EffectProperties>,
+
+    /// This element specifies the highlight color that is present for a run of text.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:r>
+    ///       <a:rPr …>
+    ///         <a:highlight>
+    ///           <a:srgbClr val="FFFF00"/>
+    ///         </a:highlight>
+    ///       </a:rPr>
+    ///       …
+    ///       <a:t>Sample Text</a:t>
+    ///       …
+    ///     </a:r>
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
     pub highlight_color: Option<Color>,
     pub text_underline_line: Option<TextUnderlineLine>,
     pub text_underline_fill: Option<TextUnderlineFill>,
+
+    /// This element specifies that a Latin font be used for a specific run of text. This font is specified with a typeface
+    /// attribute much like the others but is specifically classified as a Latin font.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <a:r>
+    ///   <a:rPr …>
+    ///     <a:latin typeface="Sample Font"/>
+    ///   </a:rPr>
+    ///   <a:t>Sample Text</a:t>
+    /// </a:r>
+    /// ```
     pub latin_font: Option<TextFont>,
+
+    /// This element specifies that an East Asian font be used for a specific run of text. This font is specified with a
+    /// typeface attribute much like the others but is specifically classified as an East Asian font.
+    /// 
+    /// If the specified font is not available on a system being used for rendering, then the attributes of this element can
+    /// be utilized to select an alternative font.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <a:r>
+    ///   <a:rPr …>
+    ///     <a:ea typeface="Sample Font"/>
+    ///   </a:rPr>
+    ///   <a:t>Sample Text</a:t>
+    /// </a:r>
+    /// ```
     pub east_asian_font: Option<TextFont>,
 
     /// This element specifies that a complex script font be used for a specific run of text. This font is specified with a
@@ -6612,8 +6770,74 @@ pub struct TextCharacterProperties {
     /// If the specified font is not available on a system being used for rendering, then the attributes of this element can
     /// be utilized to select an alternative font.
     pub complex_script_font: Option<TextFont>,
+
+    /// This element specifies that a symbol font be used for a specific run of text. This font is specified with a typeface
+    /// attribute much like the others but is specifically classified as a symbol font.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <a:r>
+    ///   <a:rPr …>
+    ///     <a:sym typeface="Sample Font"/>
+    ///   </a:rPr>
+    ///   <a:t>Sample Text</a:t>
+    /// </a:r>
+    /// ```
+    /// 
+    /// The above run of text is rendered using the symbol font "Sample Font".
     pub symbol_font: Option<TextFont>,
+
+    /// Specifies the on-click hyperlink information to be applied to a run of text. When the hyperlink text is clicked the
+    /// link is fetched.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:r>
+    ///       <a:rPr …>
+    ///         <a:hlinkClick r:id="rId2" tooltip="Some Sample Text"/>
+    ///       </a:rPr>
+    ///       …
+    ///       <a:t>Sample Text</a:t>
+    ///       …
+    ///     </a:r>
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// The above run of text is a hyperlink that points to the resource pointed at by rId2 within this slides relationship
+    /// file. Additionally this text should display a tooltip when the mouse is hovered over the run of text.
     pub hyperlink_click: Option<Box<Hyperlink>>,
+
+    /// Specifies the mouse-over hyperlink information to be applied to a run of text. When the mouse is hovered over
+    /// this hyperlink text the link is fetched.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:r>
+    ///       <a:rPr …>
+    ///         <a:hlinkMouseOver r:id="rId2" tooltip="Some Sample Text"/>
+    ///       </a:rPr>
+    ///       …
+    ///       <a:t>Sample Text</a:t>
+    ///       …
+    ///     </a:r>
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// The above run of text is a hyperlink that points to the resource pointed at by rId2 within this slides relationship
+    /// file. Additionally this text should display a tooltip when the mouse is hovered over the run of text.
     pub hyperlink_mouse_over: Option<Box<Hyperlink>>,
 
     /// This element specifies whether the contents of this run shall have right-to-left characteristics. Specifically, the
@@ -7130,6 +7354,23 @@ pub struct TextParagraphProperties {
     /// when describing any custom tab stops within the document. If these are not specified then the default tab stops
     /// of the generating application should be used.
     pub tab_stop_list: Option<Vec<TextTabStop>>,
+    
+    /// This element contains all default run level text properties for the text runs within a containing paragraph. These
+    /// properties are to be used when overriding properties have not been defined within the rPr element.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <a:p>
+    ///   …
+    ///   <a:rPr u="sng"/>
+    ///   …
+    ///   <a:t>Some Text</a:t>
+    ///   …
+    /// </a:p>
+    /// ```
+    /// 
+    /// The run of text described above is formatting with a single underline of text matching color.
     pub default_run_properties: Option<Box<TextCharacterProperties>>,
 }
 
@@ -7286,6 +7527,32 @@ impl TextParagraph {
 
 #[derive(Debug, Clone)]
 pub enum TextRun {
+    /// This element specifies the presence of a run of text within the containing text body. The run element is the
+    /// lowest level text separation mechanism within a text body. A text run can contain text run properties associated
+    /// with the run. If no properties are listed then properties specified in the defRPr element are used.
+    /// 
+    /// # Xml example
+    /// 
+    /// Consider the case where the user would like to describe a text body that contains two runs of text and
+    /// would like one to be bold and the other not. The following DrawingML would specify such a text body.
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:r>
+    ///     <a:rPr b="1">
+    ///     </a:rPr>
+    ///     <a:t>Some text</a:t>
+    ///   </a:r>
+    ///   …
+    ///   <a:r>
+    ///     <a:rPr/>
+    ///     <a:t>Some text</a:t>
+    ///   </a:r>
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// The above text body has the first run be formatted bold and the second normally.
     RegularTextRun(Box<RegularTextRun>),
 
     /// This element specifies the existence of a vertical line break between two runs of text within a paragraph. In
@@ -7368,7 +7635,46 @@ impl TextRun {
 
 #[derive(Debug, Clone)]
 pub struct RegularTextRun {
+    /// This element contains all run level text properties for the text runs within a containing paragraph.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <a:p>
+    ///   …
+    ///   <a:rPr u="sng"/>
+    ///   …
+    ///   <a:t>Some Text</a:t>
+    ///   …
+    /// </a:p>
+    /// ```
+    /// 
+    /// The run of text described above is formatting with a single underline of text matching color.
     pub char_properties: Option<Box<TextCharacterProperties>>,
+
+    /// This element specifies the actual text for this text run. This is the text that is formatted using all specified body,
+    /// paragraph and run properties. This element shall be present within a run of text.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     …
+    ///     <a:r>
+    ///       …
+    ///       <a:t>Sample Text</a:t>
+    ///       …
+    ///     </a:r>
+    ///     …
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// The above DrawingML specifies a text body containing a single paragraph, containing a single run which contains
+    /// the actual text specified with the <a:t> element.
     pub text: String,
 }
 
@@ -7439,6 +7745,22 @@ pub struct TextField {
     /// |datetime12     |hh:mm AM/PM date time format                           |
     /// |datetime13     |hh:mm:ss: AM/PM date time format                       |
     pub field_type: Option<String>,
+
+    /// This element contains all run level text properties for the text runs within a containing paragraph.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <a:p>
+    ///   …
+    ///   <a:rPr u="sng"/>
+    ///   …
+    ///   <a:t>Some Text</a:t>
+    ///   …
+    /// </a:p>
+    /// ```
+    /// 
+    /// The run of text described above is formatting with a single underline of text matching color.
     pub char_properties: Option<Box<TextCharacterProperties>>,
     pub paragraph_properties: Option<Box<TextParagraph>>,
     pub text: Option<String>,
