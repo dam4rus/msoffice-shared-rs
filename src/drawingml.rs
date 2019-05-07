@@ -12,7 +12,7 @@ use enum_from_str_derive::FromStr;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
-pub type Guid = String; // TODO: move to shared common types. pattern="\{[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\}"
+pub type Guid = String; // TODO: pattern="\{[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\}"
 /// This simple type specifies that its contents will contain a percentage value. See the union's member types for
 /// details.
 pub type Percentage = f32;
@@ -2543,6 +2543,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     Tint(PositiveFixedPercentage),
+
     /// This element specifies a darker version of its input color. A 10% shade is 10% of the input color combined with
     /// 90% black.
     /// 
@@ -2558,6 +2559,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     Shade(PositiveFixedPercentage),
+
     /// This element specifies that the color rendered should be the complement of its input color with the complement
     /// being defined as such. Two colors are called complementary if, when mixed they produce a shade of grey. For
     /// instance, the complement of red which is RGB (255, 0, 0) is cyan which is RGB (0, 255, 255).
@@ -2577,6 +2579,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     Complement,
+
     /// This element specifies the inverse of its input color.
     /// 
     /// # Xml example
@@ -2592,9 +2595,11 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     Inverse,
+
     /// This element specifies a grayscale of its input color, taking into relative intensities of the red, green, and blue
     /// primaries.
     Grayscale,
+
     /// This element specifies its input color with the specific opacity, but with its color unchanged.
     /// 
     /// # Xml example
@@ -2608,6 +2613,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     Alpha(PositiveFixedPercentage),
+
     /// This element specifies a more or less opaque version of its input color. Increases or decreases the input alpha
     /// percentage by the specified percentage offset. A 10% alpha offset increases a 50% opacity to 60%. A -10% alpha
     /// offset decreases a 50% opacity to 40%. The transformed alpha values are limited to a range of 0 to 100%. A 10%
@@ -2624,6 +2630,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     AlphaOffset(FixedPercentage),
+
     /// This element specifies a more or less opaque version of its input color. An alpha modulate never increases the
     /// alpha beyond 100%. A 200% alpha modulate makes a input color twice as opaque as before. A 50% alpha
     /// modulate makes a input color half as opaque as before.
@@ -2639,6 +2646,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     AlphaModulate(PositivePercentage),
+
     /// This element specifies the input color with the specified hue, but with its saturation and luminance unchanged.
     /// 
     /// # Xml example
@@ -2655,6 +2663,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     Hue(PositiveFixedAngle),
+
     /// This element specifies the input color with its hue shifted, but with its saturation and luminance unchanged.
     /// 
     /// # Xml example
@@ -2667,6 +2676,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     HueOffset(Angle),
+
     /// This element specifies the input color with its hue modulated by the given percentage. A 50% hue modulate
     /// decreases the angular hue value by half. A 200% hue modulate doubles the angular hue value.
     /// 
@@ -2680,6 +2690,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     HueModulate(PositivePercentage),
+
     /// This element specifies the input color with the specified saturation, but with its hue and luminance unchanged.
     /// Typically saturation values fall in the range [0%, 100%].
     /// 
@@ -2697,6 +2708,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     Saturation(Percentage),
+
     /// This element specifies the input color with its saturation shifted, but with its hue and luminance unchanged. A
     /// 10% offset to 20% saturation yields 30% saturation.
     /// 
@@ -2712,6 +2724,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     SaturationOffset(Percentage),
+
     /// This element specifies the input color with its saturation modulated by the given percentage. A 50% saturation
     /// modulate reduces the saturation by half. A 200% saturation modulate doubles the saturation.
     /// 
@@ -2727,6 +2740,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     SaturationModulate(Percentage),
+
     /// This element specifies the input color with the specified luminance, but with its hue and saturation unchanged.
     /// Typically luminance values fall in the range [0%, 100%].
     /// 
@@ -2744,6 +2758,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     Luminance(Percentage),
+
     /// This element specifies the input color with its luminance shifted, but with its hue and saturation unchanged.
     /// 
     /// # Xml example
@@ -2758,6 +2773,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     LuminanceOffset(Percentage),
+
     /// This element specifies the input color with its luminance modulated by the given percentage. A 50% luminance
     /// modulate reduces the luminance by half. A 200% luminance modulate doubles the luminance.
     /// 
@@ -2773,6 +2789,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     LuminanceModulate(Percentage),
+
     /// This element specifies the input color with the specified red component, but with its green and blue color
     /// components unchanged.
     /// 
@@ -2788,6 +2805,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     Red(Percentage),
+
     /// This element specifies the input color with its red component shifted, but with its green and blue color
     /// components unchanged.
     /// 
@@ -2803,6 +2821,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     RedOffset(Percentage),
+
     /// This element specifies the input color with its red component modulated by the given percentage. A 50% red
     /// modulate reduces the red component by half. A 200% red modulate doubles the red component.
     /// 
@@ -2818,6 +2837,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     RedModulate(Percentage),
+
     /// This elements specifies the input color with the specified green component, but with its red and blue color
     /// components unchanged.
     /// 
@@ -2833,6 +2853,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     Green(Percentage),
+
     /// This element specifies the input color with its green component shifted, but with its red and blue color
     /// components unchanged.
     /// 
@@ -2848,6 +2869,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     GreenOffset(Percentage),
+
     /// This element specifies the input color with its green component modulated by the given percentage. A 50%
     /// green modulate reduces the green component by half. A 200% green modulate doubles the green component.
     /// 
@@ -2863,6 +2885,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     GreenModulate(Percentage),
+
     /// This element specifies the input color with the specific blue component, but with the red and green color
     /// components unchanged.
     /// 
@@ -2878,6 +2901,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     Blue(Percentage),
+
     /// This element specifies the input color with its blue component shifted, but with its red and green color
     /// components unchanged.
     /// 
@@ -2893,6 +2917,7 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     BlueOffset(Percentage),
+
     /// This element specifies the input color with its blue component modulated by the given percentage. A 50% blue
     /// modulate reduces the blue component by half. A 200% blue modulate doubles the blue component.
     /// 
@@ -2908,9 +2933,11 @@ pub enum ColorTransform {
     /// </a:solidFill>
     /// ```
     BlueModulate(Percentage),
+
     /// This element specifies that the output color rendered by the generating application should be the sRGB gamma
     /// shift of the input color.
     Gamma,
+
     /// This element specifies that the output color rendered by the generating application should be the inverse sRGB
     /// gamma shift of the input color.
     InverseGamma,
@@ -3156,9 +3183,11 @@ pub struct HslColor {
     /// Specifies the angular value describing the wavelength. Expressed in 1/6000ths of a
     /// degree.
     pub hue: PositiveFixedAngle,
+
     /// Specifies the saturation referring to the purity of the hue. Expressed as a percentage with
     /// 0% referring to grey, 100% referring to the purest form of the hue.
     pub saturation: Percentage,
+
     /// Specifies the luminance referring to the lightness or darkness of the color. Expressed as a
     /// percentage with 0% referring to maximal dark (black) and 100% referring to maximal
     /// white.
@@ -3206,6 +3235,7 @@ impl HslColor {
 pub struct SystemColor {
     /// Specifies the system color value.
     pub value: SystemColorVal,
+
     /// Specifies the color value that was last computed by the generating application.
     pub last_color: Option<HexColorRGB>,
     pub color_transforms: Vec<ColorTransform>,
@@ -3317,6 +3347,7 @@ pub enum Color {
     /// </a:solidFill>
     /// ```
     ScRgbColor(Box<ScRgbColor>),
+
     /// This element specifies a color using the red, green, blue RGB color model. Red, green, and blue is expressed as
     /// sequence of hex digits, RRGGBB. A perceptual gamma of 2.2 is used.
     /// 
@@ -3334,6 +3365,7 @@ pub enum Color {
     /// </a:solidFill>
     /// ```
     SRgbColor(Box<SRgbColor>),
+
     /// This element specifies a color using the HSL color model. A perceptual gamma of 2.2 is assumed.
     /// 
     /// Hue refers to the dominant wavelength of color, saturation refers to the purity of its hue, and luminance refers
@@ -3350,6 +3382,7 @@ pub enum Color {
     /// </a:solidFill>
     /// ```
     HslColor(Box<HslColor>),
+
     /// This element specifies a color bound to predefined operating system elements.
     /// 
     /// # Xml example
@@ -3361,6 +3394,7 @@ pub enum Color {
     /// </a:solidFill>
     /// ```
     SystemColor(Box<SystemColor>),
+
     /// This element specifies a color bound to a user's theme. As with all elements which define a color, it is possible to
     /// apply a list of color transforms to the base color defined.
     /// 
@@ -3370,6 +3404,7 @@ pub enum Color {
     ///   <a:schemeClr val="lt1"/>
     /// </a:solidFill>
     SchemeColor(Box<SchemeColor>),
+
     /// This element specifies a color which is bound to one of a predefined collection of colors.
     /// 
     /// # Xml example
@@ -3429,26 +3464,37 @@ impl CustomColor {
 pub struct ColorMapping {
     /// A color defined which is associated as the first background color.
     pub background1: ColorSchemeIndex,
+
     /// Specifies a color defined which is associated as the first text color.
     pub text1: ColorSchemeIndex,
+
     /// Specifies a color defined which is associated as the second background color.
     pub background2: ColorSchemeIndex,
+
     /// Specifies a color defined which is associated as the second text color.
     pub text2: ColorSchemeIndex,
+
     /// Specifies a color defined which is associated as the accent 1 color.
     pub accent1: ColorSchemeIndex,
+
     /// Specifies a color defined which is associated as the accent 2 color.
     pub accent2: ColorSchemeIndex,
+
     /// Specifies a color defined which is associated as the accent 3 color.
     pub accent3: ColorSchemeIndex,
+
     /// Specifies a color defined which is associated as the accent 4 color.
     pub accent4: ColorSchemeIndex,
+
     /// Specifies a color defined which is associated as the accent 5 color.
     pub accent5: ColorSchemeIndex,
+
     /// Specifies a color defined which is associated as the accent 6 color.
     pub accent6: ColorSchemeIndex,
+
     /// Specifies a color defined which is associated as the color for a hyperlink.
     pub hyperlink: ColorSchemeIndex,
+
     /// Specifies a color defined which is associated as the color for a followed hyperlink.
     pub followed_hyperlink: ColorSchemeIndex,
 }
@@ -3522,36 +3568,47 @@ pub struct ColorScheme {
     /// The common name for this color scheme. This name can show up in the user interface in
     /// a list of color schemes.
     pub name: String,
+
     /// This element defines a color that happens to be the dark 1 color. The set of twelve colors come together to
     /// form the color scheme for a theme.
     pub dark1: Color,
+
     /// This element defines a color that happens to be the accent 1 color. The set of twelve colors come together to
     /// form the color scheme for a theme.
     pub light1: Color,
+
     /// This element defines a color that happens to be the dark 2 color. The set of twelve colors come together to
     /// form the color scheme for a theme.
     pub dark2: Color,
+
     /// This element defines a color that happens to be the accent 1 color. The set of twelve colors come together to
     /// form the color scheme for a theme.
     pub light2: Color,
+
     /// This element defines a color that happens to be the accent 1 color. The set of twelve colors come together to
     /// form the color scheme for a theme.
     pub accent1: Color,
+
     /// This element defines a color that happens to be the accent 2 color. The set of twelve colors come together to
     /// form the color scheme for a theme.
     pub accent2: Color,
+
     /// This element defines a color that happens to be the accent 3 color. The set of twelve colors come together to
     /// form the color scheme for a theme.
     pub accent3: Color,
+
     /// This element defines a color that happens to be the accent 4 color. The set of twelve colors come together to
     /// form the color scheme for a theme.
     pub accent4: Color,
+
     /// This element defines a color that happens to be the accent 5 color. The set of twelve colors come together to
     /// form the color scheme for a theme.
     pub accent5: Color,
+
     /// This element defines a color that happens to be the accent 6 color. The set of twelve colors come together to
     /// form the color scheme for a theme.
     pub accent6: Color,
+    
     /// This element defines a color that happens to be the hyperlink color. The set of twelve colors come together to
     /// form the color scheme for a theme.
     pub hyperlink: Color,
@@ -6149,7 +6206,54 @@ impl TextSpacing {
 
 #[derive(Debug, Clone)]
 pub enum TextBulletColor {
+    /// This element specifies that the color of the bullets for a paragraph should be of the same color as the text run
+    /// within which each bullet is contained.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:pPr …>
+    ///     <a:buClrTx>
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Bullet 1</a:t>
+    ///     …
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// The color of the above bullet follows the default text color of the text for the run of text shown above since no
+    /// specific text color was specified.
     FollowText,
+
+    /// This element specifies the color to be used on bullet characters within a given paragraph. The color is specified
+    /// using the numerical RGB color format.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:pPr …>
+    ///       <a:buClr>
+    ///         <a:srgbClr val="FFFF00"/>
+    ///       </a:buClr>
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Bullet 1</a:t>
+    ///     …
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// The color of the above bullet does not follow the text color but instead has a yellow color specified by
+    /// val="FFFF00". This color should only apply to the actual bullet character and not to the text within the bullet.
     Color(Color),
 }
 
@@ -6178,8 +6282,79 @@ impl TextBulletColor {
 
 #[derive(Debug, Clone)]
 pub enum TextBulletSize {
+    /// This element specifies that the size of the bullets for a paragraph should be of the same point size as the text run
+    /// within which each bullet is contained.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:pPr …>
+    ///       <a:buSzTx>
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Bullet 1</a:t>
+    ///     …
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// The size of the above bullet follows the default text size of the text for the run of text shown above since no
+    /// specific text size was specified.
     FollowText,
+
+    /// This element specifies the size in percentage of the surrounding text to be used on bullet characters within a
+    /// given paragraph.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:pPr …>
+    ///       <a:buSzPct val="111%"/>
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Bullet 1</a:t>
+    ///     …
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// The size of the above bullet follows the text size in that it is always rendered at 111% the size of the text within
+    /// the given text run. This is specified by val="111%", with a restriction on the values not being less than 25% or
+    /// more than 400%. This percentage size should only apply to the actual bullet character and not to the text within
+    /// the bullet.
     Percent(TextBulletSizePercent),
+
+    /// This element specifies the size in points to be used on bullet characters within a given paragraph. The size is
+    /// specified using the points where 100 is equal to 1 point font and 1200 is equal to 12 point font.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:pPr …>
+    ///       <a:buSzPts val="1400"/>
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Bullet 1</a:t>
+    ///     …
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// The size of the above bullet does not follow the text size of the text within the given text run. The bullets size is
+    /// specified by val="1400", which corresponds to a point size of 14. This bullet size should only apply to the actual
+    /// bullet character and not to the text within the bullet.
     Point(TextFontSize),
 }
 
@@ -6213,7 +6388,53 @@ impl TextBulletSize {
 
 #[derive(Debug, Clone)]
 pub enum TextBulletTypeface {
+    /// This element specifies that the font of the bullets for a paragraph should be of the same font as the text run
+    /// within which each bullet is contained.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:pPr …>
+    ///       <a:buFontTx>
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Bullet 1</a:t>
+    ///     …
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// The font of the above bullet follows the default text font of the text for the run of text shown above since no
+    /// specific text font was specified.
     FollowText,
+
+    /// This element specifies the font to be used on bullet characters within a given paragraph. The font is specified
+    /// using the typeface that it is registered as within the generating application.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:pPr …>
+    ///       <a:buFont typeface="Arial"/>
+    ///       <a:buChar char="g"/>
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Bullet 1</a:t>
+    ///     …
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// The font of the above bullet does not follow the text font but instead has Arial font specified by
+    /// typeface="Arial". This font should only apply to the actual bullet character and not to the text within the bullet.
     Font(TextFont),
 }
 
@@ -6236,9 +6457,162 @@ impl TextBulletTypeface {
 
 #[derive(Debug, Clone)]
 pub enum TextBullet {
+    /// This element specifies that the paragraph within which it is applied is to have no bullet formatting applied to it.
+    /// That is to say that there should be no bulleting found within the paragraph where this element is specified.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:pPr …>
+    ///       <a:buNone/>
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Bullet 1</a:t>
+    ///     …
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// The above paragraph is formatted with no bullets.
     None,
+
+    /// This element specifies that automatic numbered bullet points should be applied to a paragraph. These are not
+    /// just numbers used as bullet points but instead automatically assigned numbers that are based on both
+    /// buAutoNum attributes and paragraph level.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:pPr …>
+    ///       <a:buAutoNum type="arabicPeriod"/>
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Bullet 1</a:t>
+    ///     …
+    ///   </a:p>
+    ///   <a:p>
+    ///     <a:pPr lvl="1"…>
+    ///       <a:buAutoNum type="arabicPeriod"/>
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Bullet 2</a:t>
+    ///     …
+    ///   </a:p>
+    ///   <a:p>
+    ///     <a:pPr …>
+    ///       <a:buAutoNum type="arabicPeriod"/>
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Bullet 3</a:t>
+    ///     …
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// For the above text there are a total of three bullet points. Two of which are at lvl="0" and one at lvl="1". Due to
+    /// this breakdown of levels, the numbering sequence that should be automatically applied is 1, 1, 2 as is shown in
+    /// the picture above.
     AutoNumbered(TextAutonumberedBullet),
+
+    /// This element specifies that a character be applied to a set of bullets. These bullets are allowed to be any
+    /// character in any font that the system is able to support. If no bullet font is specified along with this element then
+    /// the paragraph font is used.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:pPr …>
+    ///       <a:buFont typeface="Calibri"/>
+    ///       <a:buChar char="g"/>
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Bullet 1</a:t>
+    ///     …
+    ///   </a:p>
+    ///   <a:p>
+    ///     <a:pPr lvl="1"…>
+    ///       <a:buFont typeface="Calibri"/>
+    ///       <a:buChar char="g"/>
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Bullet 2</a:t>
+    ///     …
+    ///   </a:p>
+    ///   <a:p>
+    ///     <a:pPr …>
+    ///       <a:buFont typeface="Calibri"/>
+    ///       <a:buChar char="g"/>
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Bullet 3</a:t>
+    ///     …
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// For the above text there are a total of three bullet points. Two of which are at lvl="0" and one at lvl="1".
+    /// Because the same character is specified for each bullet the levels do not stand out here. The only difference is
+    /// the indentation as shown in the picture above.
     Character(String),
+
+    /// This element specifies that a picture be applied to a set of bullets. This element allows for any standard picture
+    /// format graphic to be used instead of the typical bullet characters. This opens up the possibility for bullets to be
+    /// anything the generating application would seek to apply.
+    /// 
+    /// # Xml example
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:p>
+    ///     <a:pPr …>
+    ///       <a:buBlip>
+    ///         <a:blip r:embed="rId2"/>
+    ///       </a:buBlip>
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Bullet 1</a:t>
+    ///     …
+    ///   </a:p>
+    ///   <a:p>
+    ///     <a:pPr lvl="1"…>
+    ///       <a:buBlip>
+    ///         <a:blip r:embed="rId2"/>
+    ///       </a:buBlip>
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Bullet 2</a:t>
+    ///     …
+    ///   </a:p>
+    ///   <a:p>
+    ///     <a:pPr …>
+    ///       <a:buBlip>
+    ///         <a:blip r:embed="rId2"/>
+    ///       </a:buBlip>
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Bullet 3</a:t>
+    ///     …
+    ///   </a:p>
+    ///   …
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// For the above text there are a total of three bullet points. Two of which are at lvl="0" and one at lvl="1".
+    /// Because the same picture is specified for each bullet the levels do not stand out here. The only difference is the
+    /// indentation as shown in the picture above.
     Picture(Box<Blip>),
 }
 
@@ -6273,7 +6647,16 @@ impl TextBullet {
 
 #[derive(Debug, Clone)]
 pub struct TextAutonumberedBullet {
+    /// Specifies the numbering scheme that is to be used. This allows for the describing of
+    /// formats other than strictly numbers. For instance, a set of bullets can be represented by a
+    /// series of Roman numerals instead of the standard 1,2,3,etc. number set.
     pub scheme: TextAutonumberScheme,
+
+    /// Specifies the number that starts a given sequence of automatically numbered bullets.
+    /// When the numbering is alphabetical, the number should map to the appropriate letter.
+    /// For instance 1 maps to 'a', 2 to 'b' and so on. If the numbers are larger than 26, then
+    /// multiple letters should be used. For instance 27 should be represented as 'aa' and
+    /// similarly 53 should be 'aaa'.
     pub start_at: Option<TextBulletStartAtNum>,
 }
 
@@ -7804,6 +8187,7 @@ impl TextField {
     }
 }
 
+/// This element specifies the list of styles associated with this body of text.
 #[derive(Default, Debug, Clone)]
 pub struct TextListStyle {
     /// This element specifies the paragraph properties that are to be applied when no other paragraph properties have
@@ -7831,14 +8215,67 @@ pub struct TextListStyle {
     /// The above paragraph follows the properties described in defPPr if no overriding properties are specified within
     /// the pPr element.
     pub def_paragraph_props: Option<Box<TextParagraphProperties>>,
+
+    /// This element specifies all paragraph level text properties for all elements that have the attribute lvl="0". There
+    /// are a total of 9 level text property elements allowed, levels 0-8. It is recommended that the order in which this
+    /// and other level property elements are specified be in order of increasing level. That is lvl2pPr should come
+    /// before lvl3pPr. This allows the lower level properties to take precedence over the higher level ones because
+    /// they are parsed first
+    /// 
+    /// # Xml example
+    /// 
+    /// Consider the following DrawingML code that would specify a paragraph to follow the level style
+    /// defined in lvl1pPr and thus create a paragraph of text that has no bullets and is right aligned.
+    /// 
+    /// ```xml
+    /// <p:txBody>
+    ///   …
+    ///   <a:lstStyle>
+    ///     <a:lvl1pPr algn="r">
+    ///       <a:buNone/>
+    ///     </a:lvl1pPr>
+    ///   </a:lstStyle>
+    ///   <a:p>
+    ///     <a:pPr lvl="0">
+    ///     </a:pPr>
+    ///     …
+    ///     <a:t>Some text</a:t>
+    ///     …
+    ///   </a:p>
+    /// </p:txBody>
+    /// ```
+    /// 
+    /// # Note
+    /// 
+    /// To resolve conflicting paragraph properties the linear hierarchy of paragraph properties should be
+    /// examined starting first with the pPr element. The rule here is that properties that are defined at a level closer to
+    /// the actual text should take precedence. That is if there is a conflicting property between the pPr and lvl1pPr
+    /// elements then the pPr property should take precedence because in the property hierarchy it is closer to the
+    /// actual text being represented.
     pub lvl1_paragraph_props: Option<Box<TextParagraphProperties>>,
+
+    /// This element specifies all paragraph level text properties for all elements that have the attribute lvl="1".
     pub lvl2_paragraph_props: Option<Box<TextParagraphProperties>>,
+    
+    /// This element specifies all paragraph level text properties for all elements that have the attribute lvl="2".
     pub lvl3_paragraph_props: Option<Box<TextParagraphProperties>>,
+
+    /// This element specifies all paragraph level text properties for all elements that have the attribute lvl="3".
     pub lvl4_paragraph_props: Option<Box<TextParagraphProperties>>,
+
+    /// This element specifies all paragraph level text properties for all elements that have the attribute lvl="4".
     pub lvl5_paragraph_props: Option<Box<TextParagraphProperties>>,
+
+    /// This element specifies all paragraph level text properties for all elements that have the attribute lvl="5".
     pub lvl6_paragraph_props: Option<Box<TextParagraphProperties>>,
+
+    /// This element specifies all paragraph level text properties for all elements that have the attribute lvl="6".
     pub lvl7_paragraph_props: Option<Box<TextParagraphProperties>>,
+
+    /// This element specifies all paragraph level text properties for all elements that have the attribute lvl="7".
     pub lvl8_paragraph_props: Option<Box<TextParagraphProperties>>,
+
+    /// This element specifies all paragraph level text properties for all elements that have the attribute lvl="8".
     pub lvl9_paragraph_props: Option<Box<TextParagraphProperties>>,
 }
 
@@ -12031,6 +12468,7 @@ pub struct DefaultShapeDefinition {
     pub shape_properties: Box<ShapeProperties>,
     pub text_body_properties: Box<TextBodyProperties>,
     pub text_list_style: Box<TextListStyle>,
+
     /// This element specifies the style information for a shape.
     pub shape_style: Option<Box<ShapeStyle>>,
 }
