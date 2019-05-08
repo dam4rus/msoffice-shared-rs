@@ -1,131 +1,208 @@
 use crate::error::{
-    AdjustParseError, Limit, LimitViolationError, MissingAttributeError, MissingChildNodeError, NotGroupMemberError
+    AdjustParseError, Limit, LimitViolationError, MissingAttributeError, MissingChildNodeError, NotGroupMemberError,
 };
 use crate::relationship::RelationshipId;
 use crate::xml::{parse_xml_bool, XmlNode};
+use enum_from_str::ParseEnumVariantError;
+use enum_from_str_derive::FromStr;
+use log::{error, trace};
 use std::io::Read;
 use std::str::FromStr;
 use zip::read::ZipFile;
-use log::{trace, error};
-use enum_from_str::ParseEnumVariantError;
-use enum_from_str_derive::FromStr;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
-pub type Guid = String; // TODO: pattern="\{[0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\}"
+/// This simple type specifies that its values shall be a 128-bit globally unique identifier (GUID) value.
+/// 
+/// This simple type's contents shall match the following regular expression pattern: 
+/// \{[0-9A-F]{8}-[0-9AF]{/// 4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\}.
+pub type Guid = String;
+
 /// This simple type specifies that its contents will contain a percentage value. See the union's member types for
 /// details.
 pub type Percentage = f32;
+
 /// This simple type specifies that its contents will contain a positive percentage value. See the union's member
 /// types for details.
 pub type PositivePercentage = f32;
+
 /// This simple type specifies that its contents will contain a positive percentage value from zero through one
 /// hundred percent.
-/// 
+///
 /// Values represented by this type are restricted to: 0 <= n <= 100000
 pub type PositiveFixedPercentage = f32;
+
 /// This simple type represents a fixed percentage from negative one hundred to positive one hundred percent. See
 /// the union's member types for details.
-/// 
+///
 /// Values represented by this type are restricted to: -100000 <= n <= 100000
 pub type FixedPercentage = f32;
-pub type HexColorRGB = String;
-/// This simple type represents a one dimensional position or length as either:
+
+/// This simple type specifies that its contents shall contain a color value in RRGGBB hexadecimal format, specified
+/// using six hexadecimal digits. Each of the red, green, and blue color values, from 0-255, is encoded as two
+/// hexadecimal digits.
 /// 
+/// # Example
+/// Consider a color defined as follows:
+/// 
+/// Red:   122
+/// Green:  23
+/// Blue:  209
+/// 
+/// The resulting RRGGBB value would be 7A17D1, as each color is transformed into its hexadecimal equivalent.
+pub type HexColorRGB = String;
+
+/// This simple type represents a one dimensional position or length as either:
+///
 /// * EMUs.
 /// * A number followed immediately by a unit identifier.
 pub type Coordinate = i64;
+
 /// This simple type represents a positive position or length in EMUs.
 pub type PositiveCoordinate = u64;
+
 /// This simple type specifies a coordinate within the document. This can be used for measurements or spacing; its
 /// maximum size is 2147483647 EMUs.
-/// 
+///
 /// Its contents can contain either:
-/// 
+///
 /// * A whole number, whose contents consist of a measurement in EMUs (English Metric Units)
 /// * A number immediately followed by a unit identifier
 pub type Coordinate32 = i32;
+
 /// This simple type specifies the a positive coordinate point that has a maximum size of 32 bits.
-/// 
+///
 /// The units of measurement used here are EMUs (English Metric Units).
 pub type PositiveCoordinate32 = u32;
+
 /// This simple type specifies the width of a line in EMUs. 1 pt = 12700 EMUs
-/// 
+///
 /// Values represented by this type are restricted to: 0 <= n <= 20116800
 pub type LineWidth = Coordinate32;
+
 /// This simple type specifies a unique integer identifier for each drawing element.
 pub type DrawingElementId = u32;
+
 /// This simple type represents an angle in 60,000ths of a degree. Positive angles are clockwise (i.e., towards the
 /// positive y axis); negative angles are counter-clockwise (i.e., towards the negative y axis).
 pub type Angle = i32;
+
 /// This simple type represents a fixed range angle in 60000ths of a degree. Range from (-90, 90 degrees).
-/// 
+///
 /// Values represented by this type are restricted to: -5400000 <= n <= 5400000
 pub type FixedAngle = Angle;
+
 /// This simple type represents a positive angle in 60000ths of a degree. Range from [0, 360 degrees).
-/// 
+///
 /// Values represented by this type are restricted to: 0 <= n <= 21600000
 pub type PositiveFixedAngle = Angle;
+
 /// This simple type specifies a geometry guide name.
 pub type GeomGuideName = String;
+
 /// This simple type specifies a geometry guide formula.
 pub type GeomGuideFormula = String;
+
 /// This simple type specifies an index into one of the lists in the style matrix specified by the
 /// BaseStyles::format_scheme element (StyleMatrix::bg_fill_style_list, StyleMatrix::effect_style_list,
 /// StyleMatrix::fill_style_list, or StyleMatrix::line_style_list).
 pub type StyleMatrixColumnIndex = u32;
+
 /// This simple type specifies the number of columns.
-/// 
+///
 /// Values represented by this type are restricted to: 1 <= n <= 16
 pub type TextColumnCount = i32;
+
 /// Values represented by this type are restricted to: 1000 <= n <= 100000
 pub type TextFontScalePercent = Percentage;
-pub type TextSpacingPercent = Percentage; // TODO: 0 <= n <= 13200000
+
+/// Values represented by this type are restricted to: 0 <= n <= 13200000
+pub type TextSpacingPercent = Percentage;
+
 /// This simple type specifies the Text Spacing that is used in terms of font point size.
-/// 
+///
 /// Values represented by this type are restricted to: 0 <= n <= 158400
 pub type TextSpacingPoint = i32;
+
 /// This simple type specifies the margin that is used and its corresponding size.
-/// 
+///
 /// Values represented by this type are restricted to: 0 <= n <= 51206400
 pub type TextMargin = Coordinate32;
+
 /// This simple type specifies the text indentation amount to be used.
-/// 
+///
 /// Values represented by this type are restricted to: -51206400 <= n <= 51206400
 pub type TextIndent = Coordinate32;
+
 /// This simple type specifies the indent level type. We support list level 0 to 8, and we use -1 and -2 for outline
 /// mode levels that should only exist in memory.
-/// 
+///
 /// Values represented by this type are restricted to: 0 <= n <= 8
 pub type TextIndentLevelType = i32;
+
 /// This simple type specifies the range that the bullet percent can be. A bullet percent is the size of the bullet with
 /// respect to the text that should follow it.
-/// 
+///
 /// Values represented by this type are restricted to: 25000 <= n <= 400000
 pub type TextBulletSizePercent = Percentage;
+
 /// This simple type specifies the size of any text in hundredths of a point. Shall be at least 1 point.
-/// 
+///
 /// Values represented by this type are restricted to: 100 <= n <= 400000
 pub type TextFontSize = i32;
+
 /// This simple type specifies the way we represent a font typeface.
 pub type TextTypeFace = String;
+
+/// Specifies a language tag as defined by RFC 3066. See simple type for additional information.
 pub type TextLanguageID = String;
+
+/// This simple type specifies a number consisting of 20 hexadecimal digits which defines the Panose-1 font
+/// classification.
+/// 
+/// This simple type's contents have a length of exactly 20 hexadecimal digit(s).
+/// 
+/// # Xml example
+/// 
+/// ```xml
+/// <w:font w:name="Times New Roman">
+///   <w:panose1 w:val="02020603050405020304" />
+///   …
+/// </w:font>
+/// ```
 pub type Panose = String; // TODO: hex, length=10
+
 /// This simple type specifies the range that the start at number for a bullet's auto-numbering sequence can begin
 /// at. When the numbering is alphabetical, then the numbers map to the appropriate letter. 1->a, 2->b, etc. If the
 /// numbers go above 26, then the numbers begin to double up. For example, 27->aa and 53->aaa.
-/// 
+///
 /// Values represented by this type are restricted to: 1 <= n <= 32767
 pub type TextBulletStartAtNum = i32;
-pub type Lang = String;
-/// This simple type specifies a non-negative font size in hundredths of a point.
+
+/// This simple type specifies that its contents contains a language identifier as defined by RFC 4646/BCP 47.
 /// 
+/// The contents of this language are interpreted based on the context of the parent XML element.
+/// 
+/// # Xml example
+/// 
+/// ```xml
+/// <w:lang w:val="en-CA" />
+/// ```
+/// 
+/// This language is therefore specified as English (en) and Canada (CA), resulting in use of the English (Canada)
+/// language setting.
+pub type Lang = String;
+
+/// This simple type specifies a non-negative font size in hundredths of a point.
+///
 /// Values represented by this type are restricted to: 0 <= n <= 400000
 pub type TextNonNegativePoint = i32;
+
 /// This simple type specifies a coordinate within the document. This can be used for measurements or spacing
-/// 
+///
 /// Values represented by this type are restricted to: -400000 <= n <= 400000
 pub type TextPoint = i32;
+
 /// Specifies the shape ID for legacy shape identification purposes.
 pub type ShapeId = String;
 
@@ -196,138 +273,138 @@ pub enum PathFillMode {
 /// DrawingML code that would be used to construct this shape were it a custom geometry. Within the construction
 /// code for each of these preset shapes there are predefined guides that the generating application shall maintain
 /// for calculation purposes at all times. The necessary guides should have the following values:
-/// 
+///
 /// * **3/4 of a Circle ('3cd4') - Constant value of "16200000.0"**
-/// 
+///
 ///     The units here are in 60,000ths of a degree. This is equivalent to 270 degrees.
-/// 
+///
 /// * **3/8 of a Circle ('3cd8') - Constant value of "8100000.0"**
-/// 
+///
 ///     The units here are in 60,000ths of a degree. This is equivalent to 135 degrees.
-/// 
+///
 /// * **5/8 of a Circle ('5cd8') - Constant value of "13500000.0"**
-/// 
+///
 ///     The units here are in 60,000ths of a degree. This is equivalent to 225 degrees.
-/// 
+///
 /// * **7/8 of a Circle ('7cd8') - Constant value of "18900000.0"**
-/// 
+///
 ///     The units here are in 60,000ths of a degree. This is equivalent to 315 degrees.
-/// 
+///
 /// * **Shape Bottom Edge ('b') - Constant value of "h"**
-/// 
+///
 ///     This is the bottom edge of the shape and since the top edge of the shape is considered the 0 point, the
 ///     bottom edge is thus the shape height.
-/// 
+///
 /// * **1/2 of a Circle ('cd2') - Constant value of "10800000.0"**
-/// 
+///
 ///     The units here are in 60,000ths of a degree. This is equivalent to 180 degrees.
-/// 
+///
 /// * **1/4 of a Circle ('cd4') - Constant value of "5400000.0"**
-/// 
+///
 ///     The units here are in 60,000ths of a degree. This is equivalent to 90 degrees.
-/// 
+///
 /// * **1/8 of a Circle ('cd8') - Constant value of "2700000.0"**
-/// 
+///
 ///     The units here are in 60,000ths of a degree. This is equivalent to 45 degrees.
-/// 
+///
 /// * **Shape Height ('h')**
-/// 
+///
 ///     This is the variable height of the shape defined in the shape properties. This value is received from the shape
 ///     transform listed within the <spPr> element.
-/// 
+///
 /// * **Horizontal Center ('hc') - Calculated value of "\*/ w 1.0 2.0"**
-/// 
+///
 ///     This is the horizontal center of the shape which is just the width divided by 2.
-/// 
+///
 /// * **1/2 of Shape Height ('hd2') - Calculated value of "\*/ h 1.0 2.0"**
-/// 
+///
 ///     This is 1/2 the shape height.
-/// 
+///
 /// * **1/4 of Shape Height ('hd4') - Calculated value of "\*/ h 1.0 4.0"**
-/// 
+///
 ///     This is 1/4 the shape height.
-/// 
+///
 /// * **1/5 of Shape Height ('hd5') - Calculated value of "\*/ h 1.0 5.0"**
-/// 
+///
 ///     This is 1/5 the shape height.
-/// 
+///
 /// * **1/6 of Shape Height ('hd6') - Calculated value of "\*/ h 1.0 6.0"**
-/// 
+///
 ///     This is 1/6 the shape height.
-/// 
+///
 /// * **1/8 of Shape Height ('hd8') - Calculated value of "\*/ h 1.0 8.0"**
-/// 
+///
 ///     This is 1/8 the shape height.
-/// 
+///
 /// * **Shape Left Edge ('l') - Constant value of "0"**
-/// 
+///
 ///     This is the left edge of the shape and the left edge of the shape is considered the horizontal 0 point.
-/// 
+///
 /// * **Longest Side of Shape ('ls') - Calculated value of "max w h"**
-/// 
+///
 ///     This is the longest side of the shape. This value is either the width or the height depending on which is greater.
-/// 
+///
 /// * **Shape Right Edge ('r') - Constant value of "w"**
-/// 
+///
 ///     This is the right edge of the shape and since the left edge of the shape is considered the 0 point, the right edge
 ///     is thus the shape width.
-/// 
+///
 /// * **Shortest Side of Shape ('ss') - Calculated value of "min w h"**
-/// 
+///
 ///     This is the shortest side of the shape. This value is either the width or the height depending on which is
 ///     smaller.
-/// 
+///
 /// * **1/2 Shortest Side of Shape ('ssd2') - Calculated value of "\*/ ss 1.0 2.0"**
-/// 
+///
 ///     This is 1/2 the shortest side of the shape.
-/// 
+///
 /// * **1/4 Shortest Side of Shape ('ssd4') - Calculated value of "\*/ ss 1.0 4.0"**
-/// 
+///
 ///     This is 1/4 the shortest side of the shape.
-/// 
+///
 /// * **1/6 Shortest Side of Shape ('ssd6') - Calculated value of "\*/ ss 1.0 6.0"**
-/// 
+///
 ///     This is 1/6 the shortest side of the shape.
-/// 
+///
 /// * **1/8 Shortest Side of Shape ('ssd8') - Calculated value of "\*/ ss 1.0 8.0"**
-/// 
+///
 ///     This is 1/8 the shortest side of the shape.
-/// 
+///
 /// * **Shape Top Edge ('t') - Constant value of "0"**
-/// 
+///
 ///     This is the top edge of the shape and the top edge of the shape is considered the vertical 0 point.
-/// 
+///
 /// * **Vertical Center of Shape ('vc') - Calculated value of "\*/ h 1.0 2.0"**
-/// 
+///
 ///     This is the vertical center of the shape which is just the height divided by 2.
-/// 
+///
 /// * **Shape Width ('w')**
-/// 
+///
 ///     This is the variable width of the shape defined in the shape properties. This value is received from the shape
 ///     transform listed within the <spPr> element.
-/// 
+///
 /// * **1/2 of Shape Width ('wd2') - Calculated value of "\*/ w 1.0 2.0"**
-/// 
+///
 ///     This is 1/2 the shape width.
-/// 
+///
 /// * **1/4 of Shape Width ('wd4') - Calculated value of "\*/ w 1.0 4.0"**
-/// 
+///
 ///     This is 1/4 the shape width.
-/// 
+///
 /// * **1/5 of Shape Width ('wd5') - Calculated value of "\*/ w 1.0 5.0"**
-/// 
+///
 ///     This is 1/5 the shape width.
-/// 
+///
 /// * **1/6 of Shape Width ('wd6') - Calculated value of "\*/ w 1.0 6.0"**
-/// 
+///
 ///     This is 1/6 the shape width.
-/// 
+///
 /// * **1/8 of Shape Width ('wd8') - Calculated value of "\*/ w 1.0 8.0"**
-/// 
+///
 ///     This is 1/8 the shape width.
-/// 
+///
 /// * **1/10 of Shape Width ('wd10') - Calculated value of "\*/ w 1.0 10.0"**
-/// 
+///
 ///     This is 1/10 the shape width.
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum ShapeType {
@@ -894,10 +971,10 @@ pub enum PresetShadowVal {
     #[from_str = "shdw12"]
     BackRightLongPerspectiveShadow,
     /// Equivalent to two outer shadow effects.
-    /// 
+    ///
     /// Shadow 1:
     /// No additional attributes specified.
-    /// 
+    ///
     /// Shadow 2:
     /// color = min(1, shadow 1's color (0 <= r, g, b <= 1) +
     /// 102/255), per r, g, b component
@@ -918,10 +995,10 @@ pub enum PresetShadowVal {
     #[from_str = "shdw16"]
     FrontRightLongPerspectiveShadow,
     /// Equivalent to two outer shadow effects.
-    /// 
+    ///
     /// Shadow 1:
     /// No additional attributes specified.
-    /// 
+    ///
     /// Shadow 2:
     /// color = min(1, shadow 1's color (0 <= r, g, b <= 1) +
     /// 102/255), per r, g, b component
@@ -929,10 +1006,10 @@ pub enum PresetShadowVal {
     #[from_str = "shdw17"]
     ThreeDOuterBoxShadow,
     /// Equivalent to two outer shadow effects.
-    /// 
+    ///
     /// Shadow 1:
     /// No additional attributes specified.
-    /// 
+    ///
     /// Shadow 2:
     /// color = min(1, shadow 1's color (0 <= r, g, b <= 1) +
     /// 102/255), per r, g, b component
@@ -953,17 +1030,17 @@ pub enum PresetShadowVal {
 #[derive(Debug, Clone, Copy, FromStr)]
 pub enum EffectContainerType {
     /// Each effect is separately applied to the parent object.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// If the parent element contains an outer shadow and a reflection, the resulting effect is a
     /// shadow around the parent object and a reflection of the object. The reflection does not have a shadow.
     #[from_str = "sib"]
     Sib,
     /// Each effect is applied to the result of the previous effect.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// If the parent element contains an outer shadow followed by a glow, the shadow is first applied
     /// to the parent object. Then, the glow is applied to the shadow (rather than the original object). The resulting
     /// effect would be a glowing shadow.
@@ -1036,7 +1113,7 @@ pub enum OnOffStyleType {
 
 /// This simple type specifies a system color value. This color is based upon the value that this color currently has
 /// within the system on which the document is being viewed.
-/// 
+///
 /// Applications shall use the lastClr attribute to determine the absolute value of the last color used if system colors
 /// are not supported.
 #[derive(Debug, Clone, Copy, FromStr)]
@@ -1972,9 +2049,9 @@ pub enum PathShadeType {
 
 /// This simple type indicates a preset type of pattern fill. The description of each value contains an illustration of
 /// the fill type.
-/// 
+///
 /// # Note
-/// 
+///
 /// These presets correspond to members of the HatchStyle enumeration in the Microsoft .NET Framework.
 /// A reference for this type can be found at http://msdn2.microsoft.com/enus/library/system.drawing.drawing2d.hatchstyle.aspx
 #[derive(Debug, Clone, Copy, FromStr)]
@@ -2530,9 +2607,9 @@ pub enum BlipCompression {
 pub enum ColorTransform {
     /// This element specifies a lighter version of its input color. A 10% tint is 10% of the input color combined with
     /// 90% white.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following manipulates the fill from having RGB value RRGGBB = (00, FF, 00)
     /// to value RRGGBB= (BC, FF, BC)
     /// ```xml
@@ -2546,9 +2623,9 @@ pub enum ColorTransform {
 
     /// This element specifies a darker version of its input color. A 10% shade is 10% of the input color combined with
     /// 90% black.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following manipulates the fill from having RGB value RRGGBB = (00, FF, 00)
     /// to value RRGGBB= (00, BC, 00)
     /// ```xml
@@ -2563,14 +2640,14 @@ pub enum ColorTransform {
     /// This element specifies that the color rendered should be the complement of its input color with the complement
     /// being defined as such. Two colors are called complementary if, when mixed they produce a shade of grey. For
     /// instance, the complement of red which is RGB (255, 0, 0) is cyan which is RGB (0, 255, 255).
-    /// 
+    ///
     /// Primary colors and secondary colors are typically paired in this way:
     /// * red and cyan (where cyan is the mixture of green and blue)
     /// * green and magenta (where magenta is the mixture of red and blue)
     /// * blue and yellow (where yellow is the mixture of red and green)
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <a:solidFill>
     ///   <a:srgbClr val="FF0000">
@@ -2581,11 +2658,11 @@ pub enum ColorTransform {
     Complement,
 
     /// This element specifies the inverse of its input color.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The inverse of red (1, 0, 0) is cyan (0, 1, 1).
-    /// 
+    ///
     /// The following represents cyan, the inverse of red:
     /// ```xml
     /// <a:solidFill>
@@ -2601,9 +2678,9 @@ pub enum ColorTransform {
     Grayscale,
 
     /// This element specifies its input color with the specific opacity, but with its color unchanged.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following represents a green solid fill which is 50% opaque
     /// ```xml
     /// <a:solidFill>
@@ -2618,9 +2695,9 @@ pub enum ColorTransform {
     /// percentage by the specified percentage offset. A 10% alpha offset increases a 50% opacity to 60%. A -10% alpha
     /// offset decreases a 50% opacity to 40%. The transformed alpha values are limited to a range of 0 to 100%. A 10%
     /// alpha offset increase to a 100% opaque object still results in 100% opacity.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following represents a green solid fill which is 90% opaque
     /// ```xml
     /// <a:solidFill>
@@ -2634,9 +2711,9 @@ pub enum ColorTransform {
     /// This element specifies a more or less opaque version of its input color. An alpha modulate never increases the
     /// alpha beyond 100%. A 200% alpha modulate makes a input color twice as opaque as before. A 50% alpha
     /// modulate makes a input color half as opaque as before.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following represents a green solid fill which is 50% opaque
     /// ```xml
     /// <a:solidFill>
@@ -2648,9 +2725,9 @@ pub enum ColorTransform {
     AlphaModulate(PositivePercentage),
 
     /// This element specifies the input color with the specified hue, but with its saturation and luminance unchanged.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following two solid fills are equivalent.
     /// ```xml
     /// <a:solidFill>
@@ -2665,9 +2742,9 @@ pub enum ColorTransform {
     Hue(PositiveFixedAngle),
 
     /// This element specifies the input color with its hue shifted, but with its saturation and luminance unchanged.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following increases the hue angular value by 10 degrees.
     /// ```xml
     /// <a:solidFill>
@@ -2679,9 +2756,9 @@ pub enum ColorTransform {
 
     /// This element specifies the input color with its hue modulated by the given percentage. A 50% hue modulate
     /// decreases the angular hue value by half. A 200% hue modulate doubles the angular hue value.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <a:solidFill>
     ///   <a:hslClr hue="14400000" sat="100000" lum="50000">
@@ -2693,9 +2770,9 @@ pub enum ColorTransform {
 
     /// This element specifies the input color with the specified saturation, but with its hue and luminance unchanged.
     /// Typically saturation values fall in the range [0%, 100%].
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following two solid fills are equivalent:
     /// ```xml
     /// <a:solidFill>
@@ -2711,9 +2788,9 @@ pub enum ColorTransform {
 
     /// This element specifies the input color with its saturation shifted, but with its hue and luminance unchanged. A
     /// 10% offset to 20% saturation yields 30% saturation.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following manipulates the fill from having RGB value RRGGBB = (00, FF, 00)
     /// to value RRGGBB= (19, E5, 19)
     /// ```xml
@@ -2727,9 +2804,9 @@ pub enum ColorTransform {
 
     /// This element specifies the input color with its saturation modulated by the given percentage. A 50% saturation
     /// modulate reduces the saturation by half. A 200% saturation modulate doubles the saturation.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following manipulates the fill from having RGB value RRGGBB = (00, FF, 00)
     /// to value RRGGBB= (66, 99, 66)
     /// ```xml
@@ -2743,9 +2820,9 @@ pub enum ColorTransform {
 
     /// This element specifies the input color with the specified luminance, but with its hue and saturation unchanged.
     /// Typically luminance values fall in the range [0%, 100%].
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following two solid fills are equivalent:
     /// ```xml
     /// <a:solidFill>
@@ -2760,9 +2837,9 @@ pub enum ColorTransform {
     Luminance(Percentage),
 
     /// This element specifies the input color with its luminance shifted, but with its hue and saturation unchanged.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following manipulates the fill from having RGB value RRGGBB = (00, FF, 00)
     /// to value RRGGBB= (00, 99, 00)
     /// ```xml
@@ -2776,9 +2853,9 @@ pub enum ColorTransform {
 
     /// This element specifies the input color with its luminance modulated by the given percentage. A 50% luminance
     /// modulate reduces the luminance by half. A 200% luminance modulate doubles the luminance.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following manipulates the fill from having RGB value RRGGBB = (00, FF, 00)
     /// to value RRGGBB= (00, 75, 00)
     /// ```xml
@@ -2792,9 +2869,9 @@ pub enum ColorTransform {
 
     /// This element specifies the input color with the specified red component, but with its green and blue color
     /// components unchanged.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following manipulates the fill from having RGB value RRGGBB = (00, FF, 00)
     /// to value RRGGBB= (FF, FF, 00)
     /// ```xml
@@ -2808,9 +2885,9 @@ pub enum ColorTransform {
 
     /// This element specifies the input color with its red component shifted, but with its green and blue color
     /// components unchanged.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following manipulates the fill from having RGB value RRGGBB = (FF, 00, 00)
     /// to value RRGGBB= (CC, 00, 00)
     /// ```xml
@@ -2824,9 +2901,9 @@ pub enum ColorTransform {
 
     /// This element specifies the input color with its red component modulated by the given percentage. A 50% red
     /// modulate reduces the red component by half. A 200% red modulate doubles the red component.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following manipulates the fill from having RGB value RRGGBB = (FF, 00, 00)
     /// to value RRGGBB= (80, 00, 00)
     /// ```xml
@@ -2840,9 +2917,9 @@ pub enum ColorTransform {
 
     /// This elements specifies the input color with the specified green component, but with its red and blue color
     /// components unchanged.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following manipulates the fill from having RGB value RRGGBB = (00, 00, FF)
     /// to value RRGGBB= (00, FF, FF)
     /// ```xml
@@ -2856,9 +2933,9 @@ pub enum ColorTransform {
 
     /// This element specifies the input color with its green component shifted, but with its red and blue color
     /// components unchanged.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following manipulates the fill from having RGB value RRGGBB = (00, FF, 00)
     /// to value RRGGBB= (00, CC, 00).
     /// ```xml
@@ -2872,9 +2949,9 @@ pub enum ColorTransform {
 
     /// This element specifies the input color with its green component modulated by the given percentage. A 50%
     /// green modulate reduces the green component by half. A 200% green modulate doubles the green component.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following manipulates the fill from having RGB value RRGGBB = (00, FF, 00)
     /// to value RRGGBB= (00, 80, 00)
     /// ```xml
@@ -2888,9 +2965,9 @@ pub enum ColorTransform {
 
     /// This element specifies the input color with the specific blue component, but with the red and green color
     /// components unchanged.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following manipulates the fill from having RGB value RRGGBB = (00, FF, 00)
     /// to value RRGGBB= (00, FF, FF)
     /// ```xml
@@ -2904,9 +2981,9 @@ pub enum ColorTransform {
 
     /// This element specifies the input color with its blue component shifted, but with its red and green color
     /// components unchanged.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following manipulates the fill from having RGB value RRGGBB = (00, 00, FF)
     /// to value RRGGBB= (00, 00, CC)
     /// ```xml
@@ -2920,9 +2997,9 @@ pub enum ColorTransform {
 
     /// This element specifies the input color with its blue component modulated by the given percentage. A 50% blue
     /// modulate reduces the blue component by half. A 200% blue modulate doubles the blue component.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following manipulates the fill from having RGB value RRGGBB = (00, 00, FF)
     /// to value RRGGBB= (00, 00, 80)
     /// ```xml
@@ -3107,10 +3184,14 @@ impl ColorTransform {
 pub struct ScRgbColor {
     /// Specifies the percentage of red.
     pub r: Percentage,
+
     /// Specifies the percentage of green.
     pub g: Percentage,
+
     /// Specifies the percentage of blue.
     pub b: Percentage,
+
+    /// Color transforms to apply to this color
     pub color_transforms: Vec<ColorTransform>,
 }
 
@@ -3153,6 +3234,8 @@ impl ScRgbColor {
 #[derive(Debug, Clone)]
 pub struct SRgbColor {
     pub value: u32,
+
+    /// Color transforms to apply to this color
     pub color_transforms: Vec<ColorTransform>,
 }
 
@@ -3192,6 +3275,8 @@ pub struct HslColor {
     /// percentage with 0% referring to maximal dark (black) and 100% referring to maximal
     /// white.
     pub luminance: Percentage,
+
+    /// Color transforms to apply to this color
     pub color_transforms: Vec<ColorTransform>,
 }
 
@@ -3238,6 +3323,8 @@ pub struct SystemColor {
 
     /// Specifies the color value that was last computed by the generating application.
     pub last_color: Option<HexColorRGB>,
+
+    /// Color transforms to apply to this color
     pub color_transforms: Vec<ColorTransform>,
 }
 
@@ -3275,6 +3362,8 @@ impl SystemColor {
 #[derive(Debug, Clone)]
 pub struct PresetColor {
     pub value: PresetColorVal,
+    
+    /// Color transforms to apply to this color
     pub color_transforms: Vec<ColorTransform>,
 }
 
@@ -3303,6 +3392,8 @@ impl PresetColor {
 #[derive(Debug, Clone)]
 pub struct SchemeColor {
     pub value: SchemeColorVal,
+
+    /// Color transforms to apply to this color
     pub color_transforms: Vec<ColorTransform>,
 }
 
@@ -3332,11 +3423,11 @@ impl SchemeColor {
 pub enum Color {
     /// This element specifies a color using the red, green, blue RGB color model. Each component, red, green, and blue
     /// is expressed as a percentage from 0% to 100%. A linear gamma of 1.0 is assumed.
-    /// 
+    ///
     /// Specifies the level of red as expressed by a percentage offset increase or decrease relative to the input color.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following represent the same color
     /// ```xml
     /// <a:solidFill>
@@ -3350,11 +3441,11 @@ pub enum Color {
 
     /// This element specifies a color using the red, green, blue RGB color model. Red, green, and blue is expressed as
     /// sequence of hex digits, RRGGBB. A perceptual gamma of 2.2 is used.
-    /// 
+    ///
     /// Specifies the level of red as expressed by a percentage offset increase or decrease relative to the input color.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following represent the same color
     /// ```xml
     /// <a:solidFill>
@@ -3367,14 +3458,14 @@ pub enum Color {
     SRgbColor(Box<SRgbColor>),
 
     /// This element specifies a color using the HSL color model. A perceptual gamma of 2.2 is assumed.
-    /// 
+    ///
     /// Hue refers to the dominant wavelength of color, saturation refers to the purity of its hue, and luminance refers
     /// to its lightness or darkness.
-    /// 
+    ///
     /// As with all colors, colors defined with the HSL color model can have color transforms applied to it.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The color blue having RGB value RRGGBB = (00, 00, 80) is equivalent to
     /// ```xml
     /// <a:solidFill>
@@ -3384,9 +3475,9 @@ pub enum Color {
     HslColor(Box<HslColor>),
 
     /// This element specifies a color bound to predefined operating system elements.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following represents the default color used for displaying text in a window.
     /// ```xml
     /// <a:solidFill>
@@ -3397,18 +3488,18 @@ pub enum Color {
 
     /// This element specifies a color bound to a user's theme. As with all elements which define a color, it is possible to
     /// apply a list of color transforms to the base color defined.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// <a:solidFill>
     ///   <a:schemeClr val="lt1"/>
     /// </a:solidFill>
     SchemeColor(Box<SchemeColor>),
 
     /// This element specifies a color which is bound to one of a predefined collection of colors.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// The following defines a solid fill bound to the "black" preset color.
     /// <a:solidFill>
     ///   <a:prstClr val="black">
@@ -3444,6 +3535,8 @@ impl Color {
 pub struct CustomColor {
     /// The name of the color shown in the color picker.
     pub name: Option<String>,
+    
+    /// The color represented by this custom color.
     pub color: Color,
 }
 
@@ -3608,7 +3701,7 @@ pub struct ColorScheme {
     /// This element defines a color that happens to be the accent 6 color. The set of twelve colors come together to
     /// form the color scheme for a theme.
     pub accent6: Color,
-    
+
     /// This element defines a color that happens to be the hyperlink color. The set of twelve colors come together to
     /// form the color scheme for a theme.
     pub hyperlink: Color,
@@ -3694,15 +3787,16 @@ impl ColorScheme {
 
 #[derive(Debug, Clone)]
 pub enum ColorMappingOverride {
-    /// This element is a part of a choice for which color mapping is used within the document. 
+    /// This element is a part of a choice for which color mapping is used within the document.
     /// If this element is specified, then we specifically use the color mapping defined in the master.
     UseMaster,
+
     /// This element provides an override for the color mapping in a document. When defined, this color mapping is
     /// used in place of the already defined color mapping, or master color mapping. This color mapping is defined in
     /// the same manner as the other mappings within this document.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <overrideClrMapping bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1"
     ///   accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5"
@@ -3735,10 +3829,10 @@ pub struct ColorSchemeAndMapping {
     /// This element defines a set of colors which are referred to as a color scheme. The color scheme is responsible for
     /// defining a list of twelve colors. The twelve colors consist of six accent colors, two dark colors, two light colors
     /// and a color for each of a hyperlink and followed hyperlink.
-    /// 
+    ///
     /// The Color Scheme Color elements appear in a sequence. The following listing shows the index value and
     /// corresponding Color Name.
-    /// 
+    ///
     /// | Sequence Index        | Element (Color) Name              |
     /// |-----------------------|-----------------------------------|
     /// |0                      |dark1                              |
@@ -3753,9 +3847,9 @@ pub struct ColorSchemeAndMapping {
     /// |9                      |accent6                            |
     /// |10                     |hyperlink                          |
     /// |11                     |followedHyperlink                  |
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <clrScheme name="sample">
     ///   <dk1>
@@ -3797,19 +3891,20 @@ pub struct ColorSchemeAndMapping {
     /// </clrScheme>
     /// ```
     pub color_scheme: Box<ColorScheme>,
+
     /// This element specifics the color mapping layer which allows a user to define colors for background and text.
     /// This allows for swapping out of light/dark colors for backgrounds and the text on top of the background in order
     /// to maintain readability of the text On a deeper level, this specifies exactly which colors the first 12 values refer
     /// to in the color scheme.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1"
     /// accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5"
     /// accent6="accent6" hlink="hlink" folHlink="folHlink"/>
     /// ```
-    /// 
+    ///
     /// In this example, we see that bg1 is mapped to lt1, tx1 is mapped to dk1, and so on.
     pub color_mapping: Option<Box<ColorMapping>>,
 }
@@ -3837,10 +3932,12 @@ impl ColorSchemeAndMapping {
     }
 }
 
-/// GradientStop
 #[derive(Debug, Clone)]
 pub struct GradientStop {
+    /// The position of this gradient stop.
     pub position: PositiveFixedPercentage,
+
+    /// The color of this gradient stop.
     pub color: Color,
 }
 
@@ -3870,6 +3967,7 @@ pub struct LinearShadeProperties {
     /// be x measured clockwise. Then ( -sin x, cos x ) is a vector parallel to the line of constant
     /// color in the gradient fill.
     pub angle: Option<PositiveFixedAngle>,
+
     /// Whether the gradient angle scales with the fill region. Mathematically, if this flag is true,
     /// then the gradient vector ( cos x , sin x ) is scaled by the width (w) and height (h) of the fill
     /// region, so that the vector becomes ( w cos x, h sin x ) (before normalization). Observe
@@ -3902,25 +4000,26 @@ impl LinearShadeProperties {
 pub struct PathShadeProperties {
     /// Specifies the shape of the path to follow.
     pub path: Option<PathShadeType>,
+
     /// This element defines the "focus" rectangle for the center shade, specified relative to the fill tile rectangle. The
     /// center shade fills the entire tile except the margins specified by each attribute.
-    /// 
+    ///
     /// Each edge of the center shade rectangle is defined by a percentage offset from the corresponding edge of the
     /// tile rectangle. A positive percentage specifies an inset, while a negative percentage specifies an outset.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// For example, a left offset of 25% specifies that the left edge of the center shade rectangle is located to the right
     /// of the tile rectangle's left edge by an amount equal to 25% of the tile rectangle's width.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <a:path path="rect">
     ///   <a:fillToRect l="50000" r="50000" t="50000" b="50000"/>
     /// </a:path>
     /// ```
-    /// 
+    ///
     /// In the above shape, the rectangle defined by fillToRect is a single point in the center of the shape. This creates
     /// the effect of the center shade focusing at a point in the center of the region.
     pub fill_to_rect: Option<RelativeRect>,
@@ -3946,6 +4045,7 @@ impl PathShadeProperties {
 pub enum ShadeProperties {
     /// This element specifies a linear gradient.
     Linear(LinearShadeProperties),
+
     /// This element defines that a gradient fill follows a path vs. a linear line.
     Path(PathShadeProperties),
 }
@@ -3970,39 +4070,43 @@ impl ShadeProperties {
 }
 
 /// This element defines a gradient fill.
-/// 
+///
 /// A gradient fill is a fill which is characterized by a smooth gradual transition from one color to the next. At its
 /// simplest, it is a fill which transitions between two colors; or more generally, it can be a transition of any number
 /// of colors.
-/// 
+///
 /// The desired transition colors and locations are defined in the gradient stop list (gsLst) child element.
-/// 
+///
 /// The other child element defines the properties of the gradient fill (there are two styles-- a linear shade style as
 /// well as a path shade style)
 #[derive(Default, Debug, Clone)]
 pub struct GradientFillProperties {
     /// Specifies the direction(s) in which to flip the gradient while tiling.
-    /// 
+    ///
     /// Normally a gradient fill encompasses the entire bounding box of the shape which
     /// contains the fill. However, with the tileRect element, it is possible to define a "tile"
     /// rectangle which is smaller than the bounding box. In this situation, the gradient fill is
     /// encompassed within the tile rectangle, and the tile rectangle is tiled across the bounding
     /// box to fill the entire area.
     pub flip: Option<TileFlipMode>,
+
     /// Specifies if a fill rotates along with a shape when the shape is rotated.
     pub rotate_with_shape: Option<bool>,
+
     /// The list of gradient stops that specifies the gradient colors and their relative positions in the color band.
     pub gradient_stop_list: Option<Vec<GradientStop>>,
+
+    /// Specifies the shade properties.
     pub shade_properties: Option<ShadeProperties>,
     /// This element specifies a rectangular region of the shape to which the gradient is applied. This region is then
     /// tiled across the remaining area of the shape to complete the fill. The tile rectangle is defined by percentage
     /// offsets from the sides of the shape's bounding box.
-    /// 
+    ///
     /// Each edge of the tile rectangle is defined by a percentage offset from the corresponding edge of the bounding
     /// box. A positive percentage specifies an inset, while a negative percentage specifies an outset.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// For example, a left offset of 25% specifies that the left edge of the tile rectangle is located to the right of the
     /// bounding box's left edge by an amount equal to 25% of the bounding box's width.
     pub tile_rect: Option<RelativeRect>,
@@ -4039,7 +4143,7 @@ impl GradientFillProperties {
 
                         if vec.len() < 2 {
                             return Err(Box::new(LimitViolationError::new(
-                                xml_node.name.clone(), 
+                                xml_node.name.clone(),
                                 "gsLst",
                                 Limit::Value(2),
                                 Limit::Unbounded,
@@ -4069,15 +4173,20 @@ impl GradientFillProperties {
 pub struct TileInfoProperties {
     /// Specifies additional horizontal offset after alignment.
     pub translate_x: Option<Coordinate>,
+
     /// Specifies additional vertical offset after alignment.
     pub translate_y: Option<Coordinate>,
+
     /// Specifies the amount to horizontally scale the srcRect.
     pub scale_x: Option<Percentage>,
+
     /// Specifies the amount to vertically scale the srcRect.
     pub scale_y: Option<Percentage>,
+
     /// Specifies the direction(s) in which to flip the source image while tiling. Images can be
     /// flipped horizontally, vertically, or in both directions to fill the entire region.
     pub flip_mode: Option<TileFlipMode>,
+
     /// Specifies where to align the first tile with respect to the shape. Alignment happens after
     /// the scaling, but before the additional offset.
     pub alignment: Option<RectAlignment>,
@@ -4107,17 +4216,17 @@ impl TileInfoProperties {
 pub struct StretchInfoProperties {
     /// This element specifies a fill rectangle. When stretching of an image is specified, a source rectangle, srcRect, is
     /// scaled to fit the specified fill rectangle.
-    /// 
+    ///
     /// Each edge of the fill rectangle is defined by a percentage offset from the corresponding edge of the shape's
     /// bounding box. A positive percentage specifies an inset, while a negative percentage specifies an outset.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// For example, a left offset of 25% specifies that the left edge of the fill rectangle is located to the right of the
     /// bounding box's left edge by an amount equal to 25% of the bounding box's width.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <a:blipFill>
     ///   <a:blip r:embed="rId2"/>
@@ -4146,6 +4255,7 @@ pub enum FillModeProperties {
     /// rectangle within the bounding box. The image is encompassed within the tile rectangle, and the tile rectangle is
     /// tiled across the bounding box to fill the entire area.
     Tile(Box<TileInfoProperties>),
+
     /// This element specifies that a BLIP should be stretched to fill the target rectangle. The other option is a tile where
     /// a BLIP is tiled to fill the available area.
     Stretch(Box<StretchInfoProperties>),
@@ -4176,30 +4286,35 @@ impl FillModeProperties {
 pub struct BlipFillProperties {
     /// Specifies the DPI (dots per inch) used to calculate the size of the blip. If not present or
     /// zero, the DPI in the blip is used.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// This attribute is primarily used to keep track of the picture quality within a
     /// document. There are different levels of quality needed for print than on-screen viewing
     /// and thus a need to track this information.
     pub dpi: Option<u32>,
+
     /// Specifies that the fill should rotate with the shape. That is, when the shape that has been
     /// filled with a picture and the containing shape (say a rectangle) is transformed with a
     /// rotation then the fill is transformed with the same rotation.
     pub rotate_with_shape: Option<bool>,
+
     /// This element specifies the existence of an image (binary large image or picture) and contains a reference to the
     /// image data.
     pub blip: Option<Box<Blip>>,
+
     /// This element specifies the portion of the blip used for the fill.
-    /// 
+    ///
     /// Each edge of the source rectangle is defined by a percentage offset from the corresponding edge of the
     /// bounding box. A positive percentage specifies an inset, while a negative percentage specifies an outset.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// For example, a left offset of 25% specifies that the left edge of the source rectangle is located to the right of the
     /// bounding box's left edge by an amount equal to 25% of the bounding box's width.
     pub source_rect: Option<RelativeRect>,
+
+    /// Specifies the fill mode of this blip.
     pub fill_mode_properties: Option<FillModeProperties>,
 }
 
@@ -4248,8 +4363,10 @@ impl BlipFillProperties {
 pub struct PatternFillProperties {
     /// Specifies one of a set of preset patterns to fill the object.
     pub preset: Option<PresetPatternVal>,
+
     /// This element specifies the foreground color of a pattern fill.
     pub fg_color: Option<Color>,
+
     /// This element specifies the background color of a Pattern fill.
     pub bg_color: Option<Color>,
 }
@@ -4291,15 +4408,19 @@ impl PatternFillProperties {
 pub enum FillProperties {
     /// This element specifies that no fill is applied to the parent element.
     NoFill,
+
     /// This element specifies a solid color fill. The shape is filled entirely with the specified color.
     SolidFill(Color),
+
+    /// This element specifies a gradient color fill.
     GradientFill(Box<GradientFillProperties>),
+
     /// This element specifies the type of picture fill that the picture object has. Because a picture has a picture fill
     /// already by default, it is possible to have two fills specified for a picture object. An example of this is shown
     /// below.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:pic>
     ///   ...
@@ -4313,8 +4434,10 @@ pub enum FillProperties {
     /// </p:pic>
     /// ```
     BlipFill(Box<BlipFillProperties>),
+
     /// This element specifies a pattern fill. A repeated pattern is used to fill the object.
     PatternFill(Box<PatternFillProperties>),
+
     /// This element specifies a group fill. When specified, this setting indicates that the parent element is part of a
     /// group and should inherit the fill properties of the group.
     GroupFill,
@@ -4357,9 +4480,14 @@ impl FillProperties {
 pub enum LineFillProperties {
     /// This element specifies that no fill is applied to the parent element.
     NoFill,
+
     /// This element specifies a solid color fill. The shape is filled entirely with the specified color.
     SolidFill(Color),
+
+    /// This element specifies a gradient color fill.
     GradientFill(Box<GradientFillProperties>),
+
+    /// This element specifies a pattern color fill.
     PatternFill(Box<PatternFillProperties>),
 }
 
@@ -4403,6 +4531,7 @@ impl LineFillProperties {
 pub struct DashStop {
     /// Specifies the length of the dash relative to the line width.
     pub dash_length: PositivePercentage,
+
     /// Specifies the length of the space relative to the line width.
     pub space_length: PositivePercentage,
 }
@@ -4434,6 +4563,7 @@ impl DashStop {
 pub enum LineDashProperties {
     /// This element specifies that a preset line dashing scheme should be used.
     PresetDash(PresetLineDashVal),
+
     /// This element specifies a custom dashing scheme. It is a list of dash stop elements which represent building block
     /// atoms upon which the custom dashing scheme is built.
     CustomDash(Vec<DashStop>),
@@ -4477,12 +4607,14 @@ impl LineDashProperties {
 pub enum LineJoinProperties {
     /// This element specifies that lines joined together have a round join.
     Round,
+
     /// This element specifies a Bevel Line Join.
-    /// 
+    ///
     /// A bevel joint specifies that an angle joint is used to connect lines.
     Bevel,
+
     /// This element specifies that a line join shall be mitered.
-    /// 
+    ///
     /// The value specifies the amount by which lines is extended to form a miter join - otherwise miter
     /// joins can extend infinitely far (for lines which are almost parallel).
     Miter(Option<PositivePercentage>),
@@ -4516,8 +4648,10 @@ impl LineJoinProperties {
 pub struct LineEndProperties {
     /// Specifies the line end decoration, such as a triangle or arrowhead.
     pub end_type: Option<LineEndType>,
+
     /// Specifies the line end width in relation to the line width.
     pub width: Option<LineEndWidth>,
+
     /// Specifies the line end length in relation to the line width.
     pub length: Option<LineEndLength>,
 }
@@ -4549,9 +4683,9 @@ pub struct LineProperties {
 
     /// Specifies the ending caps that should be used for this line. If this attribute is omitted, than a value of
     /// square is assumed.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// Examples of cap types are rounded, flat, etc.
     pub cap: Option<LineCap>,
 
@@ -4561,8 +4695,14 @@ pub struct LineProperties {
 
     /// Specifies the alignment to be used for the underline stroke.
     pub pen_alignment: Option<PenAlignment>,
+
+    /// Specifies the fill properties for this line.
     pub fill_properties: Option<LineFillProperties>,
+
+    /// Specifies the dash properties for this line.
     pub dash_properties: Option<LineDashProperties>,
+
+    /// Specifies the join properties for this line.
     pub join_properties: Option<LineJoinProperties>,
 
     /// This element specifies decorations which can be added to the head of a line.
@@ -4610,10 +4750,13 @@ impl LineProperties {
 pub struct RelativeRect {
     /// Specifies the left edge of the rectangle.
     pub left: Option<Percentage>,
+
     /// Specifies the top edge of the rectangle.
     pub top: Option<Percentage>,
+
     /// Specifies the right edge of the rectangle.
     pub right: Option<Percentage>,
+
     /// Specifies the bottom edge of the rectangle.
     pub bottom: Option<Percentage>,
 }
@@ -4641,6 +4784,7 @@ pub struct Point2D {
     /// Specifies a coordinate on the x-axis. The origin point for this coordinate shall be specified
     /// by the parent XML element.
     pub x: Coordinate,
+
     /// Specifies a coordinate on the x-axis. The origin point for this coordinate shall be specified
     /// by the parent XML element.
     pub y: Coordinate,
@@ -4698,7 +4842,10 @@ impl PositiveSize2D {
 
 #[derive(Debug, Clone)]
 pub struct StyleMatrixReference {
+    /// Specifies the style matrix index of the style referred to.
     pub index: StyleMatrixColumnIndex,
+
+    /// Specifies the color associated with this style matrix reference.
     pub color: Option<Color>,
 }
 
@@ -4723,9 +4870,12 @@ impl StyleMatrixReference {
 pub struct EffectContainer {
     /// Specifies the kind of container, either sibling or tree.
     pub container_type: Option<EffectContainerType>,
+
     /// Specifies an optional name for this list of effects, so that it can be referred to later. Shall
     /// be unique across all effect trees and effect containers.
     pub name: Option<String>,
+
+    /// Specifies the effects contained in this container.
     pub effects: Vec<Effect>,
 }
 
@@ -4758,7 +4908,7 @@ impl EffectContainer {
 }
 
 /// This element represents an Alpha Bi-Level Effect.
-/// 
+///
 /// Alpha (Opacity) values less than the threshold are changed to 0 (fully transparent) and alpha values greater than
 /// or equal to the threshold are changed to 100% (fully opaque).
 #[derive(Debug, Clone)]
@@ -4778,7 +4928,7 @@ impl AlphaBiLevelEffect {
 }
 
 /// This element represents an alpha inverse effect.
-/// 
+///
 /// Alpha (opacity) values are inverted by subtracting from 100%.
 #[derive(Default, Debug, Clone)]
 pub struct AlphaInverseEffect {
@@ -4797,7 +4947,7 @@ impl AlphaInverseEffect {
 }
 
 /// This element represents an alpha modulate effect.
-/// 
+///
 /// Effect alpha (opacity) values are multiplied by a fixed percentage. The effect container specifies an effect
 /// containing alpha values to modulate.
 #[derive(Debug, Clone)]
@@ -4819,12 +4969,12 @@ impl AlphaModulateEffect {
 }
 
 /// This element represents an alpha modulate fixed effect.
-/// 
+///
 /// Effect alpha (opacity) values are multiplied by a fixed percentage.
 #[derive(Default, Debug, Clone)]
 pub struct AlphaModulateFixedEffect {
     /// Specifies the percentage amount to scale the alpha.
-    /// 
+    ///
     /// Defaults to 100000
     pub amount: Option<PositivePercentage>,
 }
@@ -4841,7 +4991,7 @@ impl AlphaModulateFixedEffect {
 }
 
 /// This element specifies an alpha outset/inset effect.
-/// 
+///
 /// This is equivalent to an alpha ceiling, followed by alpha blur, followed by either an alpha ceiling (positive radius)
 /// or alpha floor (negative radius).
 #[derive(Default, Debug, Clone)]
@@ -4862,7 +5012,7 @@ impl AlphaOutsetEffect {
 }
 
 /// This element specifies an alpha replace effect.
-/// 
+///
 /// Effect alpha (opacity) values are replaced by a fixed alpha.
 #[derive(Debug, Clone)]
 pub struct AlphaReplaceEffect {
@@ -4933,18 +5083,19 @@ impl BlendEffect {
 #[derive(Default, Debug, Clone)]
 pub struct BlurEffect {
     /// Specifies the radius of blur.
-    /// 
+    ///
     /// Defaults to 0
     pub radius: Option<PositiveCoordinate>,
+
     /// Specifies whether the bounds of the object should be grown as a result of the blurring.
     /// True indicates the bounds are grown while false indicates that they are not.
-    /// 
+    ///
     /// With grow set to false, the blur effect does not extend beyond the original bounds of the
     /// object
-    /// 
+    ///
     /// With grow set to true, the blur effect can extend beyond the original bounds of the
     /// object
-    /// 
+    ///
     /// Defaults to true
     pub grow: Option<bool>,
 }
@@ -4971,12 +5122,14 @@ impl BlurEffect {
 pub struct ColorChangeEffect {
     /// Specifies whether alpha values are considered for the effect. Effect alpha values are
     /// considered if use_alpha is true, else they are ignored.
-    /// 
+    ///
     /// Defaults to true
     pub use_alpha: Option<bool>,
+
     /// This element specifies a solid color replacement value. All effect colors are changed to a fixed color. Alpha values
     /// are unaffected.
     pub color_from: Color,
+
     /// This element specifies the color which replaces the clrFrom in a clrChange effect. This is the "target" or "to"
     /// color in the color change effect.
     pub color_to: Color,
@@ -5047,6 +5200,7 @@ impl ColorReplaceEffect {
 pub struct LuminanceEffect {
     /// Specifies the percent to change the brightness.
     pub brightness: Option<FixedPercentage>,
+
     /// Specifies the percent to change the contrast.
     pub contrast: Option<FixedPercentage>,
 }
@@ -5069,7 +5223,7 @@ impl LuminanceEffect {
 }
 
 /// This element specifies a duotone effect.
-/// 
+///
 /// For each pixel, combines clr1 and clr2 through a linear interpolation to determine the new color for that pixel.
 #[derive(Debug, Clone)]
 pub struct DuotoneEffect {
@@ -5144,7 +5298,7 @@ impl FillOverlayEffect {
 #[derive(Debug, Clone)]
 pub struct GlowEffect {
     /// Specifies the radius of the glow.
-    /// 
+    ///
     /// Defaults to 0
     pub radius: Option<PositiveCoordinate>,
     pub color: Color,
@@ -5172,15 +5326,17 @@ impl GlowEffect {
 #[derive(Default, Debug, Clone)]
 pub struct HslEffect {
     /// Specifies the number of degrees by which the hue is adjusted.
-    /// 
+    ///
     /// Defaults to 0
     pub hue: Option<PositiveFixedAngle>,
+
     /// Specifies the percentage by which the saturation is adjusted.
-    /// 
+    ///
     /// Defaults to 0
     pub saturation: Option<FixedPercentage>,
+
     /// Specifies the percentage by which the luminance is adjusted.
-    /// 
+    ///
     /// Defaults to 0
     pub luminance: Option<FixedPercentage>,
 }
@@ -5207,15 +5363,17 @@ impl HslEffect {
 #[derive(Debug, Clone)]
 pub struct InnerShadowEffect {
     /// Specifies the blur radius.
-    /// 
+    ///
     /// Defaults to 0
     pub blur_radius: Option<PositiveCoordinate>,
+
     /// Specifies how far to offset the shadow.
-    /// 
+    ///
     /// Defaults to 0
     pub distance: Option<PositiveCoordinate>,
+
     /// Specifies the direction to offset the shadow.
-    /// 
+    ///
     /// Defaults to 0
     pub direction: Option<PositiveFixedAngle>,
     pub color: Color,
@@ -5255,40 +5413,48 @@ impl InnerShadowEffect {
 #[derive(Debug, Clone)]
 pub struct OuterShadowEffect {
     /// Specifies the blur radius of the shadow.
-    /// 
+    ///
     /// Defaults to 0
     pub blur_radius: Option<PositiveCoordinate>,
+
     /// Specifies the how far to offset the shadow.
-    /// 
+    ///
     /// Defaults to 0
     pub distance: Option<PositiveCoordinate>,
+
     /// Specifies the direction to offset the shadow.
-    /// 
+    ///
     /// Defaults to 0
     pub direction: Option<PositiveFixedAngle>,
+
     /// Specifies the horizontal scaling factor; negative scaling causes a flip.
-    /// 
+    ///
     /// Defaults to 100_000
     pub scale_x: Option<Percentage>,
+
     /// Specifies the vertical scaling factor; negative scaling causes a flip.
-    /// 
+    ///
     /// Defaults to 100_000
     pub scale_y: Option<Percentage>,
+
     /// Specifies the horizontal skew angle.
-    /// 
+    ///
     /// Defaults to 0
     pub skew_x: Option<FixedAngle>,
+
     /// Specifies the vertical skew angle.
-    /// 
+    ///
     /// Defaults to 0
     pub skew_y: Option<FixedAngle>,
+
     /// Specifies shadow alignment; alignment happens first, effectively setting the origin for
     /// scale, skew, and offset.
-    /// 
+    ///
     /// Defaults to RectAlignment::Bottom
     pub alignment: Option<RectAlignment>,
+
     /// Specifies whether the shadow rotates with the shape if the shape is rotated.
-    /// 
+    ///
     /// Defaults to true
     pub rotate_with_shape: Option<bool>,
     pub color: Color,
@@ -5351,12 +5517,14 @@ impl OuterShadowEffect {
 pub struct PresetShadowEffect {
     /// Specifies which preset shadow to use.
     pub preset: PresetShadowVal,
+
     /// Specifies how far to offset the shadow.
-    /// 
+    ///
     /// Defaults to 0
     pub distance: Option<PositiveCoordinate>,
+
     /// Specifies the direction to offset the shadow.
-    /// 
+    ///
     /// Defaults to 0
     pub direction: Option<PositiveFixedAngle>,
     pub color: Color,
@@ -5398,59 +5566,72 @@ impl PresetShadowEffect {
 #[derive(Default, Debug, Clone)]
 pub struct ReflectionEffect {
     /// Specifies the blur radius.
-    /// 
+    ///
     /// Defaults to 0
     pub blur_radius: Option<PositiveCoordinate>,
+
     /// Starting reflection opacity.
-    /// 
+    ///
     /// Defaults to 100_000
     pub start_opacity: Option<PositiveFixedPercentage>,
+
     /// Specifies the start position (along the alpha gradient ramp) of the start alpha value.
-    /// 
+    ///
     /// Defaults to 0
     pub start_position: Option<PositiveFixedPercentage>,
+
     /// Specifies the ending reflection opacity.
-    /// 
+    ///
     /// Defaults to 0
     pub end_opacity: Option<PositiveFixedPercentage>,
+
     /// Specifies the end position (along the alpha gradient ramp) of the end alpha value.
-    /// 
+    ///
     /// Defaults to 100_000
     pub end_position: Option<PositiveFixedPercentage>,
+
     /// Specifies how far to distance the shadow.
-    /// 
+    ///
     /// Defaults to 0
     pub distance: Option<PositiveCoordinate>,
+
     /// Specifies the direction of the alpha gradient ramp relative to the shape itself.
-    /// 
+    ///
     /// Defaults to 0
     pub direction: Option<PositiveFixedAngle>,
+    
     /// Specifies the direction to offset the reflection.
-    /// 
+    ///
     /// Defaults to 5_400_000
     pub fade_direction: Option<PositiveFixedAngle>,
+
     /// Specifies the horizontal scaling factor.
-    /// 
+    ///
     /// Defaults to 100_000
     pub scale_x: Option<Percentage>,
+
     /// Specifies the vertical scaling factor.
-    /// 
+    ///
     /// Defaults to 100_000
     pub scale_y: Option<Percentage>,
+
     /// Specifies the horizontal skew angle.
-    /// 
+    ///
     /// Defaults to 0
     pub skew_x: Option<FixedAngle>,
+
     /// Specifies the vertical skew angle.
-    /// 
+    ///
     /// Defaults to 0
     pub skew_y: Option<FixedAngle>,
+
     /// Specifies shadow alignment.
-    /// 
+    ///
     /// Defaults to RectAlignment::Bottom
     pub alignment: Option<RectAlignment>,
+
     /// Specifies if the reflection rotates with the shape.
-    /// 
+    ///
     /// Defaults to true
     pub rotate_with_shape: Option<bool>,
 }
@@ -5488,11 +5669,12 @@ impl ReflectionEffect {
 #[derive(Default, Debug, Clone)]
 pub struct RelativeOffsetEffect {
     /// Specifies the X offset.
-    /// 
+    ///
     /// Defaults to 0
     pub translate_x: Option<Percentage>,
+
     /// Specifies the Y offset.
-    /// 
+    ///
     /// Defaults to 0
     pub translate_y: Option<Percentage>,
 }
@@ -5540,11 +5722,12 @@ impl SoftEdgesEffect {
 #[derive(Default, Debug, Clone)]
 pub struct TintEffect {
     /// Specifies the hue towards which to tint.
-    /// 
+    ///
     /// Defaults to 0
     pub hue: Option<PositiveFixedAngle>,
+
     /// Specifies by how much the color value is shifted.
-    /// 
+    ///
     /// Defaults to 0
     pub amount: Option<FixedPercentage>,
 }
@@ -5568,38 +5751,43 @@ impl TintEffect {
 
 /// This element specifies a transform effect. The transform is applied to each point in the shape's geometry using
 /// the following matrix:
-/// 
+///
 /// sx          tan(kx)     tx      x
 /// tan(ky)     sy          ty  *   y
 /// 0           0           1       1
 #[derive(Default, Debug, Clone)]
 pub struct TransformEffect {
     /// Specifies a percentage by which to horizontally scale the object.
-    /// 
+    ///
     /// Defaults to 100_000
     pub scale_x: Option<Percentage>,
+
     /// Specifies a percentage by which to vertically scale the object.
-    /// 
+    ///
     /// Defaults to 100_000
     pub scale_y: Option<Percentage>,
+
     /// Specifies an amount by which to shift the object along the x-axis.
-    /// 
+    ///
     /// Defaults to 0
     pub translate_x: Option<Coordinate>,
+
     /// Specifies an amount by which to shift the object along the y-axis.
-    /// 
+    ///
     /// Defaults to 0
     pub translate_y: Option<Coordinate>,
+
     /// Specifies the horizontal skew angle, defined as the angle between the top-left corner and
     /// bottom-left corner of the object's original bounding box. If positive, the bottom edge of
     /// the shape is positioned to the right relative to the top edge.
-    /// 
+    ///
     /// Defaults to 0
     pub skew_x: Option<FixedAngle>,
+
     /// Specifies the vertical skew angle, defined as the angle between the top-left corner and
     /// top-right corner of the object's original bounding box. If positive, the right edge of the
     /// object is positioned lower relative to the left edge.
-    /// 
+    ///
     /// Defaults to 0
     pub skew_y: Option<FixedAngle>,
 }
@@ -5628,8 +5816,9 @@ impl TransformEffect {
 #[derive(Debug, Clone)]
 pub enum Effect {
     Container(EffectContainer),
+
     /// This element specifies a reference to an existing effect container.
-    /// 
+    ///
     /// Its value can be the name of an effect container, or one of four
     /// special references:
     /// * fill - refers to the fill effect
@@ -5638,13 +5827,15 @@ pub enum Effect {
     /// * children - refers to the combined effects from logical child shapes or text
     EffectReference(String),
     AlphaBiLevel(AlphaBiLevelEffect),
+
     /// This element represents an alpha ceiling effect.
     ///
     /// Alpha (opacity) values greater than zero are changed to 100%. In other words, anything partially opaque
     /// becomes fully opaque.
     AlphaCeiling,
+
     /// This element represents an alpha floor effect.
-    /// 
+    ///
     /// Alpha (opacity) values less than 100% are changed to zero. In other words, anything partially transparent
     /// becomes fully transparent.
     AlphaFloor,
@@ -5662,6 +5853,7 @@ pub enum Effect {
     Fill(FillEffect),
     FillOverlay(FillOverlayEffect),
     Glow(GlowEffect),
+
     /// This element specifies a gray scale effect. Converts all effect color values to a shade of gray, corresponding to
     /// their luminance. Effect alpha (opacity) values are unaffected.
     Grayscale,
@@ -5777,23 +5969,24 @@ pub enum EffectProperties {
     /// This element specifies a list of effects. Effects in an effectLst are applied in the default order by the rendering
     /// engine. The following diagrams illustrate the order in which effects are applied, both for shapes and for group
     /// shapes.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// The output of many effects does not include the input shape. For effects that should be applied to the
     /// result of previous effects as well as the original shape, a container is used to group the inputs together.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// Outer Shadow is applied both to the original shape and the original shape's glow. The result of blur
     /// contains the original shape, while the result of glow contains only the added glow. Therefore, a container that
     /// groups the blur result with the glow result is used as the input to Outer Shadow.
     EffectList(Box<EffectList>),
+
     /// This element specifies a list of effects. Effects are applied in the order specified by the container type (sibling or
     /// tree).
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// An effectDag element can contain multiple effect containers as child elements. Effect containers with
     /// different styles can be combined in an effectDag to define a directed acyclic graph (DAG) that specifies the order
     /// in which all effects are applied.
@@ -5857,13 +6050,15 @@ impl EffectStyleItem {
 #[derive(Debug, Clone)]
 pub enum BlipEffect {
     AlphaBiLevel(AlphaBiLevelEffect),
+
     /// This element represents an alpha ceiling effect.
     ///
     /// Alpha (opacity) values greater than zero are changed to 100%. In other words, anything partially opaque
     /// becomes fully opaque.
     AlphaCeiling,
+
     /// This element represents an alpha floor effect.
-    /// 
+    ///
     /// Alpha (opacity) values less than 100% are changed to zero. In other words, anything partially transparent
     /// becomes fully transparent.
     AlphaFloor,
@@ -5877,6 +6072,7 @@ pub enum BlipEffect {
     ColorReplace(ColorReplaceEffect),
     Duotone(DuotoneEffect),
     FillOverlay(FillOverlayEffect),
+
     /// This element specifies a gray scale effect. Converts all effect color values to a shade of gray, corresponding to
     /// their luminance. Effect alpha (opacity) values are unaffected.
     Grayscale,
@@ -5937,9 +6133,11 @@ pub struct Blip {
     /// Specifies the identification information for an embedded picture. This attribute is used to
     /// specify an image that resides locally within the file.
     pub embed_rel_id: Option<RelationshipId>,
+
     /// Specifies the identification information for a linked picture. This attribute is used to
     /// specify an image that does not reside within this file.
     pub linked_rel_id: Option<RelationshipId>,
+
     /// Specifies the compression state with which the picture is stored. This allows the
     /// application to specify the amount of compression that has been applied to a picture.
     pub compression: Option<BlipCompression>,
@@ -5993,7 +6191,7 @@ pub struct TextFont {
     /// Specifies the font pitch as well as the font family for the corresponding font. Because the
     /// value of this attribute is determined by an octet value this value shall be interpreted as
     /// follows:
-    /// 
+    ///
     /// | Value     | Description                                   |
     /// |-----------|-----------------------------------------------|
     /// | 0x00      | DEFAULT PITCH + UNKNOWN FONT FAMILY           |
@@ -6014,26 +6212,26 @@ pub struct TextFont {
     /// | 0x50      | DEFAULT PITCH + DECORATIVE FONT FAMILY        |
     /// | 0x51      | FIXED PITCH + DECORATIVE FONT FAMIL           |
     /// | 0x52      | VARIABLE PITCH + DECORATIVE FONT FAMILY       |
-    /// 
+    ///
     /// This information is determined by querying the font when present and shall not be
     /// modified when the font is not available. This information can be used in font substitution
     /// logic to locate an appropriate substitute font when this font is not available.
-    /// 
+    ///
     /// Defaults to 0x00
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// Although the attribute name is pitchFamily, the integer value of this attribute
     /// specifies the font family with higher 4 bits and the font pitch with lower 4 bits.
     pub pitch_family: Option<i32>,
-    
+
     /// Specifies the character set which is supported by the parent font. This information can be
     /// used in font substitution logic to locate an appropriate substitute font when this font is
     /// not available. This information is determined by querying the font when present and shall
     /// not be modified when the font is not available.
-    /// 
+    ///
     /// The value of this attribute shall be interpreted as follows:
-    /// 
+    ///
     /// | Value     | Description                                                               |
     /// |-----------|---------------------------------------------------------------------------|
     /// | 0x00      | Specifies the ANSI character set. (IANA name *iso-8859-1*)                |
@@ -6060,7 +6258,7 @@ pub struct TextFont {
     /// | 0xEE      | Specifies an Eastern European character set. (IANA name *windows-1250*)   |
     /// | 0xFF      | Specifies an OEM character set not defined by ECMA-376.                   |
     /// | _         | Application-defined, can be ignored.                                      |
-    /// 
+    ///
     /// Defaults to 0x01
     pub charset: Option<i32>,
 }
@@ -6096,11 +6294,12 @@ impl TextFont {
 #[derive(Debug, Clone)]
 pub struct SupplementalFont {
     /// Specifies the script, or language, in which the typeface is supposed to be used.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// It is recommended that script names as specified in ISO 15924 are used.
     pub script: String,
+
     /// Specifies the font face to use.
     pub typeface: TextTypeFace,
 }
@@ -6132,9 +6331,9 @@ pub enum TextSpacing {
     /// the largest text size having precedence. That is if there is a run of text with 10 point font and within the same
     /// paragraph on the same line there is a run of text with a 12 point font size then the 12 point should be used to
     /// calculate the spacing to be used.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -6151,7 +6350,7 @@ pub enum TextSpacing {
     ///   …
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// The above paragraph of text is formatted to have a spacing before the paragraph text. This spacing is 200% of
     /// the size of the largest text on each line.
     Percent(TextSpacingPercent),
@@ -6159,9 +6358,9 @@ pub enum TextSpacing {
     /// This element specifies the amount of white space that is to be used between lines and paragraphs in the form of
     /// a text point size. The size is specified using points where 100 is equal to 1 point font and 1200 is equal to 12
     /// point.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -6178,7 +6377,7 @@ pub enum TextSpacing {
     ///   …
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// The above paragraph of text is formatted to have a spacing before the paragraph text. This spacing is a size of 14
     /// points due to val="1400".
     Point(TextSpacingPoint),
@@ -6208,9 +6407,9 @@ impl TextSpacing {
 pub enum TextBulletColor {
     /// This element specifies that the color of the bullets for a paragraph should be of the same color as the text run
     /// within which each bullet is contained.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -6225,16 +6424,16 @@ pub enum TextBulletColor {
     ///   …
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// The color of the above bullet follows the default text color of the text for the run of text shown above since no
     /// specific text color was specified.
     FollowText,
 
     /// This element specifies the color to be used on bullet characters within a given paragraph. The color is specified
     /// using the numerical RGB color format.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -6251,7 +6450,7 @@ pub enum TextBulletColor {
     ///   …
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// The color of the above bullet does not follow the text color but instead has a yellow color specified by
     /// val="FFFF00". This color should only apply to the actual bullet character and not to the text within the bullet.
     Color(Color),
@@ -6284,9 +6483,9 @@ impl TextBulletColor {
 pub enum TextBulletSize {
     /// This element specifies that the size of the bullets for a paragraph should be of the same point size as the text run
     /// within which each bullet is contained.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -6301,16 +6500,16 @@ pub enum TextBulletSize {
     ///   …
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// The size of the above bullet follows the default text size of the text for the run of text shown above since no
     /// specific text size was specified.
     FollowText,
 
     /// This element specifies the size in percentage of the surrounding text to be used on bullet characters within a
     /// given paragraph.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -6325,7 +6524,7 @@ pub enum TextBulletSize {
     ///   …
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// The size of the above bullet follows the text size in that it is always rendered at 111% the size of the text within
     /// the given text run. This is specified by val="111%", with a restriction on the values not being less than 25% or
     /// more than 400%. This percentage size should only apply to the actual bullet character and not to the text within
@@ -6334,9 +6533,9 @@ pub enum TextBulletSize {
 
     /// This element specifies the size in points to be used on bullet characters within a given paragraph. The size is
     /// specified using the points where 100 is equal to 1 point font and 1200 is equal to 12 point font.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -6351,7 +6550,7 @@ pub enum TextBulletSize {
     ///   …
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// The size of the above bullet does not follow the text size of the text within the given text run. The bullets size is
     /// specified by val="1400", which corresponds to a point size of 14. This bullet size should only apply to the actual
     /// bullet character and not to the text within the bullet.
@@ -6390,9 +6589,9 @@ impl TextBulletSize {
 pub enum TextBulletTypeface {
     /// This element specifies that the font of the bullets for a paragraph should be of the same font as the text run
     /// within which each bullet is contained.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -6407,16 +6606,16 @@ pub enum TextBulletTypeface {
     ///   …
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// The font of the above bullet follows the default text font of the text for the run of text shown above since no
     /// specific text font was specified.
     FollowText,
 
     /// This element specifies the font to be used on bullet characters within a given paragraph. The font is specified
     /// using the typeface that it is registered as within the generating application.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -6432,7 +6631,7 @@ pub enum TextBulletTypeface {
     ///   …
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// The font of the above bullet does not follow the text font but instead has Arial font specified by
     /// typeface="Arial". This font should only apply to the actual bullet character and not to the text within the bullet.
     Font(TextFont),
@@ -6459,9 +6658,9 @@ impl TextBulletTypeface {
 pub enum TextBullet {
     /// This element specifies that the paragraph within which it is applied is to have no bullet formatting applied to it.
     /// That is to say that there should be no bulleting found within the paragraph where this element is specified.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -6476,16 +6675,16 @@ pub enum TextBullet {
     ///   …
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// The above paragraph is formatted with no bullets.
     None,
 
     /// This element specifies that automatic numbered bullet points should be applied to a paragraph. These are not
     /// just numbers used as bullet points but instead automatically assigned numbers that are based on both
     /// buAutoNum attributes and paragraph level.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -6516,7 +6715,7 @@ pub enum TextBullet {
     ///   …
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// For the above text there are a total of three bullet points. Two of which are at lvl="0" and one at lvl="1". Due to
     /// this breakdown of levels, the numbering sequence that should be automatically applied is 1, 1, 2 as is shown in
     /// the picture above.
@@ -6525,9 +6724,9 @@ pub enum TextBullet {
     /// This element specifies that a character be applied to a set of bullets. These bullets are allowed to be any
     /// character in any font that the system is able to support. If no bullet font is specified along with this element then
     /// the paragraph font is used.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -6561,7 +6760,7 @@ pub enum TextBullet {
     ///   …
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// For the above text there are a total of three bullet points. Two of which are at lvl="0" and one at lvl="1".
     /// Because the same character is specified for each bullet the levels do not stand out here. The only difference is
     /// the indentation as shown in the picture above.
@@ -6570,9 +6769,9 @@ pub enum TextBullet {
     /// This element specifies that a picture be applied to a set of bullets. This element allows for any standard picture
     /// format graphic to be used instead of the typical bullet characters. This opens up the possibility for bullets to be
     /// anything the generating application would seek to apply.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -6609,7 +6808,7 @@ pub enum TextBullet {
     ///   …
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// For the above text there are a total of three bullet points. Two of which are at lvl="0" and one at lvl="1".
     /// Because the same picture is specified for each bullet the levels do not stand out here. The only difference is the
     /// indentation as shown in the picture above.
@@ -6682,9 +6881,9 @@ impl TextAutonumberedBullet {
 /// This element specifies a single tab stop to be used on a line of text when there are one or more tab characters
 /// present within the text. When there is more than one present than they should be utilized in increasing position
 /// order which is specified via the pos attribute.
-/// 
+///
 /// # Xml example
-/// 
+///
 /// ```xml
 /// <p:txBody>
 ///   …
@@ -6704,7 +6903,7 @@ impl TextAutonumberedBullet {
 ///   …
 /// </p:txBody>
 /// ```
-/// 
+///
 /// The paragraph within which this <a:tab> information resides has a total of 4 unique tab stops that should be
 /// listed in order of increasing position. Along with specifying the tab position each tab allows for the specifying of
 /// an alignment.
@@ -6739,9 +6938,9 @@ impl TextTabStop {
 pub enum TextUnderlineLine {
     /// This element specifies that the stroke style of an underline for a run of text should be of the same as the text run
     /// within which it is contained.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -6758,14 +6957,14 @@ pub enum TextUnderlineLine {
     ///   …
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// The underline stroke of the above text follows the stroke of the run text within which it resides.
     FollowText,
 
     /// This element specifies the properties for the stroke of the underline that is present within a run of text.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -6809,9 +7008,9 @@ impl TextUnderlineLine {
 pub enum TextUnderlineFill {
     /// This element specifies that the fill color of an underline for a run of text should be of the same color as the text
     /// run within which it is contained.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -6831,9 +7030,9 @@ pub enum TextUnderlineFill {
     FollowText,
 
     /// This element specifies the fill color of an underline for a run of text.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -6854,8 +7053,8 @@ pub enum TextUnderlineFill {
     ///   …
     /// </p:txBody>
     /// ```
-    /// 
-    /// 
+    ///
+    ///
     Fill(FillProperties),
 }
 
@@ -6911,7 +7110,7 @@ pub struct Hyperlink {
     /// Specifies whether to add this URI to the history when navigating to it. This allows for the
     /// viewing of this presentation without the storing of history information on the viewing
     /// machine. If this attribute is omitted, then a value of 1 or true is assumed.
-    /// 
+    ///
     /// Defaults to true
     pub history: Option<bool>,
 
@@ -6919,12 +7118,12 @@ pub struct Hyperlink {
     /// hyperlink has already been visited that this attribute would be utilized so the generating
     /// application can determine the color of this text. If this attribute is omitted, then a value
     /// of 0 or false is implied.
-    /// 
+    ///
     /// Defaults to false
     pub highlight_click: Option<bool>,
 
     /// Specifies if the URL in question should stop all sounds that are playing when it is clicked.
-    /// 
+    ///
     /// Defaults to false
     pub end_sound: Option<bool>,
     pub sound: Option<EmbeddedWAVAudioFile>,
@@ -7037,7 +7236,7 @@ pub struct TextCharacterProperties {
     /// Specifies that the content of a text run has changed since the proofing tools have last
     /// been run. Effectively this flags text that is to be checked again by the generating
     /// application for mistakes such as spelling, grammar, etc.
-    /// 
+    ///
     /// Defaults to true
     pub dirty: Option<bool>,
 
@@ -7045,7 +7244,7 @@ pub struct TextCharacterProperties {
     /// mistake was indeed found. This allows the generating application to effectively save the
     /// state of the mistakes within the document instead of having to perform a full pass check
     /// upon opening the document.
-    /// 
+    ///
     /// Defaults to false
     pub spelling_error: Option<bool>,
 
@@ -7058,11 +7257,11 @@ pub struct TextCharacterProperties {
     /// Specifies a smart tag identifier for a run of text. This ID is unique throughout the
     /// presentation and is used to reference corresponding auxiliary information about the
     /// smart tag.
-    /// 
+    ///
     /// Defaults to 0
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   <a:bodyPr/>
@@ -7076,7 +7275,7 @@ pub struct TextCharacterProperties {
     ///   </a:p>
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// The text run has a smtId attribute value of 1, which denotes that the text should be
     /// inspected for smart tag information, which in this case maps to a stock ticker symbol.
     pub smarttag_id: Option<u32>,
@@ -7084,14 +7283,20 @@ pub struct TextCharacterProperties {
     /// Specifies the link target name that is used to reference to the proper link properties in a
     /// custom XML part within the document.
     pub bookmark_link_target: Option<String>,
+
+    /// Specifies the outline properties of this character
     pub line_properties: Option<Box<LineProperties>>,
+
+    /// Specifies the fill properties of this character
     pub fill_properties: Option<FillProperties>,
+
+    /// Specifies the effect that should be applied to this character
     pub effect_properties: Option<EffectProperties>,
 
     /// This element specifies the highlight color that is present for a run of text.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -7111,14 +7316,18 @@ pub struct TextCharacterProperties {
     /// </p:txBody>
     /// ```
     pub highlight_color: Option<Color>,
+
+    /// Specifies the line properties of the underline for this character.
     pub text_underline_line: Option<TextUnderlineLine>,
+
+    /// Specifies the fill properties of the underline for this character.
     pub text_underline_fill: Option<TextUnderlineFill>,
 
     /// This element specifies that a Latin font be used for a specific run of text. This font is specified with a typeface
     /// attribute much like the others but is specifically classified as a Latin font.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <a:r>
     ///   <a:rPr …>
@@ -7131,12 +7340,12 @@ pub struct TextCharacterProperties {
 
     /// This element specifies that an East Asian font be used for a specific run of text. This font is specified with a
     /// typeface attribute much like the others but is specifically classified as an East Asian font.
-    /// 
+    ///
     /// If the specified font is not available on a system being used for rendering, then the attributes of this element can
     /// be utilized to select an alternative font.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <a:r>
     ///   <a:rPr …>
@@ -7149,16 +7358,16 @@ pub struct TextCharacterProperties {
 
     /// This element specifies that a complex script font be used for a specific run of text. This font is specified with a
     /// typeface attribute much like the others but is specifically classified as a complex script font.
-    /// 
+    ///
     /// If the specified font is not available on a system being used for rendering, then the attributes of this element can
     /// be utilized to select an alternative font.
     pub complex_script_font: Option<TextFont>,
 
     /// This element specifies that a symbol font be used for a specific run of text. This font is specified with a typeface
     /// attribute much like the others but is specifically classified as a symbol font.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <a:r>
     ///   <a:rPr …>
@@ -7167,15 +7376,15 @@ pub struct TextCharacterProperties {
     ///   <a:t>Sample Text</a:t>
     /// </a:r>
     /// ```
-    /// 
+    ///
     /// The above run of text is rendered using the symbol font "Sample Font".
     pub symbol_font: Option<TextFont>,
 
     /// Specifies the on-click hyperlink information to be applied to a run of text. When the hyperlink text is clicked the
     /// link is fetched.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -7192,16 +7401,16 @@ pub struct TextCharacterProperties {
     ///   …
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// The above run of text is a hyperlink that points to the resource pointed at by rId2 within this slides relationship
     /// file. Additionally this text should display a tooltip when the mouse is hovered over the run of text.
     pub hyperlink_click: Option<Box<Hyperlink>>,
 
     /// Specifies the mouse-over hyperlink information to be applied to a run of text. When the mouse is hovered over
     /// this hyperlink text the link is fetched.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -7218,34 +7427,34 @@ pub struct TextCharacterProperties {
     ///   …
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// The above run of text is a hyperlink that points to the resource pointed at by rId2 within this slides relationship
     /// file. Additionally this text should display a tooltip when the mouse is hovered over the run of text.
     pub hyperlink_mouse_over: Option<Box<Hyperlink>>,
 
     /// This element specifies whether the contents of this run shall have right-to-left characteristics. Specifically, the
     /// following behaviors are applied when this element’s val attribute is true (or an equivalent):
-    /// 
+    ///
     /// * Formatting – When the contents of this run are displayed, all characters shall be treated as complex
     ///   script characters. This means that the values of the cs element (§21.1.2.3.1) shall be used to determine
     ///   the font face.
-    /// 
+    ///
     /// * Character Directionality Override – When the contents of this run are displayed, this property acts as a
     ///   right-to-left override for characters which are classified as follows (using the Unicode Character
     ///   Database):
-    /// 
+    ///
     ///   * Weak types except European Number, European Number Terminator, Common Number Separator,
     ///     Arabic Number and (for Hebrew text) European Number Separator when constituting part of a
     ///     number
-    /// 
+    ///
     ///   * Neutral types
-    /// 
+    ///
     /// * This element provides information used to resolve the (Unicode) classifications of individual characters
     ///   as either L, R, AN or EN. Once this is determined, the line should be displayed subject to the
     ///   recommendation of the Unicode Bidirectional Algorithm in reordering resolved levels.
-    /// 
+    ///
     ///   # Rationale
-    /// 
+    ///
     ///   This override allows applications to store and utilize higher-level information beyond that
     ///   implicitly derived from the Unicode Bidirectional algorithm. For example, if the string “first second”
     ///   appears in a right-to-left paragraph inside a document, the Unicode algorithm would always result in
@@ -7254,17 +7463,17 @@ pub struct TextCharacterProperties {
     ///   keyboard), then that character could be classified as RTL using this property, allowing the display of
     ///   “second first” in a right-to-left paragraph, since the user explicitly asked for the space in a right-to-left
     ///   context.
-    /// 
+    ///
     /// This property shall not be used with strong left-to-right text. Any behavior under that condition is unspecified.
     /// This property, when off, should not be used with strong right-to-left text. Any behavior under that condition is
     /// unspecified.
-    /// 
+    ///
     /// If this element is not present, the default value is to leave the formatting applied at previous level in the style
     /// hierarchy. If this element is never applied in the style hierarchy, then right to left characteristics shall not be
     /// applied to the contents of this run.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the following DrawingML visual content: “first second, أولى ثاني ”. This content might
     /// appear as follows within its parent paragraph:
     /// ```xml
@@ -7292,12 +7501,12 @@ pub struct TextCharacterProperties {
     ///   </a:r>
     /// </a:p>
     /// ```
-    /// 
+    ///
     /// The presence of the rtl element on the second, third, and fourth runs specifies that:
-    /// 
+    ///
     /// * The formatting on those runs is specified using the complex-script property variants.
     /// * The whitespace character is treated as right-to-left.
-    /// 
+    ///
     /// Note that the second, third and fourth runs could be joined as one run with the rtl element specified.
     pub rtl: Option<bool>,
 }
@@ -7393,9 +7602,9 @@ pub struct TextParagraphProperties {
     /// paragraph properties that are listed within the lstStyle element. Since there are nine
     /// separate level properties defined, this tag has an effective range of 0-8 = 9 available
     /// values.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the following DrawingML. This would specify that this paragraph
     /// should follow the lvl2pPr formatting style because once again lvl="1" is considered to be
     /// level 2.
@@ -7410,9 +7619,9 @@ pub struct TextParagraphProperties {
     ///   </a:p>
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// To resolve conflicting paragraph properties the linear hierarchy of paragraph
     /// properties should be examined starting first with the pPr element. The rule here is that
     /// properties that are defined at a level closer to the actual text should take precedence.
@@ -7424,9 +7633,9 @@ pub struct TextParagraphProperties {
     /// Specifies the indent size that is applied to the first line of text in the paragraph. An
     /// indentation of 0 is considered to be at the same location as marL attribute. If this
     /// attribute is omitted, then a value of -342900 is implied.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the scenario where the user now wanted to add a paragraph
     /// indentation to the first line of text in their two column format book.
     /// ```xml
@@ -7445,7 +7654,7 @@ pub struct TextParagraphProperties {
     ///   </a:p>
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// By adding the indent attribute the user has effectively added a first line indent to this
     /// paragraph of text.
     pub indent: Option<TextIndent>,
@@ -7453,9 +7662,9 @@ pub struct TextParagraphProperties {
     /// Specifies the alignment that is to be applied to the paragraph. Possible values for this
     /// include left, right, centered, justified and distributed. If this attribute is omitted, then a
     /// value of left is implied.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the case where the user wishes to have two columns of text that
     /// have a justified alignment, much like text within a book. The following DrawingML could
     /// describe this.
@@ -7481,9 +7690,9 @@ pub struct TextParagraphProperties {
     /// be used to describe the spacing of tabs within the paragraph instead of a leading
     /// indentation tab. For indentation tabs there are the marL and indent attributes to assist
     /// with this.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the case where a paragraph contains numerous tabs that need to be
     /// of a specific size. The following DrawingML would describe this.
     /// ```xml
@@ -7501,13 +7710,13 @@ pub struct TextParagraphProperties {
 
     /// Specifies whether the text is right-to-left or left-to-right in its flow direction. If this
     /// attribute is omitted, then a value of 0, or left-to-right is implied.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the following example of a text body with two lines of text. In this
     /// example, both lines contain English and Arabic text, however, the second line has the
     /// rtl attribute set to true whereas the first line does not set the rtl attribute.
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -7545,9 +7754,9 @@ pub struct TextParagraphProperties {
     /// without a hyphen. That is it is not present within the existence of normal breakable East
     /// Asian words but is when a special case word arises that should not be broken for a line
     /// break. If this attribute is omitted, then a value of 1 or true is implied.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the case where the presentation contains a long word that must not
     /// be divided with a line break. Instead it should be placed, in whole on a new line so that it
     /// can fit. The picture below shows a normal paragraph where a long word has been broken
@@ -7572,14 +7781,14 @@ pub struct TextParagraphProperties {
     /// between, etc. To understand this attribute and it's use it is helpful to understand what
     /// baselines are. A diagram describing these different cases is shown below. If this attribute
     /// is omitted, then a value of base is implied.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the case where the user wishes to represent the chemical compound
     /// of a water molecule. For this they need to make sure the H, the 2, and the O are all in the
     /// correct position and are of the correct size. The results below can be achieved through
     /// the DrawingML shown below.
-    /// 
+    ///
     /// ```xml
     /// <a:txtBody>
     ///   …
@@ -7608,15 +7817,15 @@ pub struct TextParagraphProperties {
     /// within the existence of normal breakable Latin words but is when a special case word
     /// arises that should not be broken for a line break. If this attribute is omitted, then a value
     /// of 1 or true is implied.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the case where the presentation contains a long word that must not
     /// be divided with a line break. Instead it should be placed, in whole on a new line so that it
     /// can fit. The picture below shows a normal paragraph where a long word has been broken
     /// for a line break. The second picture shown below shows that same paragraph with the
     /// long word specified to not allow a line break. The resulting DrawingML is as follows.
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -7641,9 +7850,9 @@ pub struct TextParagraphProperties {
     /// This element specifies the vertical line spacing that is to be used within a paragraph. This can be specified in two
     /// different ways, percentage spacing and font point spacing. If this element is omitted then the spacing between
     /// two lines of text should be determined by the point size of the largest piece of text within a line.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   <a:p>
@@ -7666,16 +7875,16 @@ pub struct TextParagraphProperties {
     ///   </a:p>
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// This paragraph has two lines of text that have percentage based vertical spacing. This kind of spacing should
     /// change based on the size of the text involved as its size is calculated as a percentage of this.
     pub line_spacing: Option<TextSpacing>,
 
     /// This element specifies the amount of vertical white space that is present before a paragraph. This space is
     /// specified in either percentage or points via the child elements spcPct and spcPts.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -7695,16 +7904,16 @@ pub struct TextParagraphProperties {
     ///   …
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// The above paragraph of text is formatted to have a spacing both before and after the paragraph text. The
     /// spacing before is a size of 18 points, or value=1800 and the spacing after is a size of 6 points, or value=600.
     pub space_before: Option<TextSpacing>,
 
     /// This element specifies the amount of vertical white space that is present after a paragraph. This space is
     /// specified in either percentage or points via the child elements spcPct and spcPts.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -7724,25 +7933,33 @@ pub struct TextParagraphProperties {
     ///   …
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// The above paragraph of text is formatted to have a spacing both before and after the paragraph text. The
     /// spacing before is a size of 18 points, or value=1800 and the spacing after is a size of 6 points, or value=600.
     pub space_after: Option<TextSpacing>,
+
+    /// Specifies the color of the bullet for this paragraph.
     pub bullet_color: Option<TextBulletColor>,
+
+    /// Specifies the size of the bullet for this paragraph.
     pub bullet_size: Option<TextBulletSize>,
+
+    /// Specifies the font properties of the bullet for this paragraph.
     pub bullet_typeface: Option<TextBulletTypeface>,
+
+    /// Specifies the bullet's properties for this paragraph.
     pub bullet: Option<TextBullet>,
 
     /// This element specifies the list of all tab stops that are to be used within a paragraph. These tabs should be used
     /// when describing any custom tab stops within the document. If these are not specified then the default tab stops
     /// of the generating application should be used.
     pub tab_stop_list: Option<Vec<TextTabStop>>,
-    
+
     /// This element contains all default run level text properties for the text runs within a containing paragraph. These
     /// properties are to be used when overriding properties have not been defined within the rPr element.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <a:p>
     ///   …
@@ -7752,7 +7969,7 @@ pub struct TextParagraphProperties {
     ///   …
     /// </a:p>
     /// ```
-    /// 
+    ///
     /// The run of text described above is formatting with a single underline of text matching color.
     pub default_run_properties: Option<Box<TextCharacterProperties>>,
 }
@@ -7828,7 +8045,7 @@ impl TextParagraphProperties {
                         }
 
                         instance.tab_stop_list = Some(vec);
-                    },
+                    }
                     "defRPr" => {
                         instance.default_run_properties =
                             Some(Box::new(TextCharacterProperties::from_xml_element(child_node)?))
@@ -7846,9 +8063,9 @@ impl TextParagraphProperties {
 pub struct TextParagraph {
     /// This element contains all paragraph level text properties for the containing paragraph. These paragraph
     /// properties should override any and all conflicting properties that are associated with the paragraph in question.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <a:p>
     ///   <a:pPr marL="0" algn="ctr">
@@ -7859,12 +8076,12 @@ pub struct TextParagraph {
     ///   …
     /// </a:p>
     /// ```
-    /// 
+    ///
     /// The paragraph described above is formatting with a left margin of 0 and has all of text runs contained within it
     /// centered about the horizontal median of the bounding box for the text body.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// To resolve conflicting paragraph properties the linear hierarchy of paragraph properties should be
     /// examined starting first with the pPr element. The rule here is that properties that are defined at a level closer to
     /// the actual text should take precedence. That is if there is a conflicting property between the pPr and lvl1pPr
@@ -7872,6 +8089,7 @@ pub struct TextParagraph {
     /// actual text being represented.
     pub properties: Option<Box<TextParagraphProperties>>,
 
+    /// The list of text runs in this paragraph.
     pub text_run_list: Vec<TextRun>,
 
     /// This element specifies the text run properties that are to be used if another run is inserted after the last run
@@ -7913,12 +8131,12 @@ pub enum TextRun {
     /// This element specifies the presence of a run of text within the containing text body. The run element is the
     /// lowest level text separation mechanism within a text body. A text run can contain text run properties associated
     /// with the run. If no properties are listed then properties specified in the defRPr element are used.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the case where the user would like to describe a text body that contains two runs of text and
     /// would like one to be bold and the other not. The following DrawingML would specify such a text body.
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -7934,7 +8152,7 @@ pub enum TextRun {
     ///   </a:r>
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// The above text body has the first run be formatted bold and the second normally.
     RegularTextRun(Box<RegularTextRun>),
 
@@ -7942,9 +8160,9 @@ pub enum TextRun {
     /// addition to specifying a vertical space between two runs of text, this element can also have run properties
     /// specified via the rPr child element. This sets the formatting of text for the line break so that if text is later
     /// inserted there that a new run can be generated with the correct formatting.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -7963,7 +8181,7 @@ pub enum TextRun {
     ///   </a:p>
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// This paragraph has two runs of text laid out in a vertical fashion with a line break in between them. This line
     /// break acts much like a carriage return would within a normal run of text.
     LineBreak(Box<TextLineBreak>),
@@ -7974,9 +8192,9 @@ pub enum TextRun {
     /// update type is used so that all applications that did not create this text field can still know what kind of text it
     /// should be updated with. Thus the new application can then attach an update type to the text field id for
     /// continual updating.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider a slide within a presentation that needs to have the slide number placed on the slide. The
     /// following DrawingML can be used to describe such a situation.
     /// ```xml
@@ -8019,9 +8237,9 @@ impl TextRun {
 #[derive(Debug, Clone)]
 pub struct RegularTextRun {
     /// This element contains all run level text properties for the text runs within a containing paragraph.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <a:p>
     ///   …
@@ -8031,15 +8249,15 @@ pub struct RegularTextRun {
     ///   …
     /// </a:p>
     /// ```
-    /// 
+    ///
     /// The run of text described above is formatting with a single underline of text matching color.
     pub char_properties: Option<Box<TextCharacterProperties>>,
 
     /// This element specifies the actual text for this text run. This is the text that is formatted using all specified body,
     /// paragraph and run properties. This element shall be present within a run of text.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -8055,7 +8273,7 @@ pub struct RegularTextRun {
     ///   …
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// The above DrawingML specifies a text body containing a single paragraph, containing a single run which contains
     /// the actual text specified with the <a:t> element.
     pub text: String,
@@ -8107,9 +8325,9 @@ pub struct TextField {
     /// inform the rendering application what text it should use to update this text field. There
     /// are no specific syntax restrictions placed on this attribute. The generating application can
     /// use it to represent any text that should be updated before rendering the presentation.
-    /// 
+    ///
     /// Reserved values:
-    /// 
+    ///
     /// |Value          |Description                                            |
     /// |---------------|-------------------------------------------------------|
     /// |slidenum       |presentation slide number                              |
@@ -8130,9 +8348,9 @@ pub struct TextField {
     pub field_type: Option<String>,
 
     /// This element contains all run level text properties for the text runs within a containing paragraph.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <a:p>
     ///   …
@@ -8142,10 +8360,14 @@ pub struct TextField {
     ///   …
     /// </a:p>
     /// ```
-    /// 
+    ///
     /// The run of text described above is formatting with a single underline of text matching color.
     pub char_properties: Option<Box<TextCharacterProperties>>,
+
+    /// Specifies the paragraph properties for this text field
     pub paragraph_properties: Option<Box<TextParagraph>>,
+
+    /// The text of this text field.
     pub text: Option<String>,
 }
 
@@ -8193,9 +8415,9 @@ pub struct TextListStyle {
     /// This element specifies the paragraph properties that are to be applied when no other paragraph properties have
     /// been specified. If this attribute is omitted, then it is left to the application to decide the set of default paragraph
     /// properties that should be applied.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -8211,7 +8433,7 @@ pub struct TextListStyle {
     ///   </a:p>
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// The above paragraph follows the properties described in defPPr if no overriding properties are specified within
     /// the pPr element.
     pub def_paragraph_props: Option<Box<TextParagraphProperties>>,
@@ -8221,12 +8443,12 @@ pub struct TextListStyle {
     /// and other level property elements are specified be in order of increasing level. That is lvl2pPr should come
     /// before lvl3pPr. This allows the lower level properties to take precedence over the higher level ones because
     /// they are parsed first
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the following DrawingML code that would specify a paragraph to follow the level style
     /// defined in lvl1pPr and thus create a paragraph of text that has no bullets and is right aligned.
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -8244,9 +8466,9 @@ pub struct TextListStyle {
     ///   </a:p>
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// To resolve conflicting paragraph properties the linear hierarchy of paragraph properties should be
     /// examined starting first with the pPr element. The rule here is that properties that are defined at a level closer to
     /// the actual text should take precedence. That is if there is a conflicting property between the pPr and lvl1pPr
@@ -8256,7 +8478,7 @@ pub struct TextListStyle {
 
     /// This element specifies all paragraph level text properties for all elements that have the attribute lvl="1".
     pub lvl2_paragraph_props: Option<Box<TextParagraphProperties>>,
-    
+
     /// This element specifies all paragraph level text properties for all elements that have the attribute lvl="2".
     pub lvl3_paragraph_props: Option<Box<TextParagraphProperties>>,
 
@@ -8335,20 +8557,23 @@ impl TextListStyle {
 
 #[derive(Debug, Clone)]
 pub struct TextBody {
+    /// Specifies the properties of this text body.
     pub body_properties: Box<TextBodyProperties>,
+
+    /// Specifies the list style of this text body.
     pub list_style: Option<Box<TextListStyle>>,
 
     /// This element specifies the presence of a paragraph of text within the containing text body. The paragraph is the
     /// highest level text separation mechanism within a text body. A paragraph can contain text paragraph properties
     /// associated with the paragraph. If no properties are listed then properties specified in the defPPr element are
     /// used.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the case where the user would like to describe a text body that contains two paragraphs.
     /// The requirement for these paragraphs is that one be right aligned and the other left aligned. The following
     /// DrawingML would specify a text body such as this.
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   …
@@ -8404,15 +8629,15 @@ pub struct TextBodyProperties {
     /// applied independently from the shape. That is the shape can have a rotation applied in
     /// addition to the text itself having a rotation applied to it. If this attribute is omitted, then a
     /// value of 0, is implied.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the case where a shape has a rotation of 5400000, or 90 degrees
     /// clockwise applied to it. In addition to this, the text body itself has a rotation of -5400000,
     /// or 90 degrees counter-clockwise applied to it. Then the resulting shape would appear to
     /// be rotated but the text within it would appear as though it had not been rotated at all.
     /// The DrawingML specifying this would look like the following:
-    /// 
+    ///
     /// ```xml
     /// <p:sp>
     ///   <p:spPr>
@@ -8430,6 +8655,7 @@ pub struct TextBodyProperties {
     /// </p:sp>
     /// ```
     pub rotate_angle: Option<Angle>,
+
     /// Specifies whether the before and after paragraph spacing defined by the user is to be
     /// respected. While the spacing between paragraphs is helpful, it is additionally useful to be
     /// able to set a flag as to whether this spacing is to be followed at the edges of the text
@@ -8437,14 +8663,14 @@ pub struct TextBodyProperties {
     /// this is a text body level property it should only effect the before paragraph spacing of the
     /// first paragraph and the after paragraph spacing of the last paragraph for a given text
     /// body. If this attribute is omitted, then a value of 0, or false is implied.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the case where spacing has been defined between multiple
     /// paragraphs within a text body using the spcBef and spcAft paragraph spacing attributes.
     /// For this text body however the user would like to not have this followed for the edge
     /// paragraphs and thus we have the following DrawingML.
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   <a:bodyPr spcFirstLastPara="0" … />
@@ -8479,18 +8705,19 @@ pub struct TextBodyProperties {
     /// </p:txBody>
     /// ```
     pub paragraph_spacing: Option<bool>,
+
     /// Determines whether the text can flow out of the bounding box vertically. This is used to
     /// determine what happens in the event that the text within a shape is too large for the
     /// bounding box it is contained within. If this attribute is omitted, then a value of overflow
     /// is implied.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the case where we have multiply paragraphs within a shape and the
     /// second causes text to flow outside the shape. By applying the clip value of the
     /// vertOverflow attribute as a body property this overflowing text is now cut off instead of
     /// extending beyond the bounds of the shape.
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   <a:bodyPr vertOverflow="clip" … />
@@ -8508,18 +8735,19 @@ pub struct TextBodyProperties {
     /// </p:txBody>
     /// ```
     pub vertical_overflow: Option<TextVertOverflowType>,
+
     /// Determines whether the text can flow out of the bounding box horizontally. This is used
     /// to determine what happens in the event that the text within a shape is too large for the
     /// bounding box it is contained within. If this attribute is omitted, then a value of overflow
     /// is implied.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the case where we have multiply paragraphs within a shape and the
     /// second is greater in length and causes text to flow outside the shape. By applying the clip
     /// value of the horzOverflow attribute as a body property this overflowing text now is cut
     /// off instead of extending beyond the bounds of the shape.
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   <a:bodyPr horzOverflow="clip" … />
@@ -8537,14 +8765,15 @@ pub struct TextBodyProperties {
     /// </p:txBody>
     /// ```
     pub horizontal_overflow: Option<TextHorizontalOverflowType>,
+
     /// Determines if the text within the given text body should be displayed vertically. If this
     /// attribute is omitted, then a value of horz, or no vertical text is implied.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the case where the user needs to display text that appears vertical
     /// and has a right to left flow with respect to its columns.
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   <a:bodyPr vert="wordArtVertRtl" … />
@@ -8561,32 +8790,38 @@ pub struct TextBodyProperties {
     ///   </a:p>
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// In the above sample DrawingML there are two paragraphs denoting a separation
     /// between the text otherwise which are known as either a line or paragraph break.
     /// Because wordArtVertRtl is used here this text is not only displayed in a stacked manner
     /// flowing from top to bottom but also have the first paragraph be displayed to the right of
     /// the second. This is because it is both vertical text and right to left.
     pub vertical_type: Option<TextVerticalType>,
+
     /// Specifies the wrapping options to be used for this text body. If this attribute is omitted,
     /// then a value of square is implied which wraps the text using the bounding text box.
     pub wrap_type: Option<TextWrappingType>,
+
     /// Specifies the left inset of the bounding rectangle. Insets are used just as internal margins
     /// for text boxes within shapes. If this attribute is omitted, then a value of 91440 or 0.1
     /// inches is implied.
     pub left_inset: Option<Coordinate32>,
+
     /// Specifies the top inset of the bounding rectangle. Insets are used just as internal margins
     /// for text boxes within shapes. If this attribute is omitted, then a value of 45720 or 0.05
     /// inches is implied.
     pub top_inset: Option<Coordinate32>,
+
     /// Specifies the right inset of the bounding rectangle. Insets are used just as internal
     /// margins for text boxes within shapes. If this attribute is omitted, then a value of 91440 or
     /// 0.1 inches is implied.
     pub right_inset: Option<Coordinate32>,
+
     /// Specifies the bottom inset of the bounding rectangle. Insets are used just as internal
     /// margins for text boxes within shapes. If this attribute is omitted, a value of 45720 or 0.05
     /// inches is implied.
     pub bottom_inset: Option<Coordinate32>,
+    
     /// Specifies the number of columns of text in the bounding rectangle. When applied to a
     /// text run this property takes the width of the bounding box for the text and divides it by
     /// the number of columns specified. These columns are then treated as overflow containers
@@ -8595,52 +8830,57 @@ pub struct TextBodyProperties {
     /// then the overflow properties set for this text body are used and the text is reflowed to
     /// make room for additional text. If this attribute is omitted, then a value of 1 is implied.
     pub column_count: Option<TextColumnCount>,
+
     /// Specifies the space between text columns in the text area. This should only apply when
     /// there is more than 1 column present. If this attribute is omitted, then a value of 0 is
     /// implied.
     pub space_between_columns: Option<PositiveCoordinate32>,
+
     /// Specifies whether columns are used in a right-to-left or left-to-right order. The usage of
     /// this attribute only sets the column order that is used to determine which column
     /// overflow text should go to next. If this attribute is omitted, then a value of 0 or falseis
     /// implied in which case text starts in the leftmost column and flow to the right.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// This attribute in no way determines the direction of text but merely the direction
     /// in which multiple columns are used.
     pub rtl_columns: Option<bool>,
+
     /// Specifies that text within this textbox is converted text from a WordArt object. This is
     /// more of a backwards compatibility attribute that is useful to the application from a
     /// tracking perspective. WordArt was the former way to apply text effects and therefore
     /// this attribute is useful in document conversion scenarios. If this attribute is omitted, then
     /// a value of 0 or false is implied.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   <a:bodyPr wrap="none" fromWordArt="1" …/>
     ///   …
     /// </p:txBody>
     /// ```
-    /// 
+    ///
     /// Because of the presence of the fromWordArt attribute the text within this shape can be
     /// mapped back to the corresponding WordArt during document conversion.
     pub is_from_word_art: Option<bool>,
+
     /// Specifies the anchoring position of the txBody within the shape. If this attribute is
     /// omitted, then a value of t, or top is implied.
     pub anchor: Option<TextAnchoringType>,
+
     /// Specifies the centering of the text box. The way it works fundamentally is to determine
     /// the smallest possible "bounds box" for the text and then to center that "bounds box"
     /// accordingly. This is different than paragraph alignment, which aligns the text within the
     /// "bounds box" for the text. This flag is compatible with all of the different kinds of
     /// anchoring. If this attribute is omitted, then a value of 0 or false is implied.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// The text within this shape has been both vertically centered with the anchor
     /// attribute and horizontally centered with the anchorCtr attribute.
-    /// 
+    ///
     /// ```xml
     /// <p:txBody>
     ///   <a:bodyPr anchor="ctr" anchorCtr="1" … />
@@ -8648,30 +8888,34 @@ pub struct TextBodyProperties {
     /// </p:txBody>
     /// ```
     pub anchor_center: Option<bool>,
+
     /// Forces the text to be rendered anti-aliased regardless of the font size. Certain fonts can
     /// appear grainy around their edges unless they are anti-aliased. Therefore this attribute
     /// allows for the specifying of which bodies of text should always be anti-aliased and which
     /// ones should not. If this attribute is omitted, then a value of 0 or false is implied.
     pub force_antialias: Option<bool>,
+
     /// Specifies whether text should remain upright, regardless of the transform applied to it
     /// and the accompanying shape transform. If this attribute is omitted, then a value of 0, or
     /// false is implied.
     pub upright: Option<bool>,
+
     /// Specifies that the line spacing for this text body is decided in a simplistic manner using
     /// the font scene. If this attribute is omitted, a value of 0 or false is implied.
     pub compatible_line_spacing: Option<bool>,
+
     /// This element specifies when a preset geometric shape should be used to transform a piece of text. This
     /// operation is known formally as a text warp. The generating application should be able to render all preset
     /// geometries enumerated in the TextShapeType list.
-    /// 
+    ///
     /// Using any of the presets listed under the ST_TextShapeType list below it is possible to apply a text warp to a run
     /// of DrawingML text via the following steps.
-    /// 
+    ///
     /// If you look at any of the text warps in the file format you notice that each consists of two paths. This
     /// corresponds to a top path (first one specified) and a bottom path (second one specified). Now the top path and
     /// the bottom path represent the top line and base line that the text needs to be warped to. This is done in the
     /// following way:
-    /// 
+    ///
     /// 1. Compute the rectangle that the unwarped text resides in. (tightest possible rectangle around text, no
     ///    white space except for “space characters”)
     /// 2. Take each of the quadratic and cubic Bezier curves that are used to calculate the original character and
@@ -8697,12 +8941,12 @@ pub struct TextBodyProperties {
     /// 11. This is then the new point that should be used in place of the old point in the original text rectangle.
     /// 12. We then continue doing these same steps for each of the end points and control points within the body
     ///     of text. (is applied to a whole body of text only)
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the case where the user wishes to accent a piece of text by warping it's shape. For this to
     /// occur a preset shape is chosen from the TextShapeType list and applied to the entire body of text.
-    /// 
+    ///
     /// ```xml
     /// <p:sp>
     ///   <p:txBody>
@@ -8720,14 +8964,16 @@ pub struct TextBodyProperties {
     ///   </p:txBody>
     /// </p:sp>
     /// ```
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// Horizontal percentages begin at 0.0 and continue to 1.0, left to right. Vertical percentages begin at 0.0
     /// and continue to 1.0, top to bottom.
-    /// 
+    ///
     /// Since this is a shape it does have both a shape coordinate system and a path coordinate system.
     pub preset_text_warp: Option<Box<PresetTextShape>>,
+
+    /// Specifies the method of auto fitting this text body.
     pub auto_fit_type: Option<TextAutoFit>,
     // TODO implement
     //pub scene_3d: Option<Scene3D>,
@@ -8781,9 +9027,9 @@ pub enum TextAutoFit {
     /// This element specifies that text within the text body should not be auto-fit to the bounding box. Auto-fitting is
     /// when text within a text box is scaled in order to remain inside the text box. If this element is omitted, then
     /// noAutofit or auto-fit off is implied.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider a text box where the user wishes to have the text extend outside the bounding box. The
     /// following DrawingML would describe this.
     /// ```xml
@@ -8803,9 +9049,9 @@ pub enum TextAutoFit {
     /// This element specifies that text within the text body should be normally auto-fit to the bounding box. Autofitting
     /// is when text within a text box is scaled in order to remain inside the text box. If this element is omitted,
     /// then noAutofit or auto-fit off is implied.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the situation where a user is building a diagram and needs to have the text for each shape
     /// that they are using stay within the bounds of the shape. An easy way this might be done is by using
     /// normAutofit. The following DrawingML illustrates how this might be accomplished.
@@ -8837,7 +9083,7 @@ pub enum TextAutoFit {
     ///   </p:txBody>
     /// </p:sp>
     /// ```
-    /// 
+    ///
     /// In the above example there are two shapes that have normAutofit turned on so that when the user types more
     /// text within the shape that the text actually resizes to accommodate the new data. For the application to know
     /// how and to what degree the text should be resized two attributes are set for the auto-fit resize logic.
@@ -8846,13 +9092,13 @@ pub enum TextAutoFit {
     /// This element specifies that a shape should be auto-fit to fully contain the text described within it. Auto-fitting is
     /// when text within a shape is scaled in order to contain all the text inside. If this element is omitted, then
     /// NoAutoFit or auto-fit off is implied.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the situation where a user is building a diagram and needs to have the text for each shape
     /// that they are using stay within the bounds of the shape. An easy way this might be done is by using ShapeAutoFit.
     /// The following DrawingML illustrates how this might be accomplished.
-    /// 
+    ///
     /// ```xml
     /// <p:sp>
     ///   <p:txBody>
@@ -8881,7 +9127,7 @@ pub enum TextAutoFit {
     ///   </p:txBody>
     /// </p:sp>
     /// ```
-    /// 
+    ///
     /// In the above example there are two shapes that have ShapeAutoFit turned on so that when the user types more
     /// text within the shape that the shape actually resizes to accommodate the new data.
     ShapeAutoFit,
@@ -8915,7 +9161,7 @@ pub struct TextNormalAutoFit {
     /// box can be scaled based on the value provided. A value of 100% scales the text to 100%,
     /// while a value of 1% scales the text to 1%. If this attribute is omitted, then a value of 100%
     /// is implied.
-    /// 
+    ///
     /// Defaults to 100000
     pub font_scale: Option<TextFontScalePercent>,
 
@@ -8925,11 +9171,11 @@ pub struct TextNormalAutoFit {
     /// a percent amount. A value of 100% reduces the line spacing by 100%, while a value of 1%
     /// reduces the line spacing by one percent. If this attribute is omitted, then a value of 0% is
     /// implied.
-    /// 
+    ///
     /// Defaults to 0
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// This attribute applies only to paragraphs with percentage line spacing.
     pub line_spacing_reduction: Option<TextSpacingPercent>,
 }
@@ -8959,9 +9205,9 @@ pub struct PresetTextShape {
     /// Specifies the preset geometry that is used for a shape warp on a piece of text. This preset
     /// can have any of the values in the enumerated list for TextShapeType. This attribute
     /// is required in order for a text warp to be rendered.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:sp>
     ///   <p:txBody>
@@ -8979,10 +9225,12 @@ pub struct PresetTextShape {
     ///   </p:txBody>
     /// </p:sp>
     /// ```
-    /// 
+    ///
     /// In the above example a preset text shape geometry has been used to define the warping
     /// shape. The shape utilized here is the sun shape.
     pub preset: TextShapeType,
+
+    /// The list of adjust values used to represent this preset text shape.
     pub adjust_value_list: Vec<GeomGuide>,
 }
 
@@ -9011,10 +9259,11 @@ impl PresetTextShape {
 pub struct FontScheme {
     /// The name of the font scheme shown in the user interface.
     pub name: String,
+
     /// This element defines the set of major fonts which are to be used under different languages or locals.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <majorFont>
     /// <latin typeface="Calibri"/>
@@ -9034,12 +9283,13 @@ pub struct FontScheme {
     ///   <font script="Knda" typeface="Tunga"/>
     /// </majorFont>
     /// ```
-    /// 
+    ///
     /// In this example, we see the latin, east asian, and complex script fonts defined along with many fonts for
     /// different locals.
     pub major_font: Box<FontCollection>,
+
     /// This element defines the set of minor fonts that are to be used under different languages or locals.
-    /// 
+    ///
     /// ```xml
     /// <minorFont>
     ///   <latin typeface="Calibri"/>
@@ -9059,7 +9309,7 @@ pub struct FontScheme {
     ///   <font script="Knda" typeface="Tunga"/>
     /// </minorFont>
     /// ```
-    /// 
+    ///
     /// In this example, we see the latin, east asian, and complex script fonts defined along with many fonts for
     /// different locals.
     pub minor_font: Box<FontCollection>,
@@ -9095,9 +9345,15 @@ impl FontScheme {
 
 #[derive(Debug, Clone)]
 pub struct FontCollection {
+    /// Specifies the font used for latin characters.
     pub latin: TextFont,
+
+    /// Specifies the font used for east asian characters.
     pub east_asian: TextFont,
+
+    /// Specifies the font used for complex characters.
     pub complex_script: TextFont,
+
     /// This element defines a list of font within the styles area of DrawingML. A font is defined by a script along
     /// with a typeface.
     pub supplemental_font_list: Vec<SupplementalFont>,
@@ -9138,78 +9394,85 @@ pub struct NonVisualDrawingProps {
     /// Specifies a unique identifier for the current DrawingML object within the current
     /// document. This ID can be used to assist in uniquely identifying this object so that it can
     /// be referred to by other parts of the document.
-    /// 
+    ///
     /// If multiple objects within the same document share the same id attribute value, then the
     /// document shall be considered non-conformant.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// Consider a DrawingML object defined as follows:
-    /// 
+    ///
     /// <… id="10" … >
-    /// 
+    ///
     /// The id attribute has a value of 10, which is the unique identifier for this DrawingML
     /// object.
     pub id: DrawingElementId,
+
     /// Specifies the name of the object.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// Typically, this is used to store the original file name of a picture object.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// Consider a DrawingML object defined as follows:
-    /// 
+    ///
     /// < … name="foo.jpg" >
-    /// 
+    ///
     /// The name attribute has a value of foo.jpg, which is the name of this DrawingML object.
     pub name: String,
+
     /// Specifies alternative text for the current DrawingML object, for use by assistive
     /// technologies or applications which do not display the current object.
-    /// 
+    ///
     /// If this element is omitted, then no alternative text is present for the parent object.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// Consider a DrawingML object defined as follows:
-    /// 
+    ///
     /// <… descr="A picture of a bowl of fruit">
-    /// 
+    ///
     /// The descr attribute contains alternative text which can be used in place of the actual
     /// DrawingML object.
     pub description: Option<String>,
+
     /// Specifies whether this DrawingML object is displayed. When a DrawingML object is
     /// displayed within a document, that object can be hidden (i.e., present, but not visible).
     /// This attribute determines whether the object is rendered or made hidden. [Note: An
     /// application can have settings which allow this object to be viewed. end note]
-    /// 
+    ///
     /// If this attribute is omitted, then the parent DrawingML object shall be displayed (i.e., not
     /// hidden).
-    /// 
+    ///
     /// Defaults to false
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// Consider an inline DrawingML object which must be hidden within the
     /// document's content. This setting would be specified as follows:
-    /// 
+    ///
     /// <… hidden="true" />
-    /// 
+    ///
     /// The hidden attribute has a value of true, which specifies that the DrawingML object is
     /// hidden and not displayed when the document is displayed.
     pub hidden: Option<bool>,
+
     /// Specifies the title (caption) of the current DrawingML object.
-    /// 
+    ///
     /// If this attribute is omitted, then no title text is present for the parent object.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// Consider a DrawingML object defined as follows:
-    /// 
+    ///
     /// <… title="Process Flow Diagram">
     pub title: Option<String>,
+
+    /// Specifies the hyperlink information to be activated when the user click's over the corresponding object.
     pub hyperlink_click: Option<Box<Hyperlink>>,
+
     /// This element specifies the hyperlink information to be activated when the user's mouse is hovered over the
     /// corresponding object. The operation of the hyperlink is to have the specified action be activated when the
     /// mouse of the user hovers over the object. When this action is activated then additional attributes can be used to
@@ -9266,62 +9529,71 @@ pub struct Locking {
     /// Specifies that the generating application should not allow shape grouping for the
     /// corresponding connection shape. That is it cannot be combined within other shapes to
     /// form a group of shapes. If this attribute is not specified, then a value of false is assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_grouping: Option<bool>,
+
     /// Specifies that the generating application should not allow selecting of the corresponding
     /// connection shape. That means also that no picture, shapes or text attached to this
     /// connection shape can be selected if this attribute has been specified. If this attribute is
     /// not specified, then a value of false is assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_select: Option<bool>,
+
     /// Specifies that the generating application should not allow shape rotation changes for the
     /// corresponding connection shape. If this attribute is not specified, then a value of false is
     /// assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_rotate: Option<bool>,
+
     /// Specifies that the generating application should not allow aspect ratio changes for the
     /// corresponding connection shape. If this attribute is not specified, then a value of false is
     /// assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_change_aspect_ratio: Option<bool>,
+
     /// Specifies that the generating application should not allow position changes for the
     /// corresponding connection shape. If this attribute is not specified, then a value of false is
     /// assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_move: Option<bool>,
+
     /// Specifies that the generating application should not allow size changes for the
     /// corresponding connection shape. If this attribute is not specified, then a value of false is
     /// assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_resize: Option<bool>,
+
     /// Specifies that the generating application should not allow shape point changes for the
     /// corresponding connection shape. If this attribute is not specified, then a value of false is
     /// assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_edit_points: Option<bool>,
+
     /// Specifies that the generating application should not show adjust handles for the
     /// corresponding connection shape. If this attribute is not specified, then a value of false is
     /// assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_adjust_handles: Option<bool>,
+
     /// Specifies that the generating application should not allow arrowhead changes for the
     /// corresponding connection shape. If this attribute is not specified, then a value of false is
     /// assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_change_arrowheads: Option<bool>,
+
     /// Specifies that the generating application should not allow shape type changes for the
     /// corresponding connection shape. If this attribute is not specified, then a value of false is
     /// assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_change_shape_type: Option<bool>,
 }
@@ -9349,7 +9621,13 @@ impl Locking {
 #[derive(Debug, Clone)]
 pub struct ShapeLocking {
     pub locking: Locking,
-    pub no_text_edit: Option<bool>, // false
+
+    /// Specifies that the generating application should not allow editing of the shape text for
+    /// the corresponding shape. If this attribute is not specified, then a value of false is
+    /// assumed.
+    /// 
+    /// Defaults to false
+    pub no_text_edit: Option<bool>,
 }
 
 impl ShapeLocking {
@@ -9371,13 +9649,53 @@ impl ShapeLocking {
 
 #[derive(Default, Debug, Clone)]
 pub struct GroupLocking {
-    pub no_grouping: Option<bool>,            // false
-    pub no_ungrouping: Option<bool>,          // false
-    pub no_select: Option<bool>,              // false
-    pub no_rotate: Option<bool>,              // false
-    pub no_change_aspect_ratio: Option<bool>, // false
-    pub no_move: Option<bool>,                // false
-    pub no_resize: Option<bool>,              // false
+    /// Specifies that the corresponding group shape cannot be grouped. That is it cannot be
+    /// combined within other shapes to form a group of shapes. If this attribute is not specified,
+    /// then a value of false is assumed.
+    /// 
+    /// Defaults to false
+    pub no_grouping: Option<bool>,
+
+    /// Specifies that the generating application should not show adjust handles for the
+    /// corresponding connection shape. If this attribute is not specified, then a value of false is
+    /// assumed.
+    /// 
+    /// Defaults to false
+    pub no_ungrouping: Option<bool>,
+
+    /// Specifies that the corresponding group shape cannot have any part of it be selected. That
+    /// means that no picture, shapes or attached text can be selected either if this attribute has
+    /// been specified. If this attribute is not specified, then a value of false is assumed.
+    /// 
+    /// Defaults to false
+    pub no_select: Option<bool>,
+
+    /// Specifies that the corresponding group shape cannot be rotated Objects that reside
+    /// within the group can still be rotated unless they also have been locked. If this attribute is
+    /// not specified, then a value of false is assumed.
+    /// 
+    /// Defaults to false
+    pub no_rotate: Option<bool>,
+
+    /// Specifies that the generating application should not allow aspect ratio changes for the
+    /// corresponding connection shape. If this attribute is not specified, then a value of false is
+    /// assumed.
+    /// 
+    /// Defaults to false
+    pub no_change_aspect_ratio: Option<bool>,
+
+    /// Specifies that the corresponding graphic frame cannot be moved. Objects that reside
+    /// within the graphic frame can still be moved unless they also have been locked. If this
+    /// attribute is not specified, then a value of false is assumed.
+    /// 
+    /// Defaults to false
+    pub no_move: Option<bool>,
+    
+    /// Specifies that the corresponding group shape cannot be resized. If this attribute is not
+    /// specified, then a value of false is assumed.
+    /// 
+    /// Defaults to false
+    pub no_resize: Option<bool>,
 }
 
 impl GroupLocking {
@@ -9406,44 +9724,49 @@ pub struct GraphicalObjectFrameLocking {
     /// Specifies that the generating application should not allow shape grouping for the
     /// corresponding graphic frame. That is it cannot be combined within other shapes to form
     /// a group of shapes. If this attribute is not specified, then a value of false is assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_grouping: Option<bool>,
+
     /// Specifies that the generating application should not allow selecting of objects within the
     /// corresponding graphic frame but allow selecting of the graphic frame itself. If this
     /// attribute is not specified, then a value of false is assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_drilldown: Option<bool>,
+
     /// Specifies that the generating application should not allow selecting of the corresponding
     /// picture. That means also that no picture, shapes or text attached to this picture can be
     /// selected if this attribute has been specified. If this attribute is not specified, then a value
     /// of false is assumed.
-    /// 
+    ///
     /// Defaults to false
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// If this attribute is specified to be true then the graphic frame cannot be selected
     /// and the objects within the graphic frame cannot be selected as well. That is the entire
     /// graphic frame including all sub-parts are considered un-selectable.
     pub no_select: Option<bool>,
+
     /// Specifies that the generating application should not allow aspect ratio changes for the
     /// corresponding graphic frame. If this attribute is not specified, then a value of false is
     /// assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_change_aspect: Option<bool>,
+
     /// Specifies that the corresponding graphic frame cannot be moved. Objects that reside
     /// within the graphic frame can still be moved unless they also have been locked. If this
     /// attribute is not specified, then a value of false is assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_move: Option<bool>,
+
     /// Specifies that the generating application should not allow size changes for the
     /// corresponding graphic frame. If this attribute is not specified, then a value of false is
     /// assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_resize: Option<bool>,
 }
@@ -9488,7 +9811,12 @@ impl ConnectorLocking {
 #[derive(Debug, Clone)]
 pub struct PictureLocking {
     pub locking: Locking,
-    pub no_crop: Option<bool>, // false
+
+    /// Specifies that the generating application should not allow cropping for the corresponding
+    /// picture. If this attribute is not specified, then a value of false is assumed.
+    /// 
+    /// Defaults to false
+    pub no_crop: Option<bool>,
 }
 
 impl PictureLocking {
@@ -9509,8 +9837,14 @@ impl PictureLocking {
 
 #[derive(Default, Debug, Clone)]
 pub struct NonVisualDrawingShapeProps {
-    pub is_text_box: Option<bool>, // false
     pub shape_locks: Option<ShapeLocking>,
+
+    /// Specifies that the corresponding shape is a text box and thus should be treated as such
+    /// by the generating application. If this attribute is omitted then it is assumed that the
+    /// corresponding shape is not specifically a text box.
+    /// 
+    /// Defaults to false
+    pub is_text_box: Option<bool>,
 }
 
 impl NonVisualDrawingShapeProps {
@@ -9577,9 +9911,11 @@ pub struct NonVisualConnectorProperties {
     /// This element specifies all locking properties for a connection shape. These properties inform the generating
     /// application about specific properties that have been previously locked and thus should not be changed.
     pub connector_locks: Option<ConnectorLocking>,
+
     /// This element specifies the starting connection that should be made by the corresponding connector shape. This
     /// connects the head of the connector to the first shape.
     pub start_connection: Option<Connection>,
+
     /// This element specifies the ending connection that should be made by the corresponding connector shape. This
     /// connects the end tail of the connector to the final destination shape.
     pub end_connection: Option<Connection>,
@@ -9607,16 +9943,16 @@ pub struct NonVisualPictureProperties {
     /// Specifies if the user interface should show the resizing of the picture based on the
     /// picture's current size or its original size. If this attribute is set to true, then scaling is
     /// relative to the original picture size as opposed to the current picture size.
-    /// 
+    ///
     /// Defaults to true
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// Consider the case where a picture has been resized within a document and is
     /// now 50% of the originally inserted picture size. Now if the user chooses to make a later
     /// adjustment to the size of this picture within the generating application, then the value of
     /// this attribute should be checked.
-    /// 
+    ///
     /// If this attribute is set to true then a value of 50% is shown. Similarly, if this attribute is set
     /// to false, then a value of 100% should be shown because the picture has not yet been
     /// resized from its current (smaller) size.
@@ -9647,6 +9983,7 @@ impl NonVisualPictureProperties {
 pub struct Connection {
     /// Specifies the id of the shape to make the final connection to.
     pub id: DrawingElementId,
+
     /// Specifies the index into the connection site table of the final connection shape. That is
     /// there are many connection sites on a shape and it shall be specified which connection
     /// site the corresponding connector shape should connect to.
@@ -9678,6 +10015,7 @@ pub struct EmbeddedWAVAudioFile {
     /// Specifies the identification information for an embedded audio file. This attribute is used
     /// to specify the location of an object that resides locally within the file.
     pub embed_rel_id: RelationshipId,
+
     /// Specifies the original name or given short name for the corresponding sound. This is used
     /// to distinguish this sound from others by providing a human readable name for the
     /// attached sound should the user need to identify the sound among others within the UI.
@@ -9710,8 +10048,9 @@ pub struct AudioCDTime {
     /// Specifies which track of the CD this Audio begins playing on. This attribute is required and
     /// cannot be omitted.
     pub track: u8,
+
     /// Specifies the time in seconds that the CD Audio should be started at.
-    /// 
+    ///
     /// Defaults to 0
     pub time: Option<u32>,
 }
@@ -9740,32 +10079,33 @@ pub struct AudioCD {
     /// This element specifies the start point for a CD Audio sound element. Encompassed within this element are the
     /// time and track at which the sound should begin its playback. This element is used in conjunction with an Audio
     /// End Time element to specify the time span for an entire audioCD sound element.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <a:audioCd>
     ///   <a:st track="1" time="2"/>
     ///   <a:end track="3" time="65"/>
     /// </a:audioCd>
     /// ```
-    /// 
+    ///
     /// In the above example, the audioCD sound element shown specifies for a portion of audio spanning from 2
     /// seconds into the first track to 1 minute, 5 seconds into the third track.
     pub start_time: AudioCDTime,
+
     /// This element specifies the end point for a CD Audio sound element. Encompassed within this element are the
     /// time and track at which the sound should halt its playback. This element is used in conjunction with an Audio
     /// Start Time element to specify the time span for an entire audioCD sound element.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <a:audioCd>
     ///   <a:st track="1" time="2"/>
     ///   <a:end track="3" time="65"/>
     /// </a:audioCd>
     /// ```
-    /// 
+    ///
     /// In the above example, the audioCD sound element shown specifies for a portion of audio spanning from 2
     /// seconds into the first track to 1 minute, 5 seconds into the third track.
     pub end_time: AudioCDTime,
@@ -9796,20 +10136,21 @@ pub struct AudioFile {
     /// Specifies the identification information for a linked object. This attribute is used to
     /// specify the location of an object that does not reside within this file.
     pub link: RelationshipId,
+
     /// Specifies the content type for the external file that is referenced by this element. Content
     /// types define a media type, a subtype, and an optional set of parameters, as defined in
     /// Part 2. If a rendering application cannot process external content of the content type
     /// specified, then the specified content can be ignored.
-    /// 
+    ///
     /// If this attribute is omitted, application should attempt to determine the content type by
     /// reading the contents of the relationship’s target.
-    /// 
+    ///
     /// Suggested audio types:
     /// * aiff
     /// * midi
     /// * ogg
     /// * mpeg
-    /// 
+    ///
     /// A producer that wants interoperability should use the following standard format:
     /// * audio
     /// * mpeg ISO
@@ -9841,11 +10182,12 @@ pub struct VideoFile {
     /// Specifies the identification information for a linked video file. This attribute is used to
     /// specify the location of an object that does not reside within this file.
     pub link: RelationshipId,
+
     /// Specifies the content type for the external file that is referenced by this element. Content
     /// types define a media type, a subtype, and an optional set of parameters, as defined in
     /// Part 2. If a rendering application cannot process external content of the content type
     /// specified, then the specified content can be ignored.
-    /// 
+    ///
     /// Suggested video formats:
     /// * avi
     /// * mpg
@@ -9853,7 +10195,7 @@ pub struct VideoFile {
     /// * ogg
     /// * quicktime
     /// * vc1
-    /// 
+    ///
     /// If this attribute is omitted, application should attempt to determine the content type by
     /// reading the contents of the relationship’s target.
     pub content_type: Option<String>,
@@ -9902,9 +10244,9 @@ pub enum Media {
     /// properties of an object. The audio shall be attached to an object as this is how it is represented within the
     /// document. The actual playing of the sound however is done within the timing node list that is specified under
     /// the timing element.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:pic>
     ///   <p:nvPicPr>
@@ -9924,20 +10266,21 @@ pub enum Media {
     ///   ...
     /// </p:pic>
     /// ```
-    /// 
+    ///
     /// In the above example, we see that there is a single audioCD element attached to this picture. This picture is
     /// placed within the document just as a normal picture or shape would be. The id of this picture, namely 7 in this
     /// case, is used to refer to this audioCD element from within the timing node list. For this example we see that the
     /// audio for this CD starts playing at the 0 second mark on the first track and ends on the 1 minute 5 second mark
     /// of the third track.
     AudioCd(AudioCD),
+
     /// This element specifies the existence of an audio WAV file. This element is specified within the non-visual
     /// properties of an object. The audio shall be attached to an object as this is how it is represented within the
     /// document. The actual playing of the audio however is done within the timing node list that is specified under the
     /// timing element.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:pic>
     ///   <p:nvPicPr>
@@ -9954,19 +10297,20 @@ pub enum Media {
     ///   ...
     /// </p:pic>
     /// ```
-    /// 
+    ///
     /// In the above example, we see that there is a single wavAudioFile element attached to this picture. This picture
     /// is placed within the document just as a normal picture or shape would be. The id of this picture, namely 7 in this
     /// case, is used to refer to this wavAudioFile element from within the timing node list. The Embedded relationship
     /// id is used to retrieve the actual audio file for playback purposes.
     WavAudioFile(EmbeddedWAVAudioFile),
+
     /// This element specifies the existence of an audio file. This element is specified within the non-visual properties of
     /// an object. The audio shall be attached to an object as this is how it is represented within the document. The
     /// actual playing of the audio however is done within the timing node list that is specified under the timing
     /// element.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:pic>
     ///   <p:nvPicPr>
@@ -9983,19 +10327,20 @@ pub enum Media {
     ///   ...
     /// </p:pic>
     /// ```
-    /// 
+    ///
     /// In the above example, we see that there is a single audioFile element attached to this picture. This picture is
     /// placed within the document just as a normal picture or shape would be. The id of this picture, namely 7 in this
     /// case, is used to refer to this audioFile element from within the timing node list. The Linked relationship id is
     /// used to retrieve the actual audio file for playback purposes.
     AudioFile(AudioFile),
+
     /// This element specifies the existence of a video file. This element is specified within the non-visual properties of
     /// an object. The video shall be attached to an object as this is how it is represented within the document. The
     /// actual playing of the video however is done within the timing node list that is specified under the timing
     /// element.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:pic>
     ///   <p:nvPicPr>
@@ -10012,19 +10357,20 @@ pub enum Media {
     ///   ...
     /// </p:pic>
     /// ```
-    /// 
+    ///
     /// In the above example, we see that there is a single videoFile element attached to this picture. This picture is
     /// placed within the document just as a normal picture or shape would be. The id of this picture, namely 7 in this
     /// case, is used to refer to this videoFile element from within the timing node list. The Linked relationship id is
     /// used to retrieve the actual video file for playback purposes.
     VideoFile(VideoFile),
+
     /// This element specifies the existence of a QuickTime file. This element is specified within the non-visual
     /// properties of an object. The QuickTime file shall be attached to an object as this is how it is represented
     /// within the document. The actual playing of the QuickTime however is done within the timing node list that is
     /// specified under the timing element.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:pic>
     ///   <p:nvPicPr>
@@ -10041,7 +10387,7 @@ pub enum Media {
     ///   ...
     /// </p:pic>
     /// ```
-    /// 
+    ///
     /// In the above example, we see that there is a single quickTimeFile element attached to this picture. This picture
     /// is placed within the document just as a normal picture or shape would be. The id of this picture, namely 7 in this
     /// case, is used to refer to this quickTimeFile element from within the timing node list. The Linked relationship id
@@ -10077,17 +10423,21 @@ pub struct Transform2D {
     /// Specifies the rotation of the Graphic Frame. The units for which this attribute is specified
     /// in reside within the simple type definition referenced below.
     pub rotate_angle: Option<Angle>,
+
     /// Specifies a horizontal flip. When true, this attribute defines that the shape is flipped
     /// horizontally about the center of its bounding box.
-    /// 
+    ///
     /// Defaults to false
     pub flip_horizontal: Option<bool>,
+
     /// Specifies a vertical flip. When true, this attribute defines that the group is flipped
     /// vertically about the center of its bounding box.
     pub flip_vertical: Option<bool>,
+
     /// This element specifies the location of the bounding box of an object. Effects on an object are not included in this
     /// bounding box.
     pub offset: Option<Point2D>,
+
     /// This element specifies the size of the bounding box enclosing the referenced object.
     pub extents: Option<PositiveSize2D>,
 }
@@ -10119,17 +10469,34 @@ impl Transform2D {
 
 #[derive(Default, Debug, Clone)]
 pub struct GroupTransform2D {
-    pub rotate_angle: Option<Angle>,   // 0
-    pub flip_horizontal: Option<bool>, // false
-    pub flip_vertical: Option<bool>,   // false
+    /// Rotation. Specifies the clockwise rotation of a group in 1/64000 of a degree.
+    /// 
+    /// Defaults to 0
+    pub rotate_angle: Option<Angle>,
+
+    /// Horizontal flip. When true, this attribute defines that the group is flipped horizontally
+    /// about the center of its bounding box.
+    /// 
+    /// Defaults to false
+    pub flip_horizontal: Option<bool>,
+
+    /// Vertical flip. When true, this attribute defines that the group is flipped vertically about
+    /// the center of its bounding box.
+    /// 
+    /// Defaults to false
+    pub flip_vertical: Option<bool>,
+
     /// This element specifies the location of the bounding box of an object. Effects on an object are not included in this
     /// bounding box.
     pub offset: Option<Point2D>,
+
     /// This element specifies the size of the bounding box enclosing the referenced object.
     pub extents: Option<PositiveSize2D>,
+
     /// This element specifies the location of the child extents rectangle and is used for calculations of grouping, scaling,
     /// and rotation behavior of shapes placed within a group.
     pub child_offset: Option<Point2D>,
+
     /// This element specifies the size dimensions of the child extents rectangle and is used for calculations of grouping,
     /// scaling, and rotation behavior of shapes placed within a group.
     pub child_extents: Option<PositiveSize2D>,
@@ -10164,11 +10531,27 @@ impl GroupTransform2D {
 
 #[derive(Default, Debug, Clone)]
 pub struct GroupShapeProperties {
+    /// Specifies that the group shape should be rendered using only black and white coloring.
+    /// That is the coloring information for the group shape should be converted to either black
+    /// or white when rendering the corresponding shapes.
+    /// 
+    /// No gray is to be used in rendering this image, only stark black and stark white.
+    /// 
+    /// # Note
+    /// 
+    /// This does not mean that the group shapes themselves are stored with only black
+    /// and white color information. This attribute instead sets the rendering mode that the
+    /// shapes use when rendering.
     pub black_and_white_mode: Option<BlackWhiteMode>,
+
     /// This element is nearly identical to the representation of 2-D transforms for ordinary shapes. The only
     /// addition is a member to represent the Child offset and the Child extents.
     pub transform: Option<Box<GroupTransform2D>>,
+
+    /// Specifies the fill properties for this group shape.
     pub fill_properties: Option<FillProperties>,
+
+    /// Specifies the effect that should be applied to this group shape.
     pub effect_properties: Option<EffectProperties>,
     // TODO implement
     //pub scene_3d: Option<Scene3D>,
@@ -10210,12 +10593,12 @@ pub enum Geometry {
     /// This element specifies the existence of a custom geometric shape. This shape consists of a series of lines and
     /// curves described within a creation path. In addition to this there can also be adjust values, guides, adjust
     /// handles, connection sites and an inscribed rectangle specified for this custom geometric shape.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the scenario when a preset geometry does not accurately depict what must be displayed in
     /// the document. For this a custom geometry can be used to define most any 2-dimensional geometric shape.
-    /// 
+    ///
     /// ```xml
     /// <a:custGeom>
     ///   <a:avLst/>
@@ -10240,15 +10623,16 @@ pub enum Geometry {
     /// </a:custGeom>
     /// ```
     Custom(Box<CustomGeometry2D>),
+
     /// This element specifies when a preset geometric shape should be used instead of a custom geometric shape. The
     /// generating application should be able to render all preset geometries enumerated in the ShapeType enum.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the scenario when a user does not wish to specify all the lines and curves that make up the
     /// desired shape but instead chooses to use a preset geometry. The following DrawingML would specify such a
     /// case.
-    /// 
+    ///
     /// ```xml
     /// <p:sp>
     ///   <p:nvSpPr>
@@ -10293,21 +10677,21 @@ impl Geometry {
 /// This element specifies the precense of a shape guide that is used to govern the geometry of the specified shape.
 /// A shape guide consists of a formula and a name that the result of the formula is assigned to. Recognized
 /// formulas are listed with the fmla attribute documentation for this element.
-/// 
+///
 /// # Note
-/// 
+///
 /// The order in which guides are specified determines the order in which their values are calculated. For
 /// instance it is not possible to specify a guide that uses another guides result when that guide has not yet been
 /// calculated.
-/// 
+///
 /// # Example
-/// 
+///
 /// Consider the case where the user would like to specify a triangle with it's bottom edge defined not by
 /// static points but by using a varying parameter, namely an guide. Consider the diagrams and DrawingML shown
 /// below. This first triangle has been drawn with a bottom edge that is equal to the 2/3 the value of the shape
 /// height. Thus we see in the figure below that the triangle appears to occupy 2/3 of the vertical space within the
 /// shape bounding box.
-/// 
+///
 /// ```xml
 /// <a:xfrm>
 ///   <a:off x="3200400" y="1600200"/>
@@ -10337,11 +10721,11 @@ impl Geometry {
 ///   </a:pathLst>
 /// </a:custGeom>
 /// ```
-/// 
+///
 /// If however we change the guide to half that, namely 1/3. Then we see the entire bottom edge of the triangle
 /// move to now only occupy 1/3 of the toal space within the shape bounding box. This is because both of the
 /// bottom points in this triangle depend on this guide for their coordinate positions.
-/// 
+///
 /// ```xml
 /// <a:gdLst>
 ///   <a:gd name="myGuide" fmla="*/ h 1 3"/>
@@ -10353,120 +10737,121 @@ pub struct GeomGuide {
     /// variable would within an equation. That is this name can be substituted for literal values
     /// within other guides or the specification of the shape path.
     pub name: GeomGuideName,
+
     /// Specifies the formula that is used to calculate the value for a guide. Each formula has a
     /// certain number of arguments and a specific set of operations to perform on these
     /// arguments in order to generate a value for a guide. There are a total of 17 different
     /// formulas available. These are shown below with the usage for each defined.
-    /// 
+    ///
     /// * **('\*/') - Multiply Divide Formula**
-    /// 
+    ///
     ///     Arguments: 3 (fmla="*/ x y z")
-    /// 
+    ///
     ///     Usage: "*/ x y z" = ((x * y) / z) = value of this guide
     /// * **('+-') - Add Subtract Formula**
-    /// 
+    ///
     ///     Arguments: 3 (fmla="+- x y z")
-    /// 
+    ///
     ///     Usage: "+- x y z" = ((x + y) - z) = value of this guide
-    /// 
+    ///
     /// * **('+/') - Add Divide Formula**
-    /// 
+    ///
     ///     Arguments: 3 (fmla="+/ x y z")
-    /// 
+    ///
     ///     Usage: "+/ x y z" = ((x + y) / z) = value of this guide
-    /// 
+    ///
     /// * **('?:') - If Else Formula**
-    /// 
+    ///
     ///     Arguments: 3 (fmla="?: x y z")
-    /// 
+    ///
     ///     Usage: "?: x y z" = if (x > 0), then y = value of this guide,  
     ///     else z = value of this guide
-    /// 
+    ///
     /// * **('abs') - Absolute Value Formula**
-    /// 
+    ///
     ///     Arguments: 1 (fmla="abs x")
-    /// 
+    ///
     ///     Usage: "abs x" = if (x < 0), then (-1) * x = value of this guide  
     ///     else x = value of this guide
-    /// 
+    ///
     /// * **('at2') - ArcTan Formula**
-    /// 
+    ///
     ///     Arguments: 2 (fmla="at2 x y")
-    /// 
+    ///
     ///     Usage: "at2 x y" = arctan(y / x) = value of this guide
-    /// 
+    ///
     /// * **('cat2') - Cosine ArcTan Formula**
-    /// 
+    ///
     ///     Arguments: 3 (fmla="cat2 x y z")
-    /// 
+    ///
     ///     Usage: "cat2 x y z" = (x*(cos(arctan(z / y))) = value of this guide
-    /// 
+    ///
     /// * **('cos') - Cosine Formula**
-    /// 
+    ///
     ///     Arguments: 2 (fmla="cos x y")
-    /// 
+    ///
     ///     Usage: "cos x y" = (x * cos( y )) = value of this guide
-    /// 
+    ///
     /// * **('max') - Maximum Value Formula**
-    /// 
+    ///
     ///     Arguments: 2 (fmla="max x y")
-    /// 
+    ///
     ///     Usage: "max x y" = if (x > y), then x = value of this guide  
     ///     else y = value of this guide
-    /// 
+    ///
     /// * **('min') - Minimum Value Formula**
-    /// 
+    ///
     ///     Arguments: 2 (fmla="min x y")
-    /// 
+    ///
     ///     Usage: "min x y" = if (x < y), then x = value of this guide  
     ///     else y = value of this guide
-    /// 
+    ///
     /// * **('mod') - Modulo Formula**
-    /// 
+    ///
     ///     Arguments: 3 (fmla="mod x y z")
-    /// 
+    ///
     ///     Usage: "mod x y z" = sqrt(x^2 + b^2 + c^2) = value of this guide
-    /// 
+    ///
     /// * **('pin') - Pin To Formula**
-    /// 
+    ///
     ///     Arguments: 3 (fmla="pin x y z")
-    /// 
+    ///
     ///     Usage: "pin x y z" = if (y < x), then x = value of this guide  
     ///     else if (y > z), then z = value of this guide  
     ///     else y = value of this guide
-    /// 
+    ///
     /// * **('sat2') - Sine ArcTan Formula**
-    /// 
+    ///
     ///     Arguments: 3 (fmla="sat2 x y z")
-    /// 
+    ///
     ///     Usage: "sat2 x y z" = (x*sin(arctan(z / y))) = value of this guide
-    /// 
+    ///
     /// * **('sin') - Sine Formula**
-    /// 
+    ///
     ///     Arguments: 2 (fmla="sin x y")
-    /// 
+    ///
     ///     Usage: "sin x y" = (x * sin( y )) = value of this guide
-    /// 
+    ///
     /// * **('sqrt') - Square Root Formula**
-    /// 
+    ///
     ///     Arguments: 1 (fmla="sqrt x")
-    /// 
+    ///
     ///     Usage: "sqrt x" = sqrt(x) = value of this guide
-    /// 
+    ///
     /// * **('tan') - Tangent Formula**
-    /// 
+    ///
     ///     Arguments: 2 (fmla="tan x y")
-    /// 
+    ///
     ///     Usage: "tan x y" = (x * tan( y )) = value of this guide
-    /// 
+    ///
     /// * **('val') - Literal Value Formula**
-    /// 
+    ///
     ///     Arguments: 1 (fmla="val x")
-    /// 
+    ///
     ///     Usage: "val x" = x = value of this guide
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// Guides that have a literal value formula specified via fmla="val x" above should
     /// only be used within the avLst as an adjust value for the shape. This however is not
     /// strictly enforced.
@@ -10499,6 +10884,7 @@ pub enum AdjustHandle {
     /// it's min and max type attributes. Based on the adjustment of this adjust handle certain corresponding guides are
     /// updated to contain these values.
     XY(Box<XYAdjustHandle>),
+
     /// This element specifies a polar adjust handle for a custom shape. The position of this adjust handle is specified by
     /// the corresponding pos child element. The allowed adjustment of this adjust handle are specified via it's min and
     /// max attributes. Based on the adjustment of this adjust handle certain corresponding guides are updated to
@@ -10567,19 +10953,19 @@ impl FromStr for AdjAngle {
 /// by the width and height attributes defined within the path element. A point is utilized by one of it's parent
 /// elements to specify the next point of interest in custom geometry shape. Depending on the parent element used
 /// the point can either have a line drawn to it or the cursor can simply be moved to this new location.
-/// 
+///
 /// Specifies a position coordinate within the shape bounding box. It should be noted that this coordinate is placed
 /// within the shape bounding box using the transform coordinate system which is also called the shape coordinate
 /// system, as it encompasses the entire shape. The width and height for this coordinate system are specified within
 /// the ext transform element.
-/// 
+///
 /// # Note
-/// 
+///
 /// When specifying a point coordinate in path coordinate space it should be noted that the top left of the
 /// coordinate space is x=0, y=0 and the coordinate points for x grow to the right and for y grow down.
-/// 
+///
 /// # Xml example
-/// 
+///
 /// To highlight the differences in the coordinate systems consider the drawing of the following triangle.
 /// Notice that the dimensions of the triangle are specified using the shape coordinate system with EMUs as the
 /// units via the ext transform element. Thus we see this shape is 1705233 EMUs wide by 679622 EMUs tall.
@@ -10587,7 +10973,7 @@ impl FromStr for AdjAngle {
 /// 2. This is because the path coordinate system has the arbitrary dimensions of 2 for the width and 2 for the
 /// height. Thus we see that a y coordinate of 2 within the path coordinate system specifies a y coordinate of
 /// 679622 within the shape coordinate system for this particular case.
-/// 
+///
 /// ```xml
 /// <a:xfrm>
 ///   <a:off x="3200400" y="1600200"/>
@@ -10623,6 +11009,7 @@ pub struct AdjPoint2D {
     /// bounding box. Because the units for within this coordinate space are determined by the
     /// path width and height an exact measurement unit cannot be specified here.
     pub x: AdjCoordinate,
+
     /// Specifies the y coordinate for this position coordinate. The units for this coordinate space
     /// are defined by the height of the path coordinate system. This coordinate system is
     /// overlayed on top of the shape coordinate system thus occupying the entire shape
@@ -10658,16 +11045,19 @@ pub struct GeomRect {
     /// system. The width and height for this coordinate system are specified within the ext
     /// transform element.
     pub left: AdjCoordinate,
+
     /// Specifies the y coordinate of the top edge for a shape text rectangle. The units for this
     /// edge is specified in EMUs as the positioning here is based on the shape coordinate
     /// system. The width and height for this coordinate system are specified within the ext
     /// transform element.
     pub top: AdjCoordinate,
+
     /// Specifies the x coordinate of the right edge for a shape text rectangle. The units for this
     /// edge is specified in EMUs as the positioning here is based on the shape coordinate
     /// system. The width and height for this coordinate system are specified within the ext
     /// transform element.
     pub right: AdjCoordinate,
+
     /// Specifies the y coordinate of the bottom edge for a shape text rectangle. The units for
     /// this edge is specified in EMUs as the positioning here is based on the shape coordinate
     /// system. The width and height for this coordinate system are specified within the ext
@@ -10711,37 +11101,43 @@ pub struct XYAdjustHandle {
     /// Specifies the name of the guide that is updated with the adjustment x position from this
     /// adjust handle.
     pub guide_reference_x: Option<GeomGuideName>,
+
     /// Specifies the name of the guide that is updated with the adjustment y position from this
     /// adjust handle.
     pub guide_reference_y: Option<GeomGuideName>,
+
     /// Specifies the minimum horizontal position that is allowed for this adjustment handle. If
     /// this attribute is omitted, then it is assumed that this adjust handle cannot move in the x
     /// direction. That is the maxX and minX are equal.
     pub min_x: Option<AdjCoordinate>,
+
     /// Specifies the maximum horizontal position that is allowed for this adjustment handle. If
     /// this attribute is omitted, then it is assumed that this adjust handle cannot move in the x
     /// direction. That is the maxX and minX are equal.
     pub max_x: Option<AdjCoordinate>,
+
     /// Specifies the minimum vertical position that is allowed for this adjustment handle. If this
     /// attribute is omitted, then it is assumed that this adjust handle cannot move in the y
     /// direction. That is the maxY and minY are equal.
     pub min_y: Option<AdjCoordinate>,
+
     /// Specifies the maximum vertical position that is allowed for this adjustment handle. If this
     /// attribute is omitted, then it is assumed that this adjust handle cannot move in the y
     /// direction. That is the maxY and minY are equal.
     pub max_y: Option<AdjCoordinate>,
+
     /// Specifies a position coordinate within the shape bounding box. It should be noted that this coordinate is placed
     /// within the shape bounding box using the transform coordinate system which is also called the shape coordinate
     /// system, as it encompasses the entire shape. The width and height for this coordinate system are specified within
     /// the ext transform element.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// When specifying a point coordinate in path coordinate space it should be noted that the top left of the
     /// coordinate space is x=0, y=0 and the coordinate points for x grow to the right and for y grow down.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// To highlight the differences in the coordinate systems consider the drawing of the following triangle.
     /// Notice that the dimensions of the triangle are specified using the shape coordinate system with EMUs as the
     /// units via the ext transform element. Thus we see this shape is 1705233 EMUs wide by 679622 EMUs tall.
@@ -10749,7 +11145,7 @@ pub struct XYAdjustHandle {
     /// 2. This is because the path coordinate system has the arbitrary dimensions of 2 for the width and 2 for the
     /// height. Thus we see that a y coordinate of 2 within the path coordinate system specifies a y coordinate of
     /// 679622 within the shape coordinate system for this particular case.
-    /// 
+    ///
     /// ```xml
     /// <a:xfrm>
     ///   <a:off x="3200400" y="1600200"/>
@@ -10824,21 +11220,26 @@ pub struct PolarAdjustHandle {
     /// Specifies the name of the guide that is updated with the adjustment radius from this
     /// adjust handle.
     pub guide_reference_radial: Option<GeomGuideName>,
+
     /// Specifies the name of the guide that is updated with the adjustment angle from this
     /// adjust handle.
     pub guide_reference_angle: Option<GeomGuideName>,
+
     /// Specifies the minimum radial position that is allowed for this adjustment handle. If this
     /// attribute is omitted, then it is assumed that this adjust handle cannot move radially. That
     /// is the maxR and minR are equal.
     pub min_radial: Option<AdjCoordinate>,
+
     /// Specifies the maximum radial position that is allowed for this adjustment handle. If this
     /// attribute is omitted, then it is assumed that this adjust handle cannot move radially. That
     /// is the maxR and minR are equal.
     pub max_radial: Option<AdjCoordinate>,
+
     /// Specifies the minimum angle position that is allowed for this adjustment handle. If this
     /// attribute is omitted, then it is assumed that this adjust handle cannot move angularly.
     /// That is the maxAng and minAng are equal.
     pub min_angle: Option<AdjAngle>,
+
     /// Specifies the maximum angle position that is allowed for this adjustment handle. If this
     /// attribute is omitted, then it is assumed that this adjust handle cannot move angularly.
     /// That is the maxAng and minAng are equal.
@@ -10890,18 +11291,18 @@ impl PolarAdjustHandle {
 /// should be noted that this connection is placed within the shape bounding box using the transform coordinate
 /// system which is also called the shape coordinate system, as it encompasses the entire shape. The width and
 /// height for this coordinate system are specified within the ext transform element.
-/// 
+///
 /// # Note
-/// 
+///
 /// The transform coordinate system is different from a path coordinate system as it is per shape instead of
 /// per path within the shape.
-/// 
+///
 /// # Xml example
-/// 
+///
 /// Consider the following custom geometry that has two connection sites specified. One connection is
 /// located at the bottom left of the shape and the other at the bottom right. The following DrawingML would
 /// describe such a custom geometry.
-/// 
+///
 /// ```xml
 /// <a:xfrm>
 ///   <a:off x="3200400" y="1600200"/>
@@ -10968,14 +11369,14 @@ pub enum Path2DCommand {
     /// This element specifies the ending of a series of lines and curves in the creation path of a custom geometric
     /// shape. When this element is encountered, the generating application should consider the corresponding path
     /// closed. That is, any further lines or curves that follow this element should be ignored.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// A path can be specified and not closed. A path such as this cannot however have any fill associated with it
     /// as it has not been considered a closed geometric path.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <a:custGeom>
     ///   <a:pathLst>
@@ -10997,29 +11398,30 @@ pub enum Path2DCommand {
     ///   </a:pathLst>
     /// </a:custGeom>
     /// ```
-    /// 
+    ///
     /// In the above example there is specified a four sided geometric shape that has all straight sides. While we only
     /// see three lines being drawn via the lnTo element there are actually four sides because the last point of
     /// (x=1562585, y=0) is connected to the first point in the creation path via a lnTo element
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// When the last point in the creation path does not meet with the first point in the creation path the
     /// generating application should connect the last point with the first via a straight line, thus creating a closed shape
     /// geometry.
     Close,
+
     /// This element specifies a set of new coordinates to move the shape cursor to. This element is only used for
     /// drawing a custom geometry. When this element is utilized the pt element is used to specify a new set of shape
     /// coordinates that the shape cursor should be moved to. This does not draw a line or curve to this new position
     /// from the old position but simply move the cursor to a new starting position. It is only when a path drawing
     /// element such as lnTo is used that a portion of the path is drawn.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the case where a user wishes to begin drawing a custom geometry not at the default starting
     /// coordinates of x=0 , y=0 but at coordinates further inset into the shape coordinate space. The following
     /// DrawingML would specify such a case.
-    /// 
+    ///
     /// ```xml
     /// <a:custGeom>
     ///   <a:pathLst>
@@ -11041,23 +11443,27 @@ pub enum Path2DCommand {
     ///   </a:pathLst>
     /// </a:custGeom>
     /// ```
-    /// 
+    ///
     /// Notice the moveTo element advances the y coordinates before any actual lines are drawn
     MoveTo(AdjPoint2D),
+
     /// This element specifies the drawing of a straight line from the current pen position to the new point specified.
     /// This line becomes part of the shape geometry, representing a side of the shape. The coordinate system used
     /// when specifying this line is the path coordinate system.
     LineTo(AdjPoint2D),
+
     /// This element specifies the existence of an arc within a shape path. It draws an arc with the specified parameters
     /// from the current pen position to the new point specified. An arc is a line that is bent based on the shape of a
     /// supposed circle. The length of this arc is determined by specifying both a start angle and an ending angle that
     /// act together to effectively specify an end point for the arc.
     ArcTo(Path2DArcTo),
+
     /// This element specifies to draw a quadratic bezier curve along the specified points. To specify a quadratic bezier
     /// curve there needs to be 2 points specified. The first is a control point used in the quadratic bezier calculation
     /// and the last is the ending point for the curve. The coordinate system used for this type of curve is the path
     /// coordinate system as this element is path specific.
     QuadBezierTo(AdjPoint2D, AdjPoint2D),
+
     /// This element specifies to draw a cubic bezier curve along the specified points. To specify a cubic bezier curve
     /// there needs to be 3 points specified. The first two are control points used in the cubic bezier calculation and the
     /// last is the ending point for the curve. The coordinate system used for this kind of curve is the path coordinate
@@ -11141,15 +11547,18 @@ pub struct Path2DArcTo {
     /// arc. This gives the circle a total width of (2 * wR). This total width could also be called it's
     /// horizontal diameter as it is the diameter for the x axis only.
     pub width_radius: AdjCoordinate,
+
     /// This attribute specifies the height radius of the supposed circle being used to draw the
     /// arc. This gives the circle a total height of (2 * hR). This total height could also be called
     /// it's vertical diameter as it is the diameter for the y axis only.
     pub height_radius: AdjCoordinate,
+
     /// Specifies the start angle for an arc. This angle specifies what angle along the supposed
     /// circle path is used as the start position for drawing the arc. This start angle is locked to
     /// the last known pen position in the shape path. Thus guaranteeing a continuos shape
     /// path.
     pub start_angle: AdjAngle,
+
     /// Specifies the swing angle for an arc. This angle specifies how far angle-wise along the
     /// supposed cicle path the arc is extended. The extension from the start angle is always in
     /// the clockwise direction around the supposed circle.
@@ -11189,14 +11598,14 @@ impl Path2DArcTo {
 
 /// This element specifies a creation path consisting of a series of moves, lines and curves that when combined
 /// forms a geometric shape. This element is only utilized if a custom geometry is specified.
-/// 
+///
 /// # Note
-/// 
+///
 /// Since multiple paths are allowed the rules for drawing are that the path specified later in the pathLst is
 /// drawn on top of all previous paths.
-/// 
+///
 /// # Xml example
-/// 
+///
 /// ```xml
 /// <a:custGeom>
 ///   <a:pathLst>
@@ -11218,7 +11627,7 @@ impl Path2DArcTo {
 ///   </a:pathLst>
 /// </a:custGeom>
 /// ```
-/// 
+///
 /// In the above example there is specified a four sided geometric shape that has all straight sides. While we only
 /// see three lines being drawn via the lnTo element there are actually four sides because the last point of
 /// (x=1562585, y=0) is connected to the first point in the creation path via a lnTo element
@@ -11228,31 +11637,35 @@ pub struct Path2D {
     /// coordinate system. This value determines the horizontal placement of all points within
     /// the corresponding path as they are all calculated using this width attribute as the max x
     /// coordinate.
-    /// 
+    ///
     /// Defaults to 0
     pub width: Option<PositiveCoordinate>,
+
     /// Specifies the height, or maximum y coordinate that should be used for within the path
     /// coordinate system. This value determines the vertical placement of all points within the
     /// corresponding path as they are all calculated using this height attribute as the max y
     /// coordinate.
-    /// 
+    ///
     /// Defaults to 0
     pub height: Option<PositiveCoordinate>,
+
     /// Specifies how the corresponding path should be filled. If this attribute is omitted, a value
     /// of "norm" is assumed.
-    /// 
+    ///
     /// Defaults to PathFillMode::Norm
     pub fill_mode: Option<PathFillMode>,
+
     /// Specifies if the corresponding path should have a path stroke shown. This is a boolean
     /// value that affect the outline of the path. If this attribute is omitted, a value of true is
     /// assumed.
-    /// 
+    ///
     /// Defaults to true
     pub stroke: Option<bool>,
+
     /// Specifies that the use of 3D extrusions are possible on this path. This allows the
     /// generating application to know whether 3D extrusion can be applied in any form. If this
     /// attribute is omitted then a value of 0, or false is assumed.
-    /// 
+    ///
     /// Defaults to true
     pub extrusion_ok: Option<bool>,
     pub commands: Vec<Path2DCommand>,
@@ -11288,9 +11701,9 @@ pub struct CustomGeometry2D {
     /// This element specifies the adjust values that are applied to the specified shape. An adjust value is simply a guide
     /// that has a value based formula specified. That is, no calculation takes place for an adjust value guide. Instead,
     /// this guide specifies a parameter value that is used for calculations within the shape guides.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <a:xfrm>
     ///   <a:off x="3200400" y="1600200"/>
@@ -11321,44 +11734,49 @@ pub struct CustomGeometry2D {
     /// </a:custGeom>
     /// ```
     pub adjust_value_list: Option<Vec<GeomGuide>>,
+
     /// This element specifies all the guides that are used for this shape. A guide is specified by the gd element and
     /// defines a calculated value that can be used for the construction of the corresponding shape.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// Guides that have a literal value formula specified via fmla="val x" above should only be used within the
     /// adjust_value_list as an adjust value for the shape. This however is not strictly enforced.
     pub guide_list: Option<Vec<GeomGuide>>,
+
     /// This element specifies the adjust handles that are applied to a custom geometry. These adjust handles specify
     /// points within the geometric shape that can be used to perform certain transform operations on the shape.
-    /// 
+    ///
     /// # Example
-    /// 
+    ///
     /// Consider the scenario where a custom geometry, an arrow in this case, has been drawn and adjust
     /// handles have been placed at the top left corner of both the arrow head and arrow body. The user interface can
     /// then be made to transform only certain parts of the shape by using the corresponding adjust handle.
-    /// 
+    ///
     /// For instance if the user wished to change only the width of the arrow head then they would use the adjust
     /// handle located on the top left of the arrow head.
     pub adjust_handle_list: Option<Vec<AdjustHandle>>,
+
     /// This element specifies all the connection sites that are used for this shape. A connection site is specified by
     /// defining a point within the shape bounding box that can have a cxnSp element attached to it. These connection
     /// sites are specified using the shape coordinate system that is specified within the ext transform element.
     pub connection_site_list: Option<Vec<ConnectionSite>>,
+
     /// This element specifies the rectangular bounding box for text within a custGeom shape. The default for this
     /// rectangle is the bounding box for the shape. This can be modified using this elements four attributes to inset or
     /// extend the text bounding box.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// Text specified to reside within this shape text rectangle can flow outside this bounding box. Depending on
     /// the autofit options within the txBody element the text might not entirely reside within this shape text rectangle.
     pub rect: Option<Box<GeomRect>>,
+
     /// This element specifies the entire path that is to make up a single geometric shape. The path_list can consist of
     /// many individual paths within it.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <a:custGeom>
     ///   <a:pathLst>
@@ -11380,13 +11798,13 @@ pub struct CustomGeometry2D {
     ///   </a:pathLst>
     /// </a:custGeom>
     /// ```
-    /// 
+    ///
     /// In the above example there is specified a four sided geometric shape that has all straight sides. While we only
     /// see three lines being drawn via the lnTo element there are actually four sides because the last point of
     /// (x=1562585, y=0) is connected to the first point in the creation path via a lnTo element.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// A geometry with multiple paths within it should be treated visually as if each path were a distinct shape.
     /// That is each creation path has its first point and last point joined to form a closed shape. However, the
     /// generating application should then connect the last point to the first point of the new shape. If a close element
@@ -11448,9 +11866,9 @@ pub struct PresetGeometry2D {
     /// Specifies the preset geometry that is used for this shape. This preset can have any of the
     /// values in the enumerated list for ShapeType. This attribute is required in order for a
     /// preset geometry to be rendered.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <p:sp>
     ///   <p:nvSpPr>
@@ -11468,7 +11886,7 @@ pub struct PresetGeometry2D {
     ///   </p:spPr>
     /// </p:sp>
     /// ```
-    /// 
+    ///
     /// In the above example a preset geometry has been used to define a shape. The shape
     /// utilized here is the sun shape.
     pub preset: ShapeType,
@@ -11503,20 +11921,29 @@ pub struct ShapeProperties {
     /// Specifies that the picture should be rendered using only black and white coloring. That is
     /// the coloring information for the picture should be converted to either black or white
     /// when rendering the picture.
-    /// 
+    ///
     /// No gray is to be used in rendering this image, only stark black and stark white.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// This does not mean that the picture itself that is stored within the file is
     /// necessarily a black and white picture. This attribute instead sets the rendering mode that
     /// the picture has applied to when rendering.
     pub black_and_white_mode: Option<BlackWhiteMode>,
+
     /// This element represents 2-D transforms for ordinary shapes.
     pub transform: Option<Box<Transform2D>>,
+
+    /// Specifies the geometry of this shape
     pub geometry: Option<Geometry>,
+
+    /// Specifies the fill properties of this shape
     pub fill_properties: Option<FillProperties>,
+
+    /// Specifies the outline properties of this shape.
     pub line_properties: Option<Box<LineProperties>>,
+
+    /// Specifies the effect that should be applied to this shape.
     pub effect_properties: Option<EffectProperties>,
     // TODO implement
     //pub scene_3d: Option<Scene3D>,
@@ -11555,14 +11982,20 @@ impl ShapeProperties {
 
 #[derive(Debug, Clone)]
 pub struct ShapeStyle {
+    /// This element represents a reference to a line properties.
     pub line_reference: StyleMatrixReference,
+
+    /// This element represents a reference to a fill properties.
     pub fill_reference: StyleMatrixReference,
+
+    /// This element represents a reference to an effect properties.
     pub effect_reference: StyleMatrixReference,
+
     /// This element represents a reference to a themed font. When used it specifies which themed font to use along
     /// with a choice of color.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <fontRef idx="minor">
     ///   <schemeClr val="tx1"/>
@@ -11633,9 +12066,9 @@ impl FontReference {
 pub struct GraphicalObject {
     /// This element specifies the reference to a graphic object within the document. This graphic object is provided
     /// entirely by the document authors who choose to persist this data within the document.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// Depending on the kind of graphical object used not every generating application that supports the
     /// OOXML framework has the ability to render the graphical object.
     pub graphic_data: GraphicalObjectData,
@@ -11659,7 +12092,7 @@ pub struct GraphicalObjectData {
     //pub graphic_object: Vec<Any>,
     /// Specifies the URI, or uniform resource identifier that represents the data stored under
     /// this tag. The URI is used to identify the correct 'server' that can process the contents of
-    /// this tag. 
+    /// this tag.
     pub uri: String,
 }
 
@@ -11679,6 +12112,7 @@ pub enum AnimationElementChoice {
     /// This element specifies a reference to a diagram that should be animated within a sequence of slide animations.
     /// In addition to simply acting as a reference to a diagram there is also animation build steps defined.
     Diagram(AnimationDgmElement),
+
     /// This element specifies a reference to a chart that should be animated within a sequence of slide animations. In
     /// addition to simply acting as a reference to a chart there is also animation build steps defined.
     Chart(AnimationChartElement),
@@ -11714,13 +12148,14 @@ impl AnimationElementChoice {
 #[derive(Default, Debug, Clone)]
 pub struct AnimationDgmElement {
     /// Specifies the GUID of the shape for this build step in the animation.
-    /// 
+    ///
     /// Defaults to {00000000-0000-0000-0000-000000000000}
     pub id: Option<Guid>,
+
     /// Specifies which step this part of the diagram should be built using. For instance the
     /// diagram can be built as one object meaning it is animated as a single graphic.
     /// Alternatively the diagram can be animated, or built as separate pieces.
-    /// 
+    ///
     /// Defaults to DgmBuildStep::Shape
     pub build_step: Option<DgmBuildStep>,
 }
@@ -11744,14 +12179,16 @@ impl AnimationDgmElement {
 #[derive(Debug, Clone)]
 pub struct AnimationChartElement {
     /// Specifies the index of the series within the corresponding chart that should be animated.
-    /// 
+    ///
     /// Defaults to -1
     pub series_index: Option<i32>,
+
     /// Specifies the index of the category within the corresponding chart that should be
     /// animated.
-    /// 
+    ///
     /// Defaults to -1
     pub category_index: Option<i32>,
+
     /// Specifies which step this part of the chart should be built using. For instance the chart can
     /// be built as one object meaning it is animated as a single graphic. Alternatively the chart
     /// can be animated, or built as separate pieces.
@@ -11786,9 +12223,9 @@ impl AnimationChartElement {
 #[derive(Debug, Clone)]
 pub enum AnimationGraphicalObjectBuildProperties {
     /// This element specifies how to build the animation for a diagram.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider having a diagram appear as on entity as opposed to by section. The bldDgm element should
     /// be used as follows:
     /// ```xml
@@ -11801,10 +12238,11 @@ pub enum AnimationGraphicalObjectBuildProperties {
     /// </p:bldLst>
     /// ```
     BuildDiagram(AnimationDgmBuildProperties),
+
     /// This element specifies how to build the animation for a diagram.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// Consider the following example where a chart is specified to be animated by category rather than as
     /// one entity. Thus, the bldChart element should be used as follows:
     /// ```xml
@@ -11850,12 +12288,13 @@ impl AnimationGraphicalObjectBuildProperties {
 pub struct AnimationDgmBuildProperties {
     /// Specifies how the chart is built. The animation animates the sub-elements in the
     /// container in the particular order defined by this attribute.
-    /// 
+    ///
     /// Defaults to AnimationDgmBuildType::AllAtOnce
     pub build_type: Option<AnimationDgmBuildType>,
+
     /// Specifies whether the animation of the objects in this diagram should be reversed or not.
     /// If this attribute is not specified, a value of false is assumed.
-    /// 
+    ///
     /// Defaults to false
     pub reverse: Option<bool>,
 }
@@ -11880,15 +12319,16 @@ impl AnimationDgmBuildProperties {
 pub struct AnimationChartBuildProperties {
     /// Specifies how the chart is built. The animation animates the sub-elements in the
     /// container in the particular order defined by this attribute.
-    /// 
+    ///
     /// Defaults to AnimationChartBuildType::AllAtOnce
     pub build_type: Option<AnimationChartBuildType>,
+
     /// Specifies whether or not the chart background elements should be animated as well.
-    /// 
+    ///
     /// Defaults to true
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// An example of background elements are grid lines and the chart legend.
     pub animate_bg: Option<bool>,
 }
@@ -11912,13 +12352,14 @@ impl AnimationChartBuildProperties {
 #[derive(Debug, Clone)]
 pub struct OfficeStyleSheet {
     pub name: Option<String>,
+
     /// This element defines the theme formatting options for the theme and is the workhorse of the theme. This is
     /// where the bulk of the shared theme information is contained and used by a document. This element contains
     /// the color scheme, font scheme, and format scheme elements which define the different formatting aspects of
     /// what a theme defines.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <themeElements>
     ///   <clrScheme name="sample">
@@ -11943,22 +12384,24 @@ pub struct OfficeStyleSheet {
     ///   </fmtScheme>
     /// </themeElements>
     /// ```
-    /// 
+    ///
     /// In this example, we see the basic structure of how a theme elements is defined and have left out the true guts of
     /// each individual piece to save room. Each part (color scheme, font scheme, format scheme) is defined elsewhere
     /// within DrawingML.
     pub theme_elements: Box<BaseStyles>,
+
     /// This element allows for the definition of default shape, line, and textbox formatting properties. An application
     /// can use this information to format a shape (or text) initially on insertion into a document.
     pub object_defaults: Option<ObjectStyleDefaults>,
+
     /// This element is a container for the list of extra color schemes present in a document.
-    /// 
+    ///
     /// An ColorSchemeAndMapping element defines an auxiliary color scheme, which includes both a color scheme and
     /// color mapping. This is mainly used for backward compatibility concerns and roundtrips information required by
     /// earlier versions.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <extraClrScheme>
     ///   <clrScheme name="extraColorSchemeSample">
@@ -12005,6 +12448,7 @@ pub struct OfficeStyleSheet {
     /// </extraClrScheme>
     /// ```
     pub extra_color_scheme_list: Vec<ColorSchemeAndMapping>,
+
     /// This element allows for a custom color palette to be created and which shows up alongside other color schemes.
     /// This can be very useful, for example, when someone would like to maintain a corporate color palette.
     pub custom_color_list: Vec<CustomColor>,
@@ -12061,12 +12505,13 @@ impl OfficeStyleSheet {
 #[derive(Debug, Clone)]
 pub struct BaseStyles {
     pub color_scheme: Box<ColorScheme>,
+
     /// This element defines the font scheme within the theme. The font scheme consists of a pair of major and minor
     /// fonts for which to use in a document. The major font corresponds well with the heading areas of a document,
     /// and the minor font corresponds well with the normal text or paragraph areas.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <fontScheme name="sample">
     ///   <majorFont>
@@ -12078,6 +12523,7 @@ pub struct BaseStyles {
     /// </fontScheme>
     /// ```
     pub font_scheme: FontScheme,
+
     /// This element contains the background fill styles, effect styles, fill styles, and line styles which define the style
     /// matrix for a theme. The style matrix consists of subtle, moderate, and intense fills, lines, and effects. The
     /// background fills are not generally thought of to directly be associated with the matrix, but do play a role in the
@@ -12121,11 +12567,12 @@ pub struct StyleMatrix {
     /// Defines the name for the format scheme. The name is simply a human readable string
     /// which identifies the format scheme in the user interface.
     pub name: Option<String>,
+
     /// This element defines a set of three fill styles that are used within a theme. The three fill styles are arranged in
     /// order from subtle to moderate to intense.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <fillStyleLst>
     ///   <solidFill>
@@ -12139,16 +12586,17 @@ pub struct StyleMatrix {
     ///   </gradFill>
     /// </fillStyleLst>
     /// ```
-    /// 
+    ///
     /// In this example, we see three fill styles being defined within the fill style list. The first style is the subtle style and
     /// defines simply a solid fill. The second and third styles (moderate and intense fills respectively) define gradient
     /// fills.
     pub fill_style_list: Vec<FillProperties>,
+
     /// This element defines a list of three line styles for use within a theme. The three line styles are arranged in order
     /// from subtle to moderate to intense versions of lines. This list makes up part of the style matrix.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <lnStyleLst>
     ///   <ln w="9525" cap="flat" cmpd="sng" algn="ctr">
@@ -12174,15 +12622,16 @@ pub struct StyleMatrix {
     ///   </ln>
     /// </lnStyleLst>
     /// ```
-    /// 
+    ///
     /// In this example, we see three lines defined within a line style list. The first line corresponds to the subtle line,
     /// the second to the moderate, and the third corresponds to the intense line defined in the theme.
     pub line_style_list: Vec<Box<LineProperties>>,
+
     /// This element defines a set of three effect styles that create the effect style list for a theme. The effect styles are
     /// arranged in order of subtle to moderate to intense.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <effectStyleLst>
     ///   <effectStyle>
@@ -12217,16 +12666,17 @@ pub struct StyleMatrix {
     ///   </effectStyle>
     /// </effectStyleLst>
     /// ```
-    /// 
+    ///
     /// In this example, we see three effect styles defined. The first two (subtle and moderate) define an outer shadow
     /// as the effect, while the third effect style (intense) defines an outer shadow along with 3D properties which are
     /// to be applied to the object as well.
     pub effect_style_list: Vec<EffectStyleItem>,
+
     /// This element defines a list of background fills that are used within a theme. The background fills consist of three
     /// fills, arranged in order from subtle to moderate to intense.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <bgFillStyleLst>
     ///   <solidFill>
@@ -12240,7 +12690,7 @@ pub struct StyleMatrix {
     ///   </blipFill>
     /// </bgFillStyleLst>
     /// ```
-    /// 
+    ///
     /// In this example, we see that the list contains a solid fill for the subtle fill, a gradient fill for the moderate fill and
     /// an image fill for the intense background fill.
     pub bg_fill_style_list: Vec<FillProperties>,
@@ -12335,9 +12785,9 @@ impl StyleMatrix {
 pub struct ObjectStyleDefaults {
     /// This element defines the formatting that is associated with the default shape. The default formatting can be
     /// applied to a shape when it is initially inserted into a document.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <spDef>
     ///   <spPr>
@@ -12369,14 +12819,15 @@ pub struct ObjectStyleDefaults {
     ///   </style>
     /// </spDef>
     /// ```
-    /// 
+    ///
     /// In this example, we see a default shape which references a certain themed fill, line, effect, and font along with
     /// an override fill to these.
     pub shape_definition: Option<Box<DefaultShapeDefinition>>,
+
     /// This element defines a default line that is used within a document.
-    /// 
+    ///
     /// # Xml example
-    /// 
+    ///
     /// ```xml
     /// <lnDef>
     ///   <spPr/>
@@ -12398,13 +12849,14 @@ pub struct ObjectStyleDefaults {
     ///   </style>
     /// </lnDef>
     /// ```
-    /// 
+    ///
     /// In this example, we see that the default line for the document is being defined as a themed line which
     /// references the subtle line style with idx equal to 1.
     pub line_definition: Option<Box<DefaultShapeDefinition>>,
+    
     /// This element defines the default formatting which is applied to text in a document by default. The default
     /// formatting can and should be applied to the shape when it is initially inserted into a document.
-    /// 
+    ///
     /// ```xml
     /// <txDef>
     ///   <spPr>
