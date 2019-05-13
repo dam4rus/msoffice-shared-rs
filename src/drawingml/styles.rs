@@ -1,16 +1,12 @@
-use crate::drawingml::text::{
-    runformatting::TextFont,
-    bullet::TextListStyle,
-    bodyformatting::TextBodyProperties,
-};
+use crate::drawingml::text::{bodyformatting::TextBodyProperties, bullet::TextListStyle, runformatting::TextFont};
 use crate::drawingml::{
-    core::{ShapeStyle, ShapeProperties, LineProperties},
     colors::Color,
-    simpletypes::{FontCollectionIndex, TextTypeFace, StyleMatrixColumnIndex,},
-    shapeprops::{FillProperties, EffectProperties},
+    core::{LineProperties, ShapeProperties, ShapeStyle},
+    shapeprops::{EffectProperties, FillProperties},
+    simpletypes::{FontCollectionIndex, StyleMatrixColumnIndex, TextTypeFace},
 };
 
-use crate::error::{Limit, LimitViolationError, MissingAttributeError, MissingChildNodeError,};
+use crate::error::{Limit, LimitViolationError, MissingAttributeError, MissingChildNodeError};
 use crate::xml::XmlNode;
 use log::trace;
 
@@ -287,7 +283,6 @@ impl StyleMatrix {
     }
 }
 
-
 #[derive(Debug, Clone)]
 pub struct SupplementalFont {
     /// Specifies the script, or language, in which the typeface is supposed to be used.
@@ -320,7 +315,6 @@ impl SupplementalFont {
         Ok(Self { script, typeface })
     }
 }
-
 
 #[derive(Debug, Clone)]
 pub struct FontReference {
@@ -522,4 +516,3 @@ impl FontCollection {
         })
     }
 }
-

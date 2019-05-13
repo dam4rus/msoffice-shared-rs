@@ -1,18 +1,19 @@
-use crate::xml::{XmlNode, parse_xml_bool};
-use crate::drawingml::{
-    core::{Hyperlink, LineProperties},
-    simpletypes::{TextTabAlignType, Coordinate32, TextSpacingPoint, TextSpacingPercent, Guid,
-        Percentage, TextPoint, TextCapsType, TextNonNegativePoint, TextStrikeType, TextUnderlineType, TextFontSize,
-        TextLanguageID, TextFontAlignType, TextAlignType, TextIndent, TextIndentLevelType, TextMargin,
-    },
-    colors::Color,
-    shapeprops::{EffectProperties, FillProperties},
-};
 use super::{
-    runformatting::{TextFont, TextUnderlineFill, TextUnderlineLine, TextRun},
-    bullet::{TextBullet, TextBulletTypeface, TextBulletSize, TextBulletColor},
+    bullet::{TextBullet, TextBulletColor, TextBulletSize, TextBulletTypeface},
+    runformatting::{TextFont, TextRun, TextUnderlineFill, TextUnderlineLine},
 };
-use crate::error::{NotGroupMemberError, MissingAttributeError, MissingChildNodeError, LimitViolationError, Limit};
+use crate::drawingml::{
+    colors::Color,
+    core::{Hyperlink, LineProperties},
+    shapeprops::{EffectProperties, FillProperties},
+    simpletypes::{
+        Coordinate32, Guid, Percentage, TextAlignType, TextCapsType, TextFontAlignType, TextFontSize, TextIndent,
+        TextIndentLevelType, TextLanguageID, TextMargin, TextNonNegativePoint, TextPoint, TextSpacingPercent,
+        TextSpacingPoint, TextStrikeType, TextTabAlignType, TextUnderlineType,
+    },
+};
+use crate::error::{Limit, LimitViolationError, MissingAttributeError, MissingChildNodeError, NotGroupMemberError};
+use crate::xml::{parse_xml_bool, XmlNode};
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
@@ -31,7 +32,6 @@ impl TextLineBreak {
         Ok(Self { char_properties })
     }
 }
-
 
 #[derive(Default, Debug, Clone)]
 pub struct TextParagraphProperties {
@@ -1233,4 +1233,3 @@ impl TextTabStop {
         Ok(instance)
     }
 }
-

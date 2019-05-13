@@ -1,23 +1,20 @@
-use crate::error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError};
-use crate::xml::{parse_xml_bool, XmlNode};
-use crate::relationship::RelationshipId;
 use super::{
-    simpletypes::{AnimationDgmBuildType, BlackWhiteMode, PenAlignment, CompoundLine, LineCap, LineWidth,
-        DrawingElementId, ChartBuildStep, DgmBuildStep, Guid, AnimationChartBuildType,
-    },
-    coordsys::{Transform2D, GroupTransform2D},
-    shapeprops::{FillProperties, EffectProperties, LineFillProperties, LineDashProperties, LineJoinProperties,
-        LineEndProperties,
-    },
-    shapedefs::Geometry,
-    styles::{StyleMatrixReference, FontReference},
     audiovideo::EmbeddedWAVAudioFile,
-    text::{
-        bodyformatting::TextBodyProperties,
-        bullet::TextListStyle,
-        paragraphs::TextParagraph,
+    coordsys::{GroupTransform2D, Transform2D},
+    shapedefs::Geometry,
+    shapeprops::{
+        EffectProperties, FillProperties, LineDashProperties, LineEndProperties, LineFillProperties, LineJoinProperties,
     },
+    simpletypes::{
+        AnimationChartBuildType, AnimationDgmBuildType, BlackWhiteMode, ChartBuildStep, CompoundLine, DgmBuildStep,
+        DrawingElementId, Guid, LineCap, LineWidth, PenAlignment,
+    },
+    styles::{FontReference, StyleMatrixReference},
+    text::{bodyformatting::TextBodyProperties, bullet::TextListStyle, paragraphs::TextParagraph},
 };
+use crate::error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError};
+use crate::relationship::RelationshipId;
+use crate::xml::{parse_xml_bool, XmlNode};
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
@@ -336,13 +333,54 @@ impl NonVisualGroupDrawingShapeProps {
 }
 
 #[derive(Default, Debug, Clone)]
+pub struct NonVisualPictureProperties {
+    /// Specifies if the user interface should show the resizing of the picture based on the
+    /// picture's current size or its original size. If this attribute is set to true, then scaling is
+    /// relative to the original picture size as opposed to the current picture size.
+    ///
+    /// Defaults to true
+    ///
+    /// # Example
+    ///
+    /// Consider the case where a picture has been resized within a document and is
+    /// now 50% of the originally inserted picture size. Now if the user chooses to make a later
+    /// adjustment to the size of this picture within the generating application, then the value of
+    /// this attribute should be checked.
+    ///
+    /// If this attribute is set to true then a value of 50% is shown. Similarly, if this attribute is set
+    /// to false, then a value of 100% should be shown because the picture has not yet been
+    /// resized from its current (smaller) size.
+    pub prefer_relative_resize: Option<bool>,
+    pub picture_locks: Option<PictureLocking>,
+}
+
+impl NonVisualPictureProperties {
+    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+        let prefer_relative_resize = match xml_node.attribute("preferRelativeResize") {
+            Some(attr) => Some(parse_xml_bool(attr)?),
+            None => None,
+        };
+
+        let picture_locks = match xml_node.child_nodes.get(0) {
+            Some(node) => Some(PictureLocking::from_xml_element(node)?),
+            None => None,
+        };
+
+        Ok(Self {
+            prefer_relative_resize,
+            picture_locks,
+        })
+    }
+}
+
+#[derive(Default, Debug, Clone)]
 pub struct NonVisualDrawingShapeProps {
     pub shape_locks: Option<ShapeLocking>,
 
     /// Specifies that the corresponding shape is a text box and thus should be treated as such
     /// by the generating application. If this attribute is omitted then it is assumed that the
     /// corresponding shape is not specifically a text box.
-    /// 
+    ///
     /// Defaults to false
     pub is_text_box: Option<bool>,
 }
@@ -502,47 +540,6 @@ impl NonVisualDrawingProps {
 }
 
 #[derive(Default, Debug, Clone)]
-pub struct NonVisualPictureProperties {
-    /// Specifies if the user interface should show the resizing of the picture based on the
-    /// picture's current size or its original size. If this attribute is set to true, then scaling is
-    /// relative to the original picture size as opposed to the current picture size.
-    ///
-    /// Defaults to true
-    ///
-    /// # Example
-    ///
-    /// Consider the case where a picture has been resized within a document and is
-    /// now 50% of the originally inserted picture size. Now if the user chooses to make a later
-    /// adjustment to the size of this picture within the generating application, then the value of
-    /// this attribute should be checked.
-    ///
-    /// If this attribute is set to true then a value of 50% is shown. Similarly, if this attribute is set
-    /// to false, then a value of 100% should be shown because the picture has not yet been
-    /// resized from its current (smaller) size.
-    pub prefer_relative_resize: Option<bool>,
-    pub picture_locks: Option<PictureLocking>,
-}
-
-impl NonVisualPictureProperties {
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let prefer_relative_resize = match xml_node.attribute("preferRelativeResize") {
-            Some(attr) => Some(parse_xml_bool(attr)?),
-            None => None,
-        };
-
-        let picture_locks = match xml_node.child_nodes.get(0) {
-            Some(node) => Some(PictureLocking::from_xml_element(node)?),
-            None => None,
-        };
-
-        Ok(Self {
-            prefer_relative_resize,
-            picture_locks,
-        })
-    }
-}
-
-#[derive(Default, Debug, Clone)]
 pub struct Locking {
     /// Specifies that the generating application should not allow shape grouping for the
     /// corresponding connection shape. That is it cannot be combined within other shapes to
@@ -643,7 +640,7 @@ pub struct ShapeLocking {
     /// Specifies that the generating application should not allow editing of the shape text for
     /// the corresponding shape. If this attribute is not specified, then a value of false is
     /// assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_text_edit: Option<bool>,
 }
@@ -670,48 +667,48 @@ pub struct GroupLocking {
     /// Specifies that the corresponding group shape cannot be grouped. That is it cannot be
     /// combined within other shapes to form a group of shapes. If this attribute is not specified,
     /// then a value of false is assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_grouping: Option<bool>,
 
     /// Specifies that the generating application should not show adjust handles for the
     /// corresponding connection shape. If this attribute is not specified, then a value of false is
     /// assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_ungrouping: Option<bool>,
 
     /// Specifies that the corresponding group shape cannot have any part of it be selected. That
     /// means that no picture, shapes or attached text can be selected either if this attribute has
     /// been specified. If this attribute is not specified, then a value of false is assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_select: Option<bool>,
 
     /// Specifies that the corresponding group shape cannot be rotated Objects that reside
     /// within the group can still be rotated unless they also have been locked. If this attribute is
     /// not specified, then a value of false is assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_rotate: Option<bool>,
 
     /// Specifies that the generating application should not allow aspect ratio changes for the
     /// corresponding connection shape. If this attribute is not specified, then a value of false is
     /// assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_change_aspect_ratio: Option<bool>,
 
     /// Specifies that the corresponding graphic frame cannot be moved. Objects that reside
     /// within the graphic frame can still be moved unless they also have been locked. If this
     /// attribute is not specified, then a value of false is assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_move: Option<bool>,
-    
+
     /// Specifies that the corresponding group shape cannot be resized. If this attribute is not
     /// specified, then a value of false is assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_resize: Option<bool>,
 }
@@ -832,7 +829,7 @@ pub struct PictureLocking {
 
     /// Specifies that the generating application should not allow cropping for the corresponding
     /// picture. If this attribute is not specified, then a value of false is assumed.
-    /// 
+    ///
     /// Defaults to false
     pub no_crop: Option<bool>,
 }
@@ -934,11 +931,11 @@ pub struct GroupShapeProperties {
     /// Specifies that the group shape should be rendered using only black and white coloring.
     /// That is the coloring information for the group shape should be converted to either black
     /// or white when rendering the corresponding shapes.
-    /// 
+    ///
     /// No gray is to be used in rendering this image, only stark black and stark white.
-    /// 
+    ///
     /// # Note
-    /// 
+    ///
     /// This does not mean that the group shapes themselves are stored with only black
     /// and white color information. This attribute instead sets the rendering mode that the
     /// shapes use when rendering.
@@ -985,81 +982,6 @@ impl GroupShapeProperties {
             fill_properties,
             effect_properties,
         })
-    }
-}
-
-#[derive(Default, Debug, Clone)]
-pub struct Hyperlink {
-    /// Specifies the relationship id that when looked up in this slides relationship file contains
-    /// the target of this hyperlink. This attribute cannot be omitted.
-    pub relationship_id: Option<RelationshipId>,
-
-    /// Specifies the URL when it has been determined by the generating application that the
-    /// URL is invalid. That is the generating application can still store the URL but it is known
-    /// that this URL is not correct.
-    pub invalid_url: Option<String>,
-
-    /// Specifies an action that is to be taken when this hyperlink is activated. This can be used to
-    /// specify a slide to be navigated to or a script of code to be run.
-    pub action: Option<String>,
-
-    /// Specifies the target frame that is to be used when opening this hyperlink. When the
-    /// hyperlink is activated this attribute is used to determine if a new window is launched for
-    /// viewing or if an existing one can be used. If this attribute is omitted, than a new window
-    /// is opened.
-    pub target_frame: Option<String>,
-
-    /// Specifies the tooltip that should be displayed when the hyperlink text is hovered over
-    /// with the mouse. If this attribute is omitted, than the hyperlink text itself can be
-    /// displayed.
-    pub tooltip: Option<String>,
-
-    /// Specifies whether to add this URI to the history when navigating to it. This allows for the
-    /// viewing of this presentation without the storing of history information on the viewing
-    /// machine. If this attribute is omitted, then a value of 1 or true is assumed.
-    ///
-    /// Defaults to true
-    pub history: Option<bool>,
-
-    /// Specifies if this attribute has already been used within this document. That is when a
-    /// hyperlink has already been visited that this attribute would be utilized so the generating
-    /// application can determine the color of this text. If this attribute is omitted, then a value
-    /// of 0 or false is implied.
-    ///
-    /// Defaults to false
-    pub highlight_click: Option<bool>,
-
-    /// Specifies if the URL in question should stop all sounds that are playing when it is clicked.
-    ///
-    /// Defaults to false
-    pub end_sound: Option<bool>,
-    pub sound: Option<EmbeddedWAVAudioFile>,
-}
-
-impl Hyperlink {
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut instance: Self = Default::default();
-
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "r:id" => instance.relationship_id = Some(value.clone()),
-                "invalidUrl" => instance.invalid_url = Some(value.clone()),
-                "action" => instance.action = Some(value.clone()),
-                "tgtFrame" => instance.target_frame = Some(value.clone()),
-                "tooltip" => instance.tooltip = Some(value.clone()),
-                "history" => instance.history = Some(parse_xml_bool(value)?),
-                "highlightClick" => instance.highlight_click = Some(parse_xml_bool(value)?),
-                "endSnd" => instance.end_sound = Some(parse_xml_bool(value)?),
-                _ => (),
-            }
-        }
-
-        instance.sound = match xml_node.child_nodes.get(0) {
-            Some(node) => Some(EmbeddedWAVAudioFile::from_xml_element(node)?),
-            None => None,
-        };
-
-        Ok(instance)
     }
 }
 
@@ -1326,3 +1248,77 @@ impl TextBody {
     }
 }
 
+#[derive(Default, Debug, Clone)]
+pub struct Hyperlink {
+    /// Specifies the relationship id that when looked up in this slides relationship file contains
+    /// the target of this hyperlink. This attribute cannot be omitted.
+    pub relationship_id: Option<RelationshipId>,
+
+    /// Specifies the URL when it has been determined by the generating application that the
+    /// URL is invalid. That is the generating application can still store the URL but it is known
+    /// that this URL is not correct.
+    pub invalid_url: Option<String>,
+
+    /// Specifies an action that is to be taken when this hyperlink is activated. This can be used to
+    /// specify a slide to be navigated to or a script of code to be run.
+    pub action: Option<String>,
+
+    /// Specifies the target frame that is to be used when opening this hyperlink. When the
+    /// hyperlink is activated this attribute is used to determine if a new window is launched for
+    /// viewing or if an existing one can be used. If this attribute is omitted, than a new window
+    /// is opened.
+    pub target_frame: Option<String>,
+
+    /// Specifies the tooltip that should be displayed when the hyperlink text is hovered over
+    /// with the mouse. If this attribute is omitted, than the hyperlink text itself can be
+    /// displayed.
+    pub tooltip: Option<String>,
+
+    /// Specifies whether to add this URI to the history when navigating to it. This allows for the
+    /// viewing of this presentation without the storing of history information on the viewing
+    /// machine. If this attribute is omitted, then a value of 1 or true is assumed.
+    ///
+    /// Defaults to true
+    pub history: Option<bool>,
+
+    /// Specifies if this attribute has already been used within this document. That is when a
+    /// hyperlink has already been visited that this attribute would be utilized so the generating
+    /// application can determine the color of this text. If this attribute is omitted, then a value
+    /// of 0 or false is implied.
+    ///
+    /// Defaults to false
+    pub highlight_click: Option<bool>,
+
+    /// Specifies if the URL in question should stop all sounds that are playing when it is clicked.
+    ///
+    /// Defaults to false
+    pub end_sound: Option<bool>,
+    pub sound: Option<EmbeddedWAVAudioFile>,
+}
+
+impl Hyperlink {
+    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+        let mut instance: Self = Default::default();
+
+        for (attr, value) in &xml_node.attributes {
+            match attr.as_str() {
+                "r:id" => instance.relationship_id = Some(value.clone()),
+                "invalidUrl" => instance.invalid_url = Some(value.clone()),
+                "action" => instance.action = Some(value.clone()),
+                "tgtFrame" => instance.target_frame = Some(value.clone()),
+                "tooltip" => instance.tooltip = Some(value.clone()),
+                "history" => instance.history = Some(parse_xml_bool(value)?),
+                "highlightClick" => instance.highlight_click = Some(parse_xml_bool(value)?),
+                "endSnd" => instance.end_sound = Some(parse_xml_bool(value)?),
+                _ => (),
+            }
+        }
+
+        instance.sound = match xml_node.child_nodes.get(0) {
+            Some(node) => Some(EmbeddedWAVAudioFile::from_xml_element(node)?),
+            None => None,
+        };
+
+        Ok(instance)
+    }
+}

@@ -1,11 +1,11 @@
+use crate::error::AdjustParseError;
 use enum_from_str::ParseEnumVariantError;
 use enum_from_str_derive::FromStr;
-use crate::error::AdjustParseError;
 use std::str::FromStr;
 
 /// This simple type specifies that its values shall be a 128-bit globally unique identifier (GUID) value.
-/// 
-/// This simple type's contents shall match the following regular expression pattern: 
+///
+/// This simple type's contents shall match the following regular expression pattern:
 /// \{[0-9A-F]{8}-[0-9AF]{/// 4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12}\}.
 pub type Guid = String;
 
@@ -32,14 +32,14 @@ pub type FixedPercentage = f32;
 /// This simple type specifies that its contents shall contain a color value in RRGGBB hexadecimal format, specified
 /// using six hexadecimal digits. Each of the red, green, and blue color values, from 0-255, is encoded as two
 /// hexadecimal digits.
-/// 
+///
 /// # Example
 /// Consider a color defined as follows:
-/// 
+///
 /// Red:   122
 /// Green:  23
 /// Blue:  209
-/// 
+///
 /// The resulting RRGGBB value would be 7A17D1, as each color is transformed into its hexadecimal equivalent.
 pub type HexColorRGB = String;
 
@@ -150,11 +150,11 @@ pub type TextLanguageID = String;
 
 /// This simple type specifies a number consisting of 20 hexadecimal digits which defines the Panose-1 font
 /// classification.
-/// 
+///
 /// This simple type's contents have a length of exactly 20 hexadecimal digit(s).
-/// 
+///
 /// # Xml example
-/// 
+///
 /// ```xml
 /// <w:font w:name="Times New Roman">
 ///   <w:panose1 w:val="02020603050405020304" />
@@ -171,15 +171,15 @@ pub type Panose = String; // TODO: hex, length=10
 pub type TextBulletStartAtNum = i32;
 
 /// This simple type specifies that its contents contains a language identifier as defined by RFC 4646/BCP 47.
-/// 
+///
 /// The contents of this language are interpreted based on the context of the parent XML element.
-/// 
+///
 /// # Xml example
-/// 
+///
 /// ```xml
 /// <w:lang w:val="en-CA" />
 /// ```
-/// 
+///
 /// This language is therefore specified as English (en) and Canada (CA), resulting in use of the English (Canada)
 /// language setting.
 pub type Lang = String;

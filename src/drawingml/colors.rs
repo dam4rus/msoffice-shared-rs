@@ -1,11 +1,12 @@
+use super::{
+    sharedstylesheet::ColorMapping,
+    simpletypes::{
+        Angle, FixedPercentage, HexColorRGB, Percentage, PositiveFixedAngle, PositiveFixedPercentage,
+        PositivePercentage, PresetColorVal, SchemeColorVal, SystemColorVal,
+    },
+};
 use crate::error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError};
 use crate::xml::XmlNode;
-use super::{
-    simpletypes::{PositiveFixedPercentage, FixedPercentage, PositivePercentage, Angle, PositiveFixedAngle,
-        Percentage, PresetColorVal, SystemColorVal, HexColorRGB, SchemeColorVal,
-    },
-    sharedstylesheet::ColorMapping,
-};
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
@@ -768,7 +769,7 @@ impl SystemColor {
 #[derive(Debug, Clone)]
 pub struct PresetColor {
     pub value: PresetColorVal,
-    
+
     /// Color transforms to apply to this color
     pub color_transforms: Vec<ColorTransform>,
 }
@@ -940,7 +941,7 @@ impl Color {
 pub struct CustomColor {
     /// The name of the color shown in the color picker.
     pub name: Option<String>,
-    
+
     /// The color represented by this custom color.
     pub color: Color,
 }

@@ -1,14 +1,15 @@
-use crate::xml::{XmlNode, parse_xml_bool};
 use crate::drawingml::{
-    simpletypes::{PresetLineDashVal, RectAlignment, TileFlipMode, Percentage, Coordinate, PositivePercentage,
-        PresetPatternVal, PositiveFixedAngle, LineEndLength, LineEndWidth, LineEndType, PositiveFixedPercentage,
-        BlipCompression, EffectContainerType, FixedAngle, FixedPercentage, PathShadeType, PositiveCoordinate,
-        PresetShadowVal, BlendMode
-    },
     colors::Color,
+    simpletypes::{
+        BlendMode, BlipCompression, Coordinate, EffectContainerType, FixedAngle, FixedPercentage, LineEndLength,
+        LineEndType, LineEndWidth, PathShadeType, Percentage, PositiveCoordinate, PositiveFixedAngle,
+        PositiveFixedPercentage, PositivePercentage, PresetLineDashVal, PresetPatternVal, PresetShadowVal,
+        RectAlignment, TileFlipMode,
+    },
 };
+use crate::error::{Limit, LimitViolationError, MissingAttributeError, MissingChildNodeError, NotGroupMemberError};
 use crate::relationship::RelationshipId;
-use crate::error::{MissingAttributeError, MissingChildNodeError, Limit, LimitViolationError, NotGroupMemberError};
+use crate::xml::{parse_xml_bool, XmlNode};
 use log::{error, trace};
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
@@ -738,7 +739,7 @@ pub struct ReflectionEffect {
     ///
     /// Defaults to 0
     pub direction: Option<PositiveFixedAngle>,
-    
+
     /// Specifies the direction to offset the reflection.
     ///
     /// Defaults to 5_400_000
@@ -1069,62 +1070,6 @@ impl Effect {
 }
 
 #[derive(Debug, Clone)]
-pub enum EffectProperties {
-    /// This element specifies a list of effects. Effects in an effectLst are applied in the default order by the rendering
-    /// engine. The following diagrams illustrate the order in which effects are applied, both for shapes and for group
-    /// shapes.
-    ///
-    /// # Note
-    ///
-    /// The output of many effects does not include the input shape. For effects that should be applied to the
-    /// result of previous effects as well as the original shape, a container is used to group the inputs together.
-    ///
-    /// # Example
-    ///
-    /// Outer Shadow is applied both to the original shape and the original shape's glow. The result of blur
-    /// contains the original shape, while the result of glow contains only the added glow. Therefore, a container that
-    /// groups the blur result with the glow result is used as the input to Outer Shadow.
-    EffectList(Box<EffectList>),
-
-    /// This element specifies a list of effects. Effects are applied in the order specified by the container type (sibling or
-    /// tree).
-    ///
-    /// # Note
-    ///
-    /// An effectDag element can contain multiple effect containers as child elements. Effect containers with
-    /// different styles can be combined in an effectDag to define a directed acyclic graph (DAG) that specifies the order
-    /// in which all effects are applied.
-    EffectContainer(Box<EffectContainer>),
-}
-
-impl EffectProperties {
-    pub fn is_choice_member<T>(name: T) -> bool
-    where
-        T: AsRef<str>,
-    {
-        match name.as_ref() {
-            "effectLst" | "effectDag" => true,
-            _ => false,
-        }
-    }
-
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        match xml_node.local_name() {
-            "effectLst" => Ok(EffectProperties::EffectList(Box::new(EffectList::from_xml_element(
-                xml_node,
-            )?))),
-            "effectDag" => Ok(EffectProperties::EffectContainer(Box::new(
-                EffectContainer::from_xml_element(xml_node)?,
-            ))),
-            _ => Err(Box::new(NotGroupMemberError::new(
-                xml_node.name.clone(),
-                "EG_EffectProperties",
-            ))),
-        }
-    }
-}
-
-#[derive(Debug, Clone)]
 pub enum BlipEffect {
     AlphaBiLevel(AlphaBiLevelEffect),
 
@@ -1200,6 +1145,62 @@ impl BlipEffect {
             "lum" => Ok(BlipEffect::Luminance(LuminanceEffect::from_xml_element(xml_node)?)),
             "tint" => Ok(BlipEffect::Tint(TintEffect::from_xml_element(xml_node)?)),
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_BlipEffect").into()),
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum EffectProperties {
+    /// This element specifies a list of effects. Effects in an effectLst are applied in the default order by the rendering
+    /// engine. The following diagrams illustrate the order in which effects are applied, both for shapes and for group
+    /// shapes.
+    ///
+    /// # Note
+    ///
+    /// The output of many effects does not include the input shape. For effects that should be applied to the
+    /// result of previous effects as well as the original shape, a container is used to group the inputs together.
+    ///
+    /// # Example
+    ///
+    /// Outer Shadow is applied both to the original shape and the original shape's glow. The result of blur
+    /// contains the original shape, while the result of glow contains only the added glow. Therefore, a container that
+    /// groups the blur result with the glow result is used as the input to Outer Shadow.
+    EffectList(Box<EffectList>),
+
+    /// This element specifies a list of effects. Effects are applied in the order specified by the container type (sibling or
+    /// tree).
+    ///
+    /// # Note
+    ///
+    /// An effectDag element can contain multiple effect containers as child elements. Effect containers with
+    /// different styles can be combined in an effectDag to define a directed acyclic graph (DAG) that specifies the order
+    /// in which all effects are applied.
+    EffectContainer(Box<EffectContainer>),
+}
+
+impl EffectProperties {
+    pub fn is_choice_member<T>(name: T) -> bool
+    where
+        T: AsRef<str>,
+    {
+        match name.as_ref() {
+            "effectLst" | "effectDag" => true,
+            _ => false,
+        }
+    }
+
+    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+        match xml_node.local_name() {
+            "effectLst" => Ok(EffectProperties::EffectList(Box::new(EffectList::from_xml_element(
+                xml_node,
+            )?))),
+            "effectDag" => Ok(EffectProperties::EffectContainer(Box::new(
+                EffectContainer::from_xml_element(xml_node)?,
+            ))),
+            _ => Err(Box::new(NotGroupMemberError::new(
+                xml_node.name.clone(),
+                "EG_EffectProperties",
+            ))),
         }
     }
 }
@@ -1506,7 +1507,6 @@ impl BlipFillProperties {
         })
     }
 }
-
 
 /// This element specifies a dash stop primitive. Dashing schemes are built by specifying an ordered list of dash stop
 /// primitive. A dash stop primitive consists of a dash and a space.
@@ -2071,4 +2071,3 @@ impl LineDashProperties {
         }
     }
 }
-

@@ -1,12 +1,69 @@
-use crate::xml::{XmlNode, parse_xml_bool};
-use crate::drawingml::{
-    simpletypes::{AdjCoordinate, TextShapeType, ShapeType, AdjAngle, GeomGuideFormula, GeomGuideName,
-        PathFillMode, PositiveCoordinate,
-    },
+use crate::drawingml::simpletypes::{
+    AdjAngle, AdjCoordinate, GeomGuideFormula, GeomGuideName, PathFillMode, PositiveCoordinate, ShapeType,
+    TextShapeType,
 };
 use crate::error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError};
+use crate::xml::{parse_xml_bool, XmlNode};
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
+
+#[derive(Debug, Clone)]
+pub struct GeomRect {
+    /// Specifies the x coordinate of the left edge for a shape text rectangle. The units for this
+    /// edge is specified in EMUs as the positioning here is based on the shape coordinate
+    /// system. The width and height for this coordinate system are specified within the ext
+    /// transform element.
+    pub left: AdjCoordinate,
+
+    /// Specifies the y coordinate of the top edge for a shape text rectangle. The units for this
+    /// edge is specified in EMUs as the positioning here is based on the shape coordinate
+    /// system. The width and height for this coordinate system are specified within the ext
+    /// transform element.
+    pub top: AdjCoordinate,
+
+    /// Specifies the x coordinate of the right edge for a shape text rectangle. The units for this
+    /// edge is specified in EMUs as the positioning here is based on the shape coordinate
+    /// system. The width and height for this coordinate system are specified within the ext
+    /// transform element.
+    pub right: AdjCoordinate,
+
+    /// Specifies the y coordinate of the bottom edge for a shape text rectangle. The units for
+    /// this edge is specified in EMUs as the positioning here is based on the shape coordinate
+    /// system. The width and height for this coordinate system are specified within the ext
+    /// transform element.
+    pub bottom: AdjCoordinate,
+}
+
+impl GeomRect {
+    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+        let mut left = None;
+        let mut top = None;
+        let mut right = None;
+        let mut bottom = None;
+
+        for (attr, value) in &xml_node.attributes {
+            match attr.as_str() {
+                "l" => left = Some(value.parse()?),
+                "t" => top = Some(value.parse()?),
+                "r" => right = Some(value.parse()?),
+                "b" => bottom = Some(value.parse()?),
+                _ => (),
+            }
+        }
+
+        let left = left.ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "l"))?;
+        let top = top.ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "t"))?;
+        let right = right.ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "r"))?;
+        let bottom = bottom.ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "b"))?;
+
+        Ok(Self {
+            left,
+            top,
+            right,
+            bottom,
+        })
+    }
+}
 
 #[derive(Debug, Clone)]
 pub struct PolarAdjustHandle {
@@ -199,6 +256,129 @@ impl XYAdjustHandle {
 }
 
 #[derive(Debug, Clone)]
+pub enum AdjustHandle {
+    /// This element specifies an XY-based adjust handle for a custom shape. The position of this adjust handle is
+    /// specified by the corresponding pos child element. The allowed adjustment of this adjust handle are specified via
+    /// it's min and max type attributes. Based on the adjustment of this adjust handle certain corresponding guides are
+    /// updated to contain these values.
+    XY(Box<XYAdjustHandle>),
+
+    /// This element specifies a polar adjust handle for a custom shape. The position of this adjust handle is specified by
+    /// the corresponding pos child element. The allowed adjustment of this adjust handle are specified via it's min and
+    /// max attributes. Based on the adjustment of this adjust handle certain corresponding guides are updated to
+    /// contain these values.
+    Polar(Box<PolarAdjustHandle>),
+}
+
+impl AdjustHandle {
+    pub fn is_choice_member(name: &str) -> bool {
+        match name {
+            "ahXY" | "ahPolar" => true,
+            _ => false,
+        }
+    }
+
+    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+        match xml_node.local_name() {
+            "ahXY" => Ok(AdjustHandle::XY(Box::new(XYAdjustHandle::from_xml_element(xml_node)?))),
+            "ahPolar" => Ok(AdjustHandle::Polar(Box::new(PolarAdjustHandle::from_xml_element(
+                xml_node,
+            )?))),
+            _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "AdjustHandle").into()),
+        }
+    }
+}
+
+/// This element specifies an x-y coordinate within the path coordinate space. This coordinate space is determined
+/// by the width and height attributes defined within the path element. A point is utilized by one of it's parent
+/// elements to specify the next point of interest in custom geometry shape. Depending on the parent element used
+/// the point can either have a line drawn to it or the cursor can simply be moved to this new location.
+///
+/// Specifies a position coordinate within the shape bounding box. It should be noted that this coordinate is placed
+/// within the shape bounding box using the transform coordinate system which is also called the shape coordinate
+/// system, as it encompasses the entire shape. The width and height for this coordinate system are specified within
+/// the ext transform element.
+///
+/// # Note
+///
+/// When specifying a point coordinate in path coordinate space it should be noted that the top left of the
+/// coordinate space is x=0, y=0 and the coordinate points for x grow to the right and for y grow down.
+///
+/// # Xml example
+///
+/// To highlight the differences in the coordinate systems consider the drawing of the following triangle.
+/// Notice that the dimensions of the triangle are specified using the shape coordinate system with EMUs as the
+/// units via the ext transform element. Thus we see this shape is 1705233 EMUs wide by 679622 EMUs tall.
+/// However when looking at how the path for this shape is drawn we see that the x and y values fall between 0 and
+/// 2. This is because the path coordinate system has the arbitrary dimensions of 2 for the width and 2 for the
+/// height. Thus we see that a y coordinate of 2 within the path coordinate system specifies a y coordinate of
+/// 679622 within the shape coordinate system for this particular case.
+///
+/// ```xml
+/// <a:xfrm>
+///   <a:off x="3200400" y="1600200"/>
+///   <a:ext cx="1705233" cy="679622"/>
+/// </a:xfrm>
+/// <a:custGeom>
+///   <a:avLst/>
+///   <a:gdLst/>
+///   <a:ahLst/>
+///   <a:cxnLst/>
+///   <a:rect l="0" t="0" r="0" b="0"/>
+///   <a:pathLst>
+///     <a:path w="2" h="2">
+///       <a:moveTo>
+///         <a:pt x="0" y="2"/>
+///       </a:moveTo>
+///       <a:lnTo>
+///         <a:pt x="2" y="2"/>
+///       </a:lnTo>
+///       <a:lnTo>
+///         <a:pt x="1" y="0"/>
+///       </a:lnTo>
+///       <a:close/>
+///     </a:path>
+///   </a:pathLst>
+/// </a:custGeom>
+/// ```
+#[derive(Debug, Clone)]
+pub struct AdjPoint2D {
+    /// Specifies the x coordinate for this position coordinate. The units for this coordinate space
+    /// are defined by the width of the path coordinate system. This coordinate system is
+    /// overlayed on top of the shape coordinate system thus occupying the entire shape
+    /// bounding box. Because the units for within this coordinate space are determined by the
+    /// path width and height an exact measurement unit cannot be specified here.
+    pub x: AdjCoordinate,
+
+    /// Specifies the y coordinate for this position coordinate. The units for this coordinate space
+    /// are defined by the height of the path coordinate system. This coordinate system is
+    /// overlayed on top of the shape coordinate system thus occupying the entire shape
+    /// bounding box. Because the units for within this coordinate space are determined by the
+    /// path width and height an exact measurement unit cannot be specified here.
+    pub y: AdjCoordinate,
+}
+
+impl AdjPoint2D {
+    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+        let mut x = None;
+        let mut y = None;
+
+        for (attr, value) in &xml_node.attributes {
+            match attr.as_str() {
+                "x" => x = Some(value.parse()?),
+                "y" => y = Some(value.parse()?),
+                _ => (),
+            }
+        }
+
+        let x = x.ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "x"))?;
+        let y = y.ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "y"))?;
+
+        Ok(Self { x, y })
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Path2DArcTo {
     /// This attribute specifies the width radius of the supposed circle being used to draw the
     /// arc. This gives the circle a total width of (2 * wR). This total width could also be called it's
@@ -252,7 +432,6 @@ impl Path2DArcTo {
         })
     }
 }
-
 
 /// This element specifies a creation path consisting of a series of moves, lines and curves that when combined
 /// forms a geometric shape. This element is only utilized if a custom geometry is specified.
@@ -555,129 +734,7 @@ impl GeomGuide {
         let formula = formula.ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "fmla"))?;
         Ok(Self { name, formula })
     }
-}
 
-#[derive(Debug, Clone)]
-pub enum AdjustHandle {
-    /// This element specifies an XY-based adjust handle for a custom shape. The position of this adjust handle is
-    /// specified by the corresponding pos child element. The allowed adjustment of this adjust handle are specified via
-    /// it's min and max type attributes. Based on the adjustment of this adjust handle certain corresponding guides are
-    /// updated to contain these values.
-    XY(Box<XYAdjustHandle>),
-
-    /// This element specifies a polar adjust handle for a custom shape. The position of this adjust handle is specified by
-    /// the corresponding pos child element. The allowed adjustment of this adjust handle are specified via it's min and
-    /// max attributes. Based on the adjustment of this adjust handle certain corresponding guides are updated to
-    /// contain these values.
-    Polar(Box<PolarAdjustHandle>),
-}
-
-impl AdjustHandle {
-    pub fn is_choice_member(name: &str) -> bool {
-        match name {
-            "ahXY" | "ahPolar" => true,
-            _ => false,
-        }
-    }
-
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        match xml_node.local_name() {
-            "ahXY" => Ok(AdjustHandle::XY(Box::new(XYAdjustHandle::from_xml_element(xml_node)?))),
-            "ahPolar" => Ok(AdjustHandle::Polar(Box::new(PolarAdjustHandle::from_xml_element(
-                xml_node,
-            )?))),
-            _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "AdjustHandle").into()),
-        }
-    }
-}
-
-/// This element specifies an x-y coordinate within the path coordinate space. This coordinate space is determined
-/// by the width and height attributes defined within the path element. A point is utilized by one of it's parent
-/// elements to specify the next point of interest in custom geometry shape. Depending on the parent element used
-/// the point can either have a line drawn to it or the cursor can simply be moved to this new location.
-///
-/// Specifies a position coordinate within the shape bounding box. It should be noted that this coordinate is placed
-/// within the shape bounding box using the transform coordinate system which is also called the shape coordinate
-/// system, as it encompasses the entire shape. The width and height for this coordinate system are specified within
-/// the ext transform element.
-///
-/// # Note
-///
-/// When specifying a point coordinate in path coordinate space it should be noted that the top left of the
-/// coordinate space is x=0, y=0 and the coordinate points for x grow to the right and for y grow down.
-///
-/// # Xml example
-///
-/// To highlight the differences in the coordinate systems consider the drawing of the following triangle.
-/// Notice that the dimensions of the triangle are specified using the shape coordinate system with EMUs as the
-/// units via the ext transform element. Thus we see this shape is 1705233 EMUs wide by 679622 EMUs tall.
-/// However when looking at how the path for this shape is drawn we see that the x and y values fall between 0 and
-/// 2. This is because the path coordinate system has the arbitrary dimensions of 2 for the width and 2 for the
-/// height. Thus we see that a y coordinate of 2 within the path coordinate system specifies a y coordinate of
-/// 679622 within the shape coordinate system for this particular case.
-///
-/// ```xml
-/// <a:xfrm>
-///   <a:off x="3200400" y="1600200"/>
-///   <a:ext cx="1705233" cy="679622"/>
-/// </a:xfrm>
-/// <a:custGeom>
-///   <a:avLst/>
-///   <a:gdLst/>
-///   <a:ahLst/>
-///   <a:cxnLst/>
-///   <a:rect l="0" t="0" r="0" b="0"/>
-///   <a:pathLst>
-///     <a:path w="2" h="2">
-///       <a:moveTo>
-///         <a:pt x="0" y="2"/>
-///       </a:moveTo>
-///       <a:lnTo>
-///         <a:pt x="2" y="2"/>
-///       </a:lnTo>
-///       <a:lnTo>
-///         <a:pt x="1" y="0"/>
-///       </a:lnTo>
-///       <a:close/>
-///     </a:path>
-///   </a:pathLst>
-/// </a:custGeom>
-/// ```
-#[derive(Debug, Clone)]
-pub struct AdjPoint2D {
-    /// Specifies the x coordinate for this position coordinate. The units for this coordinate space
-    /// are defined by the width of the path coordinate system. This coordinate system is
-    /// overlayed on top of the shape coordinate system thus occupying the entire shape
-    /// bounding box. Because the units for within this coordinate space are determined by the
-    /// path width and height an exact measurement unit cannot be specified here.
-    pub x: AdjCoordinate,
-
-    /// Specifies the y coordinate for this position coordinate. The units for this coordinate space
-    /// are defined by the height of the path coordinate system. This coordinate system is
-    /// overlayed on top of the shape coordinate system thus occupying the entire shape
-    /// bounding box. Because the units for within this coordinate space are determined by the
-    /// path width and height an exact measurement unit cannot be specified here.
-    pub y: AdjCoordinate,
-}
-
-impl AdjPoint2D {
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut x = None;
-        let mut y = None;
-
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "x" => x = Some(value.parse()?),
-                "y" => y = Some(value.parse()?),
-                _ => (),
-            }
-        }
-
-        let x = x.ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "x"))?;
-        let y = y.ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "y"))?;
-
-        Ok(Self { x, y })
-    }
 }
 
 #[derive(Debug, Clone)]
@@ -854,84 +911,6 @@ impl Path2DCommand {
                 "EG_Path2DCommand",
             ))),
         }
-    }
-}
-
-/// This element specifies the existence of a connection site on a custom shape. A connection site allows a cxnSp to
-/// be attached to this shape. This connection is maintained when the shape is repositioned within the document. It
-/// should be noted that this connection is placed within the shape bounding box using the transform coordinate
-/// system which is also called the shape coordinate system, as it encompasses the entire shape. The width and
-/// height for this coordinate system are specified within the ext transform element.
-///
-/// # Note
-///
-/// The transform coordinate system is different from a path coordinate system as it is per shape instead of
-/// per path within the shape.
-///
-/// # Xml example
-///
-/// Consider the following custom geometry that has two connection sites specified. One connection is
-/// located at the bottom left of the shape and the other at the bottom right. The following DrawingML would
-/// describe such a custom geometry.
-///
-/// ```xml
-/// <a:xfrm>
-///   <a:off x="3200400" y="1600200"/>
-///   <a:ext cx="1705233" cy="679622"/>
-/// </a:xfrm>
-/// <a:custGeom>
-///   <a:avLst/>
-///   <a:gdLst/>
-///   <a:ahLst/>
-///   <a:cxnLst>
-///     <a:cxn ang="0">
-///       <a:pos x="0" y="679622"/>
-///     </a:cxn>
-///     <a:cxn ang="0">
-///       <a:pos x="1705233" y="679622"/>
-///     </a:cxn>
-///   </a:cxnLst>
-///   <a:rect l="0" t="0" r="0" b="0"/>
-///   <a:pathLst>
-///     <a:path w="2" h="2">
-///       <a:moveTo>
-///         <a:pt x="0" y="2"/>
-///       </a:moveTo>
-///       <a:lnTo>
-///         <a:pt x="2" y="2"/>
-///       </a:lnTo>
-///       <a:lnTo>
-///         <a:pt x="1" y="0"/>
-///       </a:lnTo>
-///       <a:close/>
-///     </a:path>
-///   </a:pathLst>
-/// </a:custGeom>
-/// ```
-#[derive(Debug, Clone)]
-pub struct ConnectionSite {
-    /// Specifies the incoming connector angle. This angle is the angle around the connection
-    /// site that an incoming connector tries to be routed to. This allows connectors to know
-    /// where the shape is in relation to the connection site and route connectors so as to avoid
-    /// any overlap with the shape.
-    pub angle: AdjAngle,
-    pub position: AdjPoint2D,
-}
-
-impl ConnectionSite {
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let angle_attr = xml_node
-            .attribute("ang")
-            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "ang"))?;
-        let angle = angle_attr.parse()?;
-
-        let pos_node = xml_node
-            .child_nodes
-            .get(0)
-            .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "pos"))?;
-        let position = AdjPoint2D::from_xml_element(pos_node)?;
-
-        Ok(Self { angle, position })
     }
 }
 
@@ -1156,119 +1135,6 @@ impl PresetGeometry2D {
 }
 
 #[derive(Debug, Clone)]
-pub struct PresetTextShape {
-    /// Specifies the preset geometry that is used for a shape warp on a piece of text. This preset
-    /// can have any of the values in the enumerated list for TextShapeType. This attribute
-    /// is required in order for a text warp to be rendered.
-    ///
-    /// # Xml example
-    ///
-    /// ```xml
-    /// <p:sp>
-    ///   <p:txBody>
-    ///     <a:bodyPr wrap="none" rtlCol="0">
-    ///       <a:prstTxWarp prst="textInflate">
-    ///         </a:prstTxWarp>
-    ///       <a:spAutoFit/>
-    ///     </a:bodyPr>
-    ///     <a:lstStyle/>
-    ///     <a:p>
-    ///       …
-    ///       <a:t>Sample Text</a:t>
-    ///       …
-    ///     </a:p>
-    ///   </p:txBody>
-    /// </p:sp>
-    /// ```
-    ///
-    /// In the above example a preset text shape geometry has been used to define the warping
-    /// shape. The shape utilized here is the sun shape.
-    pub preset: TextShapeType,
-
-    /// The list of adjust values used to represent this preset text shape.
-    pub adjust_value_list: Vec<GeomGuide>,
-}
-
-impl PresetTextShape {
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let preset_attr = xml_node
-            .attribute("prst")
-            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "prst"))?;
-        let preset = preset_attr.parse()?;
-
-        let mut adjust_value_list = Vec::new();
-        if let Some(node) = xml_node.child_nodes.get(0) {
-            for av_node in &node.child_nodes {
-                adjust_value_list.push(GeomGuide::from_xml_element(av_node)?);
-            }
-        }
-
-        Ok(Self {
-            preset,
-            adjust_value_list,
-        })
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct GeomRect {
-    /// Specifies the x coordinate of the left edge for a shape text rectangle. The units for this
-    /// edge is specified in EMUs as the positioning here is based on the shape coordinate
-    /// system. The width and height for this coordinate system are specified within the ext
-    /// transform element.
-    pub left: AdjCoordinate,
-
-    /// Specifies the y coordinate of the top edge for a shape text rectangle. The units for this
-    /// edge is specified in EMUs as the positioning here is based on the shape coordinate
-    /// system. The width and height for this coordinate system are specified within the ext
-    /// transform element.
-    pub top: AdjCoordinate,
-
-    /// Specifies the x coordinate of the right edge for a shape text rectangle. The units for this
-    /// edge is specified in EMUs as the positioning here is based on the shape coordinate
-    /// system. The width and height for this coordinate system are specified within the ext
-    /// transform element.
-    pub right: AdjCoordinate,
-
-    /// Specifies the y coordinate of the bottom edge for a shape text rectangle. The units for
-    /// this edge is specified in EMUs as the positioning here is based on the shape coordinate
-    /// system. The width and height for this coordinate system are specified within the ext
-    /// transform element.
-    pub bottom: AdjCoordinate,
-}
-
-impl GeomRect {
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut left = None;
-        let mut top = None;
-        let mut right = None;
-        let mut bottom = None;
-
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "l" => left = Some(value.parse()?),
-                "t" => top = Some(value.parse()?),
-                "r" => right = Some(value.parse()?),
-                "b" => bottom = Some(value.parse()?),
-                _ => (),
-            }
-        }
-
-        let left = left.ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "l"))?;
-        let top = top.ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "t"))?;
-        let right = right.ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "r"))?;
-        let bottom = bottom.ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "b"))?;
-
-        Ok(Self {
-            left,
-            top,
-            right,
-            bottom,
-        })
-    }
-}
-
-#[derive(Debug, Clone)]
 pub enum Geometry {
     /// This element specifies the existence of a custom geometric shape. This shape consists of a series of lines and
     /// curves described within a creation path. In addition to this there can also be adjust values, guides, adjust
@@ -1351,5 +1217,138 @@ impl Geometry {
             )?))),
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_Geometry").into()),
         }
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct PresetTextShape {
+    /// Specifies the preset geometry that is used for a shape warp on a piece of text. This preset
+    /// can have any of the values in the enumerated list for TextShapeType. This attribute
+    /// is required in order for a text warp to be rendered.
+    ///
+    /// # Xml example
+    ///
+    /// ```xml
+    /// <p:sp>
+    ///   <p:txBody>
+    ///     <a:bodyPr wrap="none" rtlCol="0">
+    ///       <a:prstTxWarp prst="textInflate">
+    ///         </a:prstTxWarp>
+    ///       <a:spAutoFit/>
+    ///     </a:bodyPr>
+    ///     <a:lstStyle/>
+    ///     <a:p>
+    ///       …
+    ///       <a:t>Sample Text</a:t>
+    ///       …
+    ///     </a:p>
+    ///   </p:txBody>
+    /// </p:sp>
+    /// ```
+    ///
+    /// In the above example a preset text shape geometry has been used to define the warping
+    /// shape. The shape utilized here is the sun shape.
+    pub preset: TextShapeType,
+
+    /// The list of adjust values used to represent this preset text shape.
+    pub adjust_value_list: Vec<GeomGuide>,
+}
+
+impl PresetTextShape {
+    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+        let preset_attr = xml_node
+            .attribute("prst")
+            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "prst"))?;
+        let preset = preset_attr.parse()?;
+
+        let mut adjust_value_list = Vec::new();
+        if let Some(node) = xml_node.child_nodes.get(0) {
+            for av_node in &node.child_nodes {
+                adjust_value_list.push(GeomGuide::from_xml_element(av_node)?);
+            }
+        }
+
+        Ok(Self {
+            preset,
+            adjust_value_list,
+        })
+    }
+}
+
+/// This element specifies the existence of a connection site on a custom shape. A connection site allows a cxnSp to
+/// be attached to this shape. This connection is maintained when the shape is repositioned within the document. It
+/// should be noted that this connection is placed within the shape bounding box using the transform coordinate
+/// system which is also called the shape coordinate system, as it encompasses the entire shape. The width and
+/// height for this coordinate system are specified within the ext transform element.
+///
+/// # Note
+///
+/// The transform coordinate system is different from a path coordinate system as it is per shape instead of
+/// per path within the shape.
+///
+/// # Xml example
+///
+/// Consider the following custom geometry that has two connection sites specified. One connection is
+/// located at the bottom left of the shape and the other at the bottom right. The following DrawingML would
+/// describe such a custom geometry.
+///
+/// ```xml
+/// <a:xfrm>
+///   <a:off x="3200400" y="1600200"/>
+///   <a:ext cx="1705233" cy="679622"/>
+/// </a:xfrm>
+/// <a:custGeom>
+///   <a:avLst/>
+///   <a:gdLst/>
+///   <a:ahLst/>
+///   <a:cxnLst>
+///     <a:cxn ang="0">
+///       <a:pos x="0" y="679622"/>
+///     </a:cxn>
+///     <a:cxn ang="0">
+///       <a:pos x="1705233" y="679622"/>
+///     </a:cxn>
+///   </a:cxnLst>
+///   <a:rect l="0" t="0" r="0" b="0"/>
+///   <a:pathLst>
+///     <a:path w="2" h="2">
+///       <a:moveTo>
+///         <a:pt x="0" y="2"/>
+///       </a:moveTo>
+///       <a:lnTo>
+///         <a:pt x="2" y="2"/>
+///       </a:lnTo>
+///       <a:lnTo>
+///         <a:pt x="1" y="0"/>
+///       </a:lnTo>
+///       <a:close/>
+///     </a:path>
+///   </a:pathLst>
+/// </a:custGeom>
+/// ```
+#[derive(Debug, Clone)]
+pub struct ConnectionSite {
+    /// Specifies the incoming connector angle. This angle is the angle around the connection
+    /// site that an incoming connector tries to be routed to. This allows connectors to know
+    /// where the shape is in relation to the connection site and route connectors so as to avoid
+    /// any overlap with the shape.
+    pub angle: AdjAngle,
+    pub position: AdjPoint2D,
+}
+
+impl ConnectionSite {
+    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+        let angle_attr = xml_node
+            .attribute("ang")
+            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "ang"))?;
+        let angle = angle_attr.parse()?;
+
+        let pos_node = xml_node
+            .child_nodes
+            .get(0)
+            .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "pos"))?;
+        let position = AdjPoint2D::from_xml_element(pos_node)?;
+
+        Ok(Self { angle, position })
     }
 }

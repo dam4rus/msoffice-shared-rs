@@ -1,13 +1,13 @@
-use crate::xml::XmlNode;
 use crate::drawingml::{
-    styles::{StyleMatrix, FontScheme, DefaultShapeDefinition},
-    colors::{CustomColor, Color},
-    simpletypes::{ColorSchemeIndex},
+    colors::{Color, CustomColor},
+    simpletypes::ColorSchemeIndex,
+    styles::{DefaultShapeDefinition, FontScheme, StyleMatrix},
 };
 use crate::error::{MissingAttributeError, MissingChildNodeError};
-use zip::read::ZipFile;
+use crate::xml::XmlNode;
 use log::trace;
 use std::io::Read;
+use zip::read::ZipFile;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
@@ -423,7 +423,7 @@ pub struct ObjectStyleDefaults {
     /// In this example, we see that the default line for the document is being defined as a themed line which
     /// references the subtle line style with idx equal to 1.
     pub line_definition: Option<Box<DefaultShapeDefinition>>,
-    
+
     /// This element defines the default formatting which is applied to text in a document by default. The default
     /// formatting can and should be applied to the shape when it is initially inserted into a document.
     ///
@@ -696,4 +696,3 @@ impl BaseStyles {
         })
     }
 }
-

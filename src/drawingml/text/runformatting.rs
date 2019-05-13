@@ -1,11 +1,11 @@
-use crate::xml::XmlNode;
+use super::paragraphs::{TextCharacterProperties, TextField, TextLineBreak};
 use crate::drawingml::{
-    shapeprops::FillProperties,
     core::LineProperties,
+    shapeprops::FillProperties,
     simpletypes::{Panose, TextTypeFace},
 };
-use super::paragraphs::{TextCharacterProperties, TextField, TextLineBreak};
-use crate::error::{NotGroupMemberError, MissingChildNodeError, MissingAttributeError};
+use crate::error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError};
+use crate::xml::XmlNode;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
@@ -441,4 +441,3 @@ impl TextUnderlineFill {
         }
     }
 }
-
