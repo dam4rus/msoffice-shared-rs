@@ -33,6 +33,102 @@ impl TextLineBreak {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct TextField {
+    /// Specifies the unique to this document, host specified token that is used to identify the
+    /// field. This token is generated when the text field is created and persists in the file as the
+    /// same token until the text field is removed. Any application should check the document
+    /// for conflicting tokens before assigning a new token to a text field.
+    pub id: Guid,
+
+    /// Specifies the type of text that should be used to update this text field. This is used to
+    /// inform the rendering application what text it should use to update this text field. There
+    /// are no specific syntax restrictions placed on this attribute. The generating application can
+    /// use it to represent any text that should be updated before rendering the presentation.
+    ///
+    /// Reserved values:
+    ///
+    /// |Value          |Description                                            |
+    /// |---------------|-------------------------------------------------------|
+    /// |slidenum       |presentation slide number                              |
+    /// |datetime       |default date time format for the rendering application |
+    /// |datetime1      |MM/DD/YYYY date time format                            |
+    /// |datetime2      |Day, Month DD, YYYY date time format                   |
+    /// |datetime3      |DD Month YYYY date time format                         |
+    /// |datetime4      |Month DD, YYYY date time format                        |
+    /// |datetime5      |DD-Mon-YY date time format                             |
+    /// |datetime6      |Month YY date time format                              |
+    /// |datetime7      |Mon-YY date time format                                |
+    /// |datetime8      |MM/DD/YYYY hh:mm AM/PM date time format                |
+    /// |datetime9      |MM/DD/YYYY hh:mm:ss AM/PM date time format             |
+    /// |datetime10     |hh:mm date time format                                 |
+    /// |datetime11     |hh:mm:ss date time format                              |
+    /// |datetime12     |hh:mm AM/PM date time format                           |
+    /// |datetime13     |hh:mm:ss: AM/PM date time format                       |
+    pub field_type: Option<String>,
+
+    /// This element contains all run level text properties for the text runs within a containing paragraph.
+    ///
+    /// # Xml example
+    ///
+    /// ```xml
+    /// <a:p>
+    ///   …
+    ///   <a:rPr u="sng"/>
+    ///   …
+    ///   <a:t>Some Text</a:t>
+    ///   …
+    /// </a:p>
+    /// ```
+    ///
+    /// The run of text described above is formatting with a single underline of text matching color.
+    pub char_properties: Option<Box<TextCharacterProperties>>,
+
+    /// Specifies the paragraph properties for this text field
+    pub paragraph_properties: Option<Box<TextParagraph>>,
+
+    /// The text of this text field.
+    pub text: Option<String>,
+}
+
+impl TextField {
+    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+        let mut id = None;
+        let mut field_type = None;
+
+        for (attr, value) in &xml_node.attributes {
+            match attr.as_str() {
+                "id" => id = Some(value.clone()),
+                "type" => field_type = Some(value.clone()),
+                _ => (),
+            }
+        }
+
+        let id = id.ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "id"))?;
+
+        let mut char_properties = None;
+        let mut paragraph_properties = None;
+        let mut text = None;
+
+        for child_node in &xml_node.child_nodes {
+            match child_node.local_name() {
+                "rPr" => char_properties = Some(Box::new(TextCharacterProperties::from_xml_element(child_node)?)),
+                "pPr" => paragraph_properties = Some(Box::new(TextParagraph::from_xml_element(child_node)?)),
+                "t" => text = child_node.text.clone(),
+                _ => (),
+            }
+        }
+
+        Ok(Self {
+            id,
+            field_type,
+            char_properties,
+            paragraph_properties,
+            text,
+        })
+    }
+}
+
 #[derive(Default, Debug, Clone)]
 pub struct TextParagraphProperties {
     /// Specifies the left margin of the paragraph. This is specified in addition to the text body
@@ -1000,102 +1096,6 @@ impl TextCharacterProperties {
         }
 
         Ok(instance)
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct TextField {
-    /// Specifies the unique to this document, host specified token that is used to identify the
-    /// field. This token is generated when the text field is created and persists in the file as the
-    /// same token until the text field is removed. Any application should check the document
-    /// for conflicting tokens before assigning a new token to a text field.
-    pub id: Guid,
-
-    /// Specifies the type of text that should be used to update this text field. This is used to
-    /// inform the rendering application what text it should use to update this text field. There
-    /// are no specific syntax restrictions placed on this attribute. The generating application can
-    /// use it to represent any text that should be updated before rendering the presentation.
-    ///
-    /// Reserved values:
-    ///
-    /// |Value          |Description                                            |
-    /// |---------------|-------------------------------------------------------|
-    /// |slidenum       |presentation slide number                              |
-    /// |datetime       |default date time format for the rendering application |
-    /// |datetime1      |MM/DD/YYYY date time format                            |
-    /// |datetime2      |Day, Month DD, YYYY date time format                   |
-    /// |datetime3      |DD Month YYYY date time format                         |
-    /// |datetime4      |Month DD, YYYY date time format                        |
-    /// |datetime5      |DD-Mon-YY date time format                             |
-    /// |datetime6      |Month YY date time format                              |
-    /// |datetime7      |Mon-YY date time format                                |
-    /// |datetime8      |MM/DD/YYYY hh:mm AM/PM date time format                |
-    /// |datetime9      |MM/DD/YYYY hh:mm:ss AM/PM date time format             |
-    /// |datetime10     |hh:mm date time format                                 |
-    /// |datetime11     |hh:mm:ss date time format                              |
-    /// |datetime12     |hh:mm AM/PM date time format                           |
-    /// |datetime13     |hh:mm:ss: AM/PM date time format                       |
-    pub field_type: Option<String>,
-
-    /// This element contains all run level text properties for the text runs within a containing paragraph.
-    ///
-    /// # Xml example
-    ///
-    /// ```xml
-    /// <a:p>
-    ///   …
-    ///   <a:rPr u="sng"/>
-    ///   …
-    ///   <a:t>Some Text</a:t>
-    ///   …
-    /// </a:p>
-    /// ```
-    ///
-    /// The run of text described above is formatting with a single underline of text matching color.
-    pub char_properties: Option<Box<TextCharacterProperties>>,
-
-    /// Specifies the paragraph properties for this text field
-    pub paragraph_properties: Option<Box<TextParagraph>>,
-
-    /// The text of this text field.
-    pub text: Option<String>,
-}
-
-impl TextField {
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut id = None;
-        let mut field_type = None;
-
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "id" => id = Some(value.clone()),
-                "type" => field_type = Some(value.clone()),
-                _ => (),
-            }
-        }
-
-        let id = id.ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "id"))?;
-
-        let mut char_properties = None;
-        let mut paragraph_properties = None;
-        let mut text = None;
-
-        for child_node in &xml_node.child_nodes {
-            match child_node.local_name() {
-                "rPr" => char_properties = Some(Box::new(TextCharacterProperties::from_xml_element(child_node)?)),
-                "pPr" => paragraph_properties = Some(Box::new(TextParagraph::from_xml_element(child_node)?)),
-                "t" => text = child_node.text.clone(),
-                _ => (),
-            }
-        }
-
-        Ok(Self {
-            id,
-            field_type,
-            char_properties,
-            paragraph_properties,
-            text,
-        })
     }
 }
 
