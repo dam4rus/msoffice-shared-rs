@@ -1,6 +1,6 @@
 [package]
 name = "msoffice_shared"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["Kalmár Róbert <rfrostkalmar@gmail.com>"]
 edition = "2018"
 description = "Library shared by other MS OpenOffice file format libraries"
@@ -11,11 +11,11 @@ homepage = "https://github.com/dam4rus/msoffice-shared-rs"
 readme = "README.md"
 
 [dependencies]
-quick-xml = "0.13.1"
-zip = "0.4.2"
+quick-xml = "0.14.0"
+zip = "0.5.2"
 log = "0.4.6"
 enum_from_str = "0.1.0"
 enum_from_str_derive = "0.1.0"
 
 [dev-dependencies]
-simple_logger = "1.0.1"
+simple_logger = "1.2.0"
