@@ -9,6 +9,9 @@ license = "MIT"
 repository = "https://github.com/dam4rus/msoffice-shared-rs.git"
 homepage = "https://github.com/dam4rus/msoffice-shared-rs"
 readme = "README.md"
+exclude = [
+    "tests/presentation.xml",
+]
 
 [dependencies]
 quick-xml = "0.14.0"
