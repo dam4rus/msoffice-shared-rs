@@ -316,6 +316,48 @@ impl NonVisualGraphicFrameProperties {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct ContentPartLocking {
+    pub locking: Locking,
+}
+
+impl ContentPartLocking {
+    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+        let mut locking: Locking = Default::default();
+
+        for (attr, value) in &xml_node.attributes {
+            locking.try_attribute_parse(attr, value)?;
+        }
+
+        Ok(Self { locking })
+    }
+}
+
+#[derive(Default, Debug, Clone)]
+pub struct NonVisualContentPartProperties {
+    pub locking: Option<ContentPartLocking>,
+    pub is_comment: Option<bool>, // default=true
+}
+
+impl NonVisualContentPartProperties {
+    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+        let mut instance: Self = Default::default();
+        instance.is_comment = match xml_node.attribute("isComment") {
+            Some(attr) => Some(parse_xml_bool(attr)?),
+            None => None,
+        };
+
+        for child_node in &xml_node.child_nodes {
+            if child_node.local_name() == "cpLocks" {
+                instance.locking = Some(ContentPartLocking::from_xml_element(child_node)?);
+            }
+        }
+
+        Ok(instance)
+    }
+    
+}
+
 #[derive(Default, Debug, Clone)]
 pub struct NonVisualGroupDrawingShapeProps {
     pub locks: Option<GroupLocking>,
