@@ -355,7 +355,6 @@ impl NonVisualContentPartProperties {
 
         Ok(instance)
     }
-    
 }
 
 #[derive(Default, Debug, Clone)]

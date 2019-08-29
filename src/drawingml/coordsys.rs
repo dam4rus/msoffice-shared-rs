@@ -4,7 +4,7 @@ use crate::xml::{parse_xml_bool, XmlNode};
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct Point2D {
     /// Specifies a coordinate on the x-axis. The origin point for this coordinate shall be specified
     /// by the parent XML element.
@@ -16,6 +16,10 @@ pub struct Point2D {
 }
 
 impl Point2D {
+    pub fn new(x: Coordinate, y: Coordinate) -> Self {
+        Self { x, y }
+    }
+
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         let mut x = None;
         let mut y = None;
@@ -35,7 +39,7 @@ impl Point2D {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub struct PositiveSize2D {
     /// Specifies the length of the extents rectangle in EMUs. This rectangle shall dictate the size
     /// of the object as displayed (the result of any scaling to the original object).
@@ -46,6 +50,10 @@ pub struct PositiveSize2D {
 }
 
 impl PositiveSize2D {
+    pub fn new(width: PositiveCoordinate, height: PositiveCoordinate) -> Self {
+        Self { width, height }
+    }
+
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         let mut opt_width = None;
         let mut opt_height = None;

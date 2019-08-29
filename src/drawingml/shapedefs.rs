@@ -734,7 +734,6 @@ impl GeomGuide {
         let formula = formula.ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "fmla"))?;
         Ok(Self { name, formula })
     }
-
 }
 
 #[derive(Debug, Clone)]

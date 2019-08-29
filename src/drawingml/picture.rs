@@ -1,8 +1,5 @@
-use super::{NonVisualDrawingProps, NonVisualPictureProperties, BlipFillProperties, ShapeProperties};
-use crate::{
-    xml::XmlNode,
-    error::MissingChildNodeError,
-};
+use super::{BlipFillProperties, NonVisualDrawingProps, NonVisualPictureProperties, ShapeProperties};
+use crate::{error::MissingChildNodeError, xml::XmlNode};
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
@@ -20,18 +17,23 @@ impl PictureNonVisual {
         for child_node in &xml_node.child_nodes {
             match child_node.local_name() {
                 "cNvPr" => non_visual_drawing_props = Some(NonVisualDrawingProps::from_xml_element(child_node)?),
-                "cNvPicPr" => non_visual_picture_props = Some(NonVisualPictureProperties::from_xml_element(child_node)?),
+                "cNvPicPr" => {
+                    non_visual_picture_props = Some(NonVisualPictureProperties::from_xml_element(child_node)?)
+                }
                 _ => (),
             }
         }
 
-        let non_visual_drawing_props = non_visual_drawing_props
-            .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "cNvPr"))?;
+        let non_visual_drawing_props =
+            non_visual_drawing_props.ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "cNvPr"))?;
 
-        let non_visual_picture_props = non_visual_picture_props
-            .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "cNvPicPr"))?;
-        
-        Ok(Self { non_visual_drawing_props, non_visual_picture_props })
+        let non_visual_picture_props =
+            non_visual_picture_props.ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "cNvPicPr"))?;
+
+        Ok(Self {
+            non_visual_drawing_props,
+            non_visual_picture_props,
+        })
     }
 }
 
@@ -57,14 +59,13 @@ impl Picture {
             }
         }
 
-        let non_visual_props = non_visual_props
-            .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "nvPicPr"))?;
+        let non_visual_props =
+            non_visual_props.ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "nvPicPr"))?;
 
-        let blip_fill_props = blip_fill_props
-            .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "blipFill"))?;
-        
-        let shape_props = shape_props
-            .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "spPr"))?;
+        let blip_fill_props =
+            blip_fill_props.ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "blipFill"))?;
+
+        let shape_props = shape_props.ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "spPr"))?;
 
         Ok(Self {
             non_visual_props,
