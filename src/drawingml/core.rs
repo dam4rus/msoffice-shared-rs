@@ -445,6 +445,12 @@ impl NonVisualDrawingShapeProps {
     }
 }
 
+/// ```xml example
+/// <docPr id="1" name="Object name" descr="Some description" title="Title of the object">
+///     <a:hlinkClick r:id="rId2" tooltip="Some Sample Text"/>
+///     <a:hlinkHover r:id="rId2" tooltip="Some Sample Text"/>
+/// </docPr>
+/// ```
 #[derive(Debug, Clone, PartialEq)]
 pub struct NonVisualDrawingProps {
     /// Specifies a unique identifier for the current DrawingML object within the current
@@ -548,7 +554,7 @@ impl NonVisualDrawingProps {
 
         for (attr, value) in &xml_node.attributes {
             match attr.as_str() {
-                "id" => opt_id = Some(value.parse::<DrawingElementId>()?),
+                "id" => opt_id = Some(value.parse()?),
                 "name" => opt_name = Some(value.clone()),
                 "descr" => description = Some(value.clone()),
                 "hidden" => hidden = Some(parse_xml_bool(value)?),
