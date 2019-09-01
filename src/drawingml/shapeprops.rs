@@ -14,7 +14,7 @@ use log::{error, trace};
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct RelativeRect {
     /// Specifies the left edge of the rectangle.
     pub left: Option<Percentage>,
@@ -51,7 +51,7 @@ impl RelativeRect {
 ///
 /// Alpha (Opacity) values less than the threshold are changed to 0 (fully transparent) and alpha values greater than
 /// or equal to the threshold are changed to 100% (fully opaque).
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AlphaBiLevelEffect {
     // Specifies the threshold value for the alpha bi-level effect.
     pub threshold: PositiveFixedPercentage,
@@ -70,7 +70,7 @@ impl AlphaBiLevelEffect {
 /// This element represents an alpha inverse effect.
 ///
 /// Alpha (opacity) values are inverted by subtracting from 100%.
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct AlphaInverseEffect {
     pub color: Option<Color>,
 }
@@ -90,7 +90,7 @@ impl AlphaInverseEffect {
 ///
 /// Effect alpha (opacity) values are multiplied by a fixed percentage. The effect container specifies an effect
 /// containing alpha values to modulate.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AlphaModulateEffect {
     pub container: EffectContainer,
 }
@@ -111,7 +111,7 @@ impl AlphaModulateEffect {
 /// This element represents an alpha modulate fixed effect.
 ///
 /// Effect alpha (opacity) values are multiplied by a fixed percentage.
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct AlphaModulateFixedEffect {
     /// Specifies the percentage amount to scale the alpha.
     ///
@@ -134,7 +134,7 @@ impl AlphaModulateFixedEffect {
 ///
 /// This is equivalent to an alpha ceiling, followed by alpha blur, followed by either an alpha ceiling (positive radius)
 /// or alpha floor (negative radius).
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct AlphaOutsetEffect {
     /// Specifies the radius of outset/inset.
     pub radius: Option<Coordinate>,
@@ -154,7 +154,7 @@ impl AlphaOutsetEffect {
 /// This element specifies an alpha replace effect.
 ///
 /// Effect alpha (opacity) values are replaced by a fixed alpha.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AlphaReplaceEffect {
     /// Specifies the new opacity value.
     pub alpha: PositiveFixedPercentage,
@@ -174,7 +174,7 @@ impl AlphaReplaceEffect {
 /// This element specifies a bi-level (black/white) effect. Input colors whose luminance is less than the specified
 /// threshold value are changed to black. Input colors whose luminance are greater than or equal the specified
 /// value are set to white. The alpha effect values are unaffected by this effect.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct BiLevelEffect {
     /// Specifies the luminance threshold for the Bi-Level effect. Values greater than or equal to
     /// the threshold are set to white. Values lesser than the threshold are set to black.
@@ -194,7 +194,7 @@ impl BiLevelEffect {
 
 /// This element specifies a blend of several effects. The container specifies the raw effects to blend while the blend
 /// mode specifies how the effects are to be blended.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct BlendEffect {
     /// Specifies how to blend the two effects.
     pub blend: BlendMode,
@@ -220,7 +220,7 @@ impl BlendEffect {
 
 /// This element specifies a blur effect that is applied to the entire shape, including its fill. All color channels,
 /// including alpha, are affected.
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct BlurEffect {
     /// Specifies the radius of blur.
     ///
@@ -258,7 +258,7 @@ impl BlurEffect {
 }
 
 /// This element specifies a Color Change Effect. Instances of clrFrom are replaced with instances of clrTo.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ColorChangeEffect {
     /// Specifies whether alpha values are considered for the effect. Effect alpha values are
     /// considered if use_alpha is true, else they are ignored.
@@ -317,7 +317,7 @@ impl ColorChangeEffect {
 
 /// This element specifies a solid color replacement value. All effect colors are changed to a fixed color. Alpha values
 /// are unaffected.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ColorReplaceEffect {
     pub color: Color,
 }
@@ -336,7 +336,7 @@ impl ColorReplaceEffect {
 
 /// This element specifies a luminance effect. Brightness linearly shifts all colors closer to white or black.
 /// Contrast scales all colors to be either closer or further apart.
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct LuminanceEffect {
     /// Specifies the percent to change the brightness.
     pub brightness: Option<FixedPercentage>,
@@ -365,7 +365,7 @@ impl LuminanceEffect {
 /// This element specifies a duotone effect.
 ///
 /// For each pixel, combines clr1 and clr2 through a linear interpolation to determine the new color for that pixel.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DuotoneEffect {
     pub colors: [Color; 2],
 }
@@ -391,7 +391,7 @@ impl DuotoneEffect {
 }
 
 /// This element specifies a fill which is one of blipFill, gradFill, grpFill, noFill, pattFill or solidFill.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FillEffect {
     pub fill_properties: FillProperties,
 }
@@ -410,7 +410,7 @@ impl FillEffect {
 
 /// This element specifies a fill overlay effect. A fill overlay can be used to specify an additional fill for an object and
 /// blend the two fills together.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FillOverlayEffect {
     /// Specifies how to blend the fill with the base effect.
     pub blend_mode: BlendMode,
@@ -435,7 +435,7 @@ impl FillOverlayEffect {
 }
 
 /// This element specifies a glow effect, in which a color blurred outline is added outside the edges of the object.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GlowEffect {
     /// Specifies the radius of the glow.
     ///
@@ -463,7 +463,7 @@ impl GlowEffect {
 
 /// This element specifies a hue/saturation/luminance effect. The hue, saturation, and luminance can each be
 /// adjusted relative to its current value.
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct HslEffect {
     /// Specifies the number of degrees by which the hue is adjusted.
     ///
@@ -500,7 +500,7 @@ impl HslEffect {
 
 /// This element specifies an inner shadow effect. A shadow is applied within the edges of the object according to
 /// the parameters given by the attributes.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct InnerShadowEffect {
     /// Specifies the blur radius.
     ///
@@ -550,7 +550,7 @@ impl InnerShadowEffect {
 }
 
 /// This element specifies an Outer Shadow Effect.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct OuterShadowEffect {
     /// Specifies the blur radius of the shadow.
     ///
@@ -653,7 +653,7 @@ impl OuterShadowEffect {
 /// the color, direction, and distance parameters of the corresponding outer shadow. Additionally, the
 /// rotateWithShape attribute of corresponding outer shadow is always false. Other non-default parameters of
 /// the outer shadow are dependent on the prst attribute.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PresetShadowEffect {
     /// Specifies which preset shadow to use.
     pub preset: PresetShadowVal,
@@ -703,7 +703,7 @@ impl PresetShadowEffect {
 }
 
 /// This element specifies a reflection effect.
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct ReflectionEffect {
     /// Specifies the blur radius.
     ///
@@ -806,7 +806,7 @@ impl ReflectionEffect {
 
 /// This element specifies a relative offset effect. Sets up a new origin by offsetting relative to the size of the
 /// previous effect.
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct RelativeOffsetEffect {
     /// Specifies the X offset.
     ///
@@ -840,7 +840,7 @@ impl RelativeOffsetEffect {
 }
 
 /// This element specifies a soft edge effect. The edges of the shape are blurred, while the fill is not affected.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SoftEdgesEffect {
     /// Specifies the radius of blur to apply to the edges.
     pub radius: PositiveCoordinate,
@@ -859,7 +859,7 @@ impl SoftEdgesEffect {
 }
 
 /// This element specifies a tint effect. Shifts effect color values towards/away from hue by the specified amount.
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct TintEffect {
     /// Specifies the hue towards which to tint.
     ///
@@ -895,7 +895,7 @@ impl TintEffect {
 /// sx          tan(kx)     tx      x
 /// tan(ky)     sy          ty  *   y
 /// 0           0           1       1
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct TransformEffect {
     /// Specifies a percentage by which to horizontally scale the object.
     ///
@@ -953,7 +953,7 @@ impl TransformEffect {
 }
 
 // TODO: maybe Box ReflectionEffect variant (sizeof==120)
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Effect {
     Container(EffectContainer),
 
@@ -1069,7 +1069,7 @@ impl Effect {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum BlipEffect {
     AlphaBiLevel(AlphaBiLevelEffect),
 
@@ -1149,7 +1149,7 @@ impl BlipEffect {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum EffectProperties {
     /// This element specifies a list of effects. Effects in an effectLst are applied in the default order by the rendering
     /// engine. The following diagrams illustrate the order in which effects are applied, both for shapes and for group
@@ -1205,7 +1205,7 @@ impl EffectProperties {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct EffectList {
     pub blur: Option<BlurEffect>,
     pub fill_overlay: Option<FillOverlayEffect>,
@@ -1241,7 +1241,7 @@ impl EffectList {
 }
 
 /// This element specifies an Effect Container. It is a list of effects.
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct EffectContainer {
     /// Specifies the kind of container, either sibling or tree.
     pub container_type: Option<EffectContainerType>,
@@ -1292,7 +1292,7 @@ impl EffectContainer {
 ///
 /// The other child element defines the properties of the gradient fill (there are two styles-- a linear shade style as
 /// well as a path shade style)
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct GradientFillProperties {
     /// Specifies the direction(s) in which to flip the gradient while tiling.
     ///
@@ -1383,7 +1383,7 @@ impl GradientFillProperties {
 }
 
 /// Blip
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct Blip {
     /// Specifies the identification information for an embedded picture. This attribute is used to
     /// specify an image that resides locally within the file.
@@ -1431,7 +1431,7 @@ impl Blip {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct BlipFillProperties {
     /// Specifies the DPI (dots per inch) used to calculate the size of the blip. If not present or
     /// zero, the DPI in the blip is used.
@@ -1510,7 +1510,7 @@ impl BlipFillProperties {
 
 /// This element specifies a dash stop primitive. Dashing schemes are built by specifying an ordered list of dash stop
 /// primitive. A dash stop primitive consists of a dash and a space.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DashStop {
     /// Specifies the length of the dash relative to the line width.
     pub dash_length: PositivePercentage,
@@ -1542,7 +1542,7 @@ impl DashStop {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GradientStop {
     /// The position of this gradient stop.
     pub position: PositiveFixedPercentage,
@@ -1571,7 +1571,7 @@ impl GradientStop {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct LineEndProperties {
     /// Specifies the line end decoration, such as a triangle or arrowhead.
     pub end_type: Option<LineEndType>,
@@ -1600,7 +1600,7 @@ impl LineEndProperties {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct LinearShadeProperties {
     /// Specifies the direction of color change for the gradient. To define this angle, let its value
     /// be x measured clockwise. Then ( -sin x, cos x ) is a vector parallel to the line of constant
@@ -1635,7 +1635,7 @@ impl LinearShadeProperties {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct PathShadeProperties {
     /// Specifies the shape of the path to follow.
     pub path: Option<PathShadeType>,
@@ -1680,7 +1680,7 @@ impl PathShadeProperties {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ShadeProperties {
     /// This element specifies a linear gradient.
     Linear(LinearShadeProperties),
@@ -1708,7 +1708,7 @@ impl ShadeProperties {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct PatternFillProperties {
     /// Specifies one of a set of preset patterns to fill the object.
     pub preset: Option<PresetPatternVal>,
@@ -1753,7 +1753,7 @@ impl PatternFillProperties {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum FillProperties {
     /// This element specifies that no fill is applied to the parent element.
     NoFill,
@@ -1825,7 +1825,7 @@ impl FillProperties {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum LineJoinProperties {
     /// This element specifies that lines joined together have a round join.
     Round,
@@ -1866,7 +1866,7 @@ impl LineJoinProperties {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct StretchInfoProperties {
     /// This element specifies a fill rectangle. When stretching of an image is specified, a source rectangle, srcRect, is
     /// scaled to fit the specified fill rectangle.
@@ -1903,7 +1903,7 @@ impl StretchInfoProperties {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct TileInfoProperties {
     /// Specifies additional horizontal offset after alignment.
     pub translate_x: Option<Coordinate>,
@@ -1946,7 +1946,7 @@ impl TileInfoProperties {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum FillModeProperties {
     /// This element specifies that a BLIP should be tiled to fill the available space. This element defines a "tile"
     /// rectangle within the bounding box. The image is encompassed within the tile rectangle, and the tile rectangle is
@@ -1979,7 +1979,7 @@ impl FillModeProperties {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum LineFillProperties {
     /// This element specifies that no fill is applied to the parent element.
     NoFill,
@@ -2028,7 +2028,7 @@ impl LineFillProperties {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum LineDashProperties {
     /// This element specifies that a preset line dashing scheme should be used.
     PresetDash(PresetLineDashVal),

@@ -10,7 +10,7 @@ use crate::xml::XmlNode;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ColorTransform {
     /// This element specifies a lighter version of its input color. A 10% tint is 10% of the input color combined with
     /// 90% white.
@@ -587,7 +587,7 @@ impl ColorTransform {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ScRgbColor {
     /// Specifies the percentage of red.
     pub r: Percentage,
@@ -638,7 +638,7 @@ impl ScRgbColor {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SRgbColor {
     pub value: u32,
 
@@ -668,7 +668,7 @@ impl SRgbColor {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct HslColor {
     /// Specifies the angular value describing the wavelength. Expressed in 1/6000ths of a
     /// degree.
@@ -723,7 +723,7 @@ impl HslColor {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SystemColor {
     /// Specifies the system color value.
     pub value: SystemColorVal,
@@ -766,7 +766,7 @@ impl SystemColor {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PresetColor {
     pub value: PresetColorVal,
 
@@ -796,7 +796,7 @@ impl PresetColor {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SchemeColor {
     pub value: SchemeColorVal,
 
@@ -826,7 +826,7 @@ impl SchemeColor {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Color {
     /// This element specifies a color using the red, green, blue RGB color model. Each component, red, green, and blue
     /// is expressed as a percentage from 0% to 100%. A linear gamma of 1.0 is assumed.
@@ -937,7 +937,7 @@ impl Color {
 /// This element defines a custom color. The custom colors are used within a custom color list to define custom
 /// colors that are extra colors that can be appended to a theme. This is useful within corporate scenarios where
 /// there is a set corporate color palette from which to work.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct CustomColor {
     /// The name of the color shown in the color picker.
     pub name: Option<String>,
@@ -959,7 +959,7 @@ impl CustomColor {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ColorMappingOverride {
     /// This element is a part of a choice for which color mapping is used within the document.
     /// If this element is specified, then we specifically use the color mapping defined in the master.

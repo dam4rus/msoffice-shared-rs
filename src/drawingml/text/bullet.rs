@@ -9,7 +9,7 @@ use crate::xml::XmlNode;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TextBulletColor {
     /// This element specifies that the color of the bullets for a paragraph should be of the same color as the text run
     /// within which each bullet is contained.
@@ -85,7 +85,7 @@ impl TextBulletColor {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TextBulletSize {
     /// This element specifies that the size of the bullets for a paragraph should be of the same point size as the text run
     /// within which each bullet is contained.
@@ -191,7 +191,7 @@ impl TextBulletSize {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TextBulletTypeface {
     /// This element specifies that the font of the bullets for a paragraph should be of the same font as the text run
     /// within which each bullet is contained.
@@ -260,7 +260,7 @@ impl TextBulletTypeface {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TextBullet {
     /// This element specifies that the paragraph within which it is applied is to have no bullet formatting applied to it.
     /// That is to say that there should be no bulleting found within the paragraph where this element is specified.
@@ -450,7 +450,7 @@ impl TextBullet {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TextAutonumberedBullet {
     /// Specifies the numbering scheme that is to be used. This allows for the describing of
     /// formats other than strictly numbers. For instance, a set of bullets can be represented by a
@@ -485,7 +485,7 @@ impl TextAutonumberedBullet {
 }
 
 /// This element specifies the list of styles associated with this body of text.
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct TextListStyle {
     /// This element specifies the paragraph properties that are to be applied when no other paragraph properties have
     /// been specified. If this attribute is omitted, then it is left to the application to decide the set of default paragraph

@@ -73,7 +73,7 @@ impl PositiveSize2D {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct Transform2D {
     /// Specifies the rotation of the Graphic Frame. The units for which this attribute is specified
     /// in reside within the simple type definition referenced below.
@@ -122,7 +122,7 @@ impl Transform2D {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct GroupTransform2D {
     /// Rotation. Specifies the clockwise rotation of a group in 1/64000 of a degree.
     ///

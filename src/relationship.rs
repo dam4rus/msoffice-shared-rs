@@ -6,7 +6,7 @@ use zip::read::ZipFile;
 pub type RelationshipId = String;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
-
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct Relationship {
     pub id: String,
     pub rel_type: String,

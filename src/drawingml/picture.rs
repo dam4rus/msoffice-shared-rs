@@ -3,7 +3,7 @@ use crate::{error::MissingChildNodeError, xml::XmlNode};
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PictureNonVisual {
     pub non_visual_drawing_props: NonVisualDrawingProps,
     pub non_visual_picture_props: NonVisualPictureProperties,
@@ -37,7 +37,7 @@ impl PictureNonVisual {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Picture {
     pub non_visual_props: PictureNonVisual,
     pub blip_fill_props: BlipFillProperties,

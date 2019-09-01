@@ -4,7 +4,7 @@ use crate::xml::XmlNode;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AudioCD {
     /// This element specifies the start point for a CD Audio sound element. Encompassed within this element are the
     /// time and track at which the sound should begin its playback. This element is used in conjunction with an Audio
@@ -61,7 +61,7 @@ impl AudioCD {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AudioFile {
     /// Specifies the identification information for a linked object. This attribute is used to
     /// specify the location of an object that does not reside within this file.
@@ -107,7 +107,7 @@ impl AudioFile {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AudioCDTime {
     /// Specifies which track of the CD this Audio begins playing on. This attribute is required and
     /// cannot be omitted.
@@ -138,7 +138,7 @@ impl AudioCDTime {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct QuickTimeFile {
     /// Specifies the identification information for a linked object. This attribute is used to
     /// specify the location of an object that does not reside within this file.
@@ -156,7 +156,7 @@ impl QuickTimeFile {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct VideoFile {
     /// Specifies the identification information for a linked video file. This attribute is used to
     /// specify the location of an object that does not reside within this file.
@@ -199,7 +199,7 @@ impl VideoFile {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct EmbeddedWAVAudioFile {
     /// Specifies the identification information for an embedded audio file. This attribute is used
     /// to specify the location of an object that resides locally within the file.
@@ -232,7 +232,7 @@ impl EmbeddedWAVAudioFile {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Media {
     /// This element specifies the existence of Audio from a CD. This element is specified within the non-visual
     /// properties of an object. The audio shall be attached to an object as this is how it is represented within the

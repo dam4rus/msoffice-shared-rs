@@ -10,7 +10,7 @@ use crate::xml::{parse_xml_bool, XmlNode};
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct TextBodyProperties {
     /// Specifies the rotation that is being applied to the text within the bounding box. If it not
     /// specified, the rotation of the accompanying shape is used. If it is specified, then this is
@@ -410,7 +410,7 @@ impl TextBodyProperties {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TextAutoFit {
     /// This element specifies that text within the text body should not be auto-fit to the bounding box. Auto-fitting is
     /// when text within a text box is scaled in order to remain inside the text box. If this element is omitted, then
@@ -541,7 +541,7 @@ impl TextAutoFit {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct TextNormalAutoFit {
     /// Specifies the percentage of the original font size to which each run in the text body is
     /// scaled. In order to auto-fit text within a bounding box it is sometimes necessary to

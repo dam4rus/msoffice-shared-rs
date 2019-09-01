@@ -18,7 +18,7 @@ use crate::xml::{parse_xml_bool, XmlNode};
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum AnimationGraphicalObjectBuildProperties {
     /// This element specifies how to build the animation for a diagram.
     ///
@@ -82,7 +82,7 @@ impl AnimationGraphicalObjectBuildProperties {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct AnimationDgmBuildProperties {
     /// Specifies how the chart is built. The animation animates the sub-elements in the
     /// container in the particular order defined by this attribute.
@@ -113,7 +113,7 @@ impl AnimationDgmBuildProperties {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct AnimationChartBuildProperties {
     /// Specifies how the chart is built. The animation animates the sub-elements in the
     /// container in the particular order defined by this attribute.
@@ -147,7 +147,7 @@ impl AnimationChartBuildProperties {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum AnimationElementChoice {
     /// This element specifies a reference to a diagram that should be animated within a sequence of slide animations.
     /// In addition to simply acting as a reference to a diagram there is also animation build steps defined.
@@ -185,7 +185,7 @@ impl AnimationElementChoice {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct AnimationDgmElement {
     /// Specifies the GUID of the shape for this build step in the animation.
     ///
@@ -216,7 +216,7 @@ impl AnimationDgmElement {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AnimationChartElement {
     /// Specifies the index of the series within the corresponding chart that should be animated.
     ///
@@ -260,7 +260,7 @@ impl AnimationChartElement {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct NonVisualConnectorProperties {
     /// This element specifies all locking properties for a connection shape. These properties inform the generating
     /// application about specific properties that have been previously locked and thus should not be changed.
@@ -292,7 +292,7 @@ impl NonVisualConnectorProperties {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct NonVisualGraphicFrameProperties {
     /// This element specifies all locking properties for a graphic frame. These properties inform the generating
     /// application about specific properties that have been previously locked and thus should not be changed.
@@ -316,7 +316,7 @@ impl NonVisualGraphicFrameProperties {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ContentPartLocking {
     pub locking: Locking,
 }
@@ -333,7 +333,7 @@ impl ContentPartLocking {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct NonVisualContentPartProperties {
     pub locking: Option<ContentPartLocking>,
     pub is_comment: Option<bool>, // default=true
@@ -357,7 +357,7 @@ impl NonVisualContentPartProperties {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct NonVisualGroupDrawingShapeProps {
     pub locks: Option<GroupLocking>,
 }
@@ -373,7 +373,7 @@ impl NonVisualGroupDrawingShapeProps {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct NonVisualPictureProperties {
     /// Specifies if the user interface should show the resizing of the picture based on the
     /// picture's current size or its original size. If this attribute is set to true, then scaling is
@@ -414,7 +414,7 @@ impl NonVisualPictureProperties {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct NonVisualDrawingShapeProps {
     pub shape_locks: Option<ShapeLocking>,
 
@@ -445,7 +445,7 @@ impl NonVisualDrawingShapeProps {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct NonVisualDrawingProps {
     /// Specifies a unique identifier for the current DrawingML object within the current
     /// document. This ID can be used to assist in uniquely identifying this object so that it can
@@ -580,7 +580,7 @@ impl NonVisualDrawingProps {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct Locking {
     /// Specifies that the generating application should not allow shape grouping for the
     /// corresponding connection shape. That is it cannot be combined within other shapes to
@@ -674,7 +674,7 @@ impl Locking {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ShapeLocking {
     pub locking: Locking,
 
@@ -703,7 +703,7 @@ impl ShapeLocking {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct GroupLocking {
     /// Specifies that the corresponding group shape cannot be grouped. That is it cannot be
     /// combined within other shapes to form a group of shapes. If this attribute is not specified,
@@ -775,7 +775,7 @@ impl GroupLocking {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct GraphicalObjectFrameLocking {
     /// Specifies that the generating application should not allow shape grouping for the
     /// corresponding graphic frame. That is it cannot be combined within other shapes to form
@@ -847,7 +847,7 @@ impl GraphicalObjectFrameLocking {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ConnectorLocking {
     pub locking: Locking,
 }
@@ -864,7 +864,7 @@ impl ConnectorLocking {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PictureLocking {
     pub locking: Locking,
 
@@ -891,7 +891,7 @@ impl PictureLocking {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Connection {
     /// Specifies the id of the shape to make the final connection to.
     pub id: DrawingElementId,
@@ -922,7 +922,7 @@ impl Connection {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GraphicalObject {
     /// This element specifies the reference to a graphic object within the document. This graphic object is provided
     /// entirely by the document authors who choose to persist this data within the document.
@@ -946,7 +946,7 @@ impl GraphicalObject {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GraphicalObjectData {
     // TODO implement
     //pub graphic_object: Vec<Any>,
@@ -967,7 +967,7 @@ impl GraphicalObjectData {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct GroupShapeProperties {
     /// Specifies that the group shape should be rendered using only black and white coloring.
     /// That is the coloring information for the group shape should be converted to either black
@@ -1028,7 +1028,7 @@ impl GroupShapeProperties {
 
 /// This element specifies an outline style that can be applied to a number of different objects such as shapes and
 /// text. The line allows for the specifying of many different types of outlines including even line dashes and bevels.
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct LineProperties {
     /// Specifies the width to be used for the underline stroke. If this attribute is omitted, then a
     /// value of 0 is assumed.
@@ -1099,7 +1099,7 @@ impl LineProperties {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct ShapeProperties {
     /// Specifies that the picture should be rendered using only black and white coloring. That is
     /// the coloring information for the picture should be converted to either black or white
@@ -1163,7 +1163,7 @@ impl ShapeProperties {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ShapeStyle {
     /// This element represents a reference to a line properties.
     pub line_reference: StyleMatrixReference,
@@ -1222,7 +1222,7 @@ impl ShapeStyle {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TextBody {
     /// Specifies the properties of this text body.
     pub body_properties: Box<TextBodyProperties>,
@@ -1289,7 +1289,7 @@ impl TextBody {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct Hyperlink {
     /// Specifies the relationship id that when looked up in this slides relationship file contains
     /// the target of this hyperlink. This attribute cannot be omitted.

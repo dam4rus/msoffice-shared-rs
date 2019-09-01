@@ -4,7 +4,7 @@ use quick_xml::Reader;
 use std::collections::HashMap;
 
 /// Represents an implementation independent xml node
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct XmlNode {
     pub name: String,
     pub child_nodes: Vec<XmlNode>,

@@ -17,7 +17,7 @@ use crate::xml::{parse_xml_bool, XmlNode};
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct TextLineBreak {
     pub char_properties: Option<Box<TextCharacterProperties>>,
 }
@@ -33,7 +33,7 @@ impl TextLineBreak {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TextField {
     /// Specifies the unique to this document, host specified token that is used to identify the
     /// field. This token is generated when the text field is created and persists in the file as the
@@ -129,7 +129,7 @@ impl TextField {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct TextParagraphProperties {
     /// Specifies the left margin of the paragraph. This is specified in addition to the text body
     /// inset and applies only to this text paragraph. That is the text body inset and the marL
@@ -605,7 +605,7 @@ impl TextParagraphProperties {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct TextParagraph {
     /// This element contains all paragraph level text properties for the containing paragraph. These paragraph
     /// properties should override any and all conflicting properties that are associated with the paragraph in question.
@@ -672,7 +672,7 @@ impl TextParagraph {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct TextCharacterProperties {
     /// Specifies whether the numbers contained within vertical text continue vertically with the
     /// text or whether they are to be displayed horizontally while the surrounding characters
@@ -1099,7 +1099,7 @@ impl TextCharacterProperties {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TextSpacing {
     /// This element specifies the amount of white space that is to be used between lines and paragraphs in the form of
     /// a percentage of the text size. The text size that is used to calculate the spacing here is the text for each run, with
@@ -1207,7 +1207,7 @@ impl TextSpacing {
 /// The paragraph within which this <a:tab> information resides has a total of 4 unique tab stops that should be
 /// listed in order of increasing position. Along with specifying the tab position each tab allows for the specifying of
 /// an alignment.
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct TextTabStop {
     /// Specifies the position of the tab stop relative to the left margin. If this attribute is omitted
     /// then the application default for tab stops is used.

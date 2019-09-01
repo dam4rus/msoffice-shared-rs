@@ -197,7 +197,7 @@ pub type ShapeId = String;
 
 /// This simple type is an adjustable coordinate is either an absolute coordinate position or a reference to a
 /// geometry guide.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum AdjCoordinate {
     Coordinate(Coordinate),
     GeomGuideName(GeomGuideName),
@@ -216,7 +216,7 @@ impl FromStr for AdjCoordinate {
 
 /// This simple type is an adjustable angle, either an absolute angle or a reference to a geometry guide. The units
 /// for an adjustable angle are 60,000ths of a degree.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum AdjAngle {
     Angle(Angle),
     GeomGuideName(GeomGuideName),
@@ -235,7 +235,7 @@ impl FromStr for AdjAngle {
 
 /// This simple type indicates whether/how to flip the contents of a tile region when using it to fill a larger fill
 /// region.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum TileFlipMode {
     #[strum(serialize = "none")]
     None,
@@ -248,7 +248,7 @@ pub enum TileFlipMode {
 }
 
 /// This simple type describes how to position two rectangles relative to each other.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum RectAlignment {
     #[strum(serialize = "l")]
     Left,
@@ -272,7 +272,7 @@ pub enum RectAlignment {
 
 /// This simple type specifies the manner in which a path should be filled. The lightening and darkening of a path
 /// allow for certain parts of the shape to be colored lighter of darker depending on user preference.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum PathFillMode {
     /// This specifies that the corresponding path should have no fill.
     #[strum(serialize = "none")]
@@ -433,7 +433,7 @@ pub enum PathFillMode {
 /// * **1/10 of Shape Width ('wd10') - Calculated value of "\*/ w 1.0 10.0"**
 ///
 ///     This is 1/10 the shape width.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum ShapeType {
     #[strum(serialize = "line")]
     Line,
@@ -813,7 +813,7 @@ pub enum ShapeType {
 
 /// This simple type specifies how to cap the ends of lines. This also affects the ends of line segments for dashed
 /// lines.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum LineCap {
     /// Rounded ends. Semi-circle protrudes by half line width.
     #[strum(serialize = "rnd")]
@@ -827,7 +827,7 @@ pub enum LineCap {
 }
 
 /// This simple type specifies the compound line type that is to be used for lines with text such as underlines.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum CompoundLine {
     /// Single line: one normal width
     #[strum(serialize = "sng")]
@@ -847,7 +847,7 @@ pub enum CompoundLine {
 }
 
 /// This simple type specifies the Pen Alignment type for use within a text body.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum PenAlignment {
     /// Center pen (line drawn at center of path stroke).
     #[strum(serialize = "ctr")]
@@ -861,7 +861,7 @@ pub enum PenAlignment {
 /// line style. Each style also contains a precise binary representation of the repeating dash style. Each 1
 /// corresponds to a line segment of the same length as the line width, and each 0 corresponds to a space of the
 /// same length as the line width.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum PresetLineDashVal {
     /// 1
     #[strum(serialize = "solid")]
@@ -900,7 +900,7 @@ pub enum PresetLineDashVal {
 
 /// This simple type represents the shape decoration that appears at the ends of lines. For example, one choice is an
 /// arrow head.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum LineEndType {
     #[strum(serialize = "none")]
     None,
@@ -918,7 +918,7 @@ pub enum LineEndType {
 
 /// This simple type represents the width of the line end decoration (e.g., arrowhead) relative to the width of the
 /// line itself.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum LineEndWidth {
     #[strum(serialize = "sm")]
     Small,
@@ -930,7 +930,7 @@ pub enum LineEndWidth {
 
 /// This simple type represents the length of the line end decoration (e.g., arrowhead) relative to the width of the
 /// line itself.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum LineEndLength {
     #[strum(serialize = "sm")]
     Small,
@@ -943,7 +943,7 @@ pub enum LineEndLength {
 /// This simple type indicates one of 20 preset shadow types. Each enumeration value description illustrates the
 /// type of shadow represented by the value. Each description contains the parameters to the outer shadow effect
 /// represented by the preset, in addition to those attributes common to all prstShdw effects.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum PresetShadowVal {
     /// No additional attributes specified.
     #[strum(serialize = "shdw1")]
@@ -1054,7 +1054,7 @@ pub enum PresetShadowVal {
 }
 
 /// This simple type determines the relationship between effects in a container, either sibling or tree.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum EffectContainerType {
     /// Each effect is separately applied to the parent object.
     ///
@@ -1076,7 +1076,7 @@ pub enum EffectContainerType {
 }
 
 /// This simple type represents one of the fonts associated with the style.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum FontCollectionIndex {
     /// The major font of the style's font scheme.
     #[strum(serialize = "major")]
@@ -1090,7 +1090,7 @@ pub enum FontCollectionIndex {
 }
 
 /// This simple type specifies an animation build step within a diagram animation.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum DgmBuildStep {
     /// Animate a diagram shape for this animation build step
     #[strum(serialize = "sp")]
@@ -1101,7 +1101,7 @@ pub enum DgmBuildStep {
 }
 
 /// This simple type specifies an animation build step within a chart animation.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum ChartBuildStep {
     /// Animate a chart category for this animation build step
     #[strum(serialize = "category")]
@@ -1124,7 +1124,7 @@ pub enum ChartBuildStep {
 }
 
 /// This simple type represents whether a style property should be applied.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum OnOffStyleType {
     /// Property is on.
     #[strum(serialize = "on")]
@@ -1143,7 +1143,7 @@ pub enum OnOffStyleType {
 ///
 /// Applications shall use the lastClr attribute to determine the absolute value of the last color used if system colors
 /// are not supported.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum SystemColorVal {
     /// Specifies the scroll bar gray area color.
     #[strum(serialize = "scrollBar")]
@@ -1242,7 +1242,7 @@ pub enum SystemColorVal {
 }
 
 /// This simple type represents a preset color value.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum PresetColorVal {
     /// Specifies a color with RGB value (240,248,255)
     #[strum(serialize = "aliceBlue")]
@@ -1817,7 +1817,7 @@ pub enum PresetColorVal {
 }
 
 /// This simple type represents a scheme color value.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum SchemeColorVal {
     #[strum(serialize = "bg1")]
     Background1,
@@ -1855,7 +1855,7 @@ pub enum SchemeColorVal {
 }
 
 /// A reference to a color in the color scheme.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum ColorSchemeIndex {
     #[strum(serialize = "dk1")]
     Dark1,
@@ -1884,7 +1884,7 @@ pub enum ColorSchemeIndex {
 }
 
 /// This simple type specifies the text alignment types
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum TextAlignType {
     /// Align text to the left margin.
     #[strum(serialize = "l")]
@@ -1911,7 +1911,7 @@ pub enum TextAlignType {
 }
 
 /// This simple type specifies the different kinds of font alignment.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum TextFontAlignType {
     /// When the text flow is horizontal or simple vertical same as fontBaseline but for other vertical modes
     /// same as fontCenter.
@@ -1933,7 +1933,7 @@ pub enum TextFontAlignType {
 }
 
 /// This simple type specifies a list of automatic numbering schemes.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum TextAutonumberScheme {
     /// (a), (b), (c), …
     #[strum(serialize = "alphaLcParenBoth")]
@@ -2061,7 +2061,7 @@ pub enum TextAutonumberScheme {
 }
 
 /// This simple type describes the shape of path to follow for a path gradient shade.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum PathShadeType {
     /// Gradient follows the shape
     #[strum(serialize = "shape")]
@@ -2081,7 +2081,7 @@ pub enum PathShadeType {
 ///
 /// These presets correspond to members of the HatchStyle enumeration in the Microsoft .NET Framework.
 /// A reference for this type can be found at http://msdn2.microsoft.com/enus/library/system.drawing.drawing2d.hatchstyle.aspx
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum PresetPatternVal {
     #[strum(serialize = "pct5")]
     Percent5,
@@ -2194,7 +2194,7 @@ pub enum PresetPatternVal {
 }
 
 /// This simple type describes how to render effects one on top of another.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum BlendMode {
     #[strum(serialize = "over")]
     Overlay,
@@ -2209,7 +2209,7 @@ pub enum BlendMode {
 }
 
 /// This simple type specifies the text tab alignment types.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum TextTabAlignType {
     /// The text at this tab stop is left aligned.
     #[strum(serialize = "l")]
@@ -2227,7 +2227,7 @@ pub enum TextTabAlignType {
 }
 
 /// This simple type specifies the text underline types that is used.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum TextUnderlineType {
     /// The reason we cannot implicitly have noUnderline be the scenario where underline is not specified is
     /// because not being specified implies deriving from a particular style and the user might want to override
@@ -2288,7 +2288,7 @@ pub enum TextUnderlineType {
 }
 
 /// This simple type specifies the strike type.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum TextStrikeType {
     #[strum(serialize = "noStrike")]
     NoStrike,
@@ -2299,7 +2299,7 @@ pub enum TextStrikeType {
 }
 
 /// This simple type specifies the cap types of the text.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum TextCapsType {
     /// The reason we cannot implicitly have noCaps be the scenario where capitalization is not specified is
     /// because not being specified implies deriving from a particular style and the user might want to override
@@ -2321,7 +2321,7 @@ pub enum TextCapsType {
 /// DrawingML code that would be used to construct this shape were it a custom geometry. Within the construction
 /// code for each of these preset text shapes there are predefined guides that the generating application shall
 /// maintain for calculation purposes at all times. See [ShapeType](enum.ShapeType.html) to see the necessary guide values.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum TextShapeType {
     #[strum(serialize = "textNoShape")]
     NoShape,
@@ -2408,7 +2408,7 @@ pub enum TextShapeType {
 }
 
 /// This simple type specifies the text vertical overflow.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum TextVertOverflowType {
     /// Overflow the text and pay no attention to top and bottom barriers.
     #[strum(serialize = "overflow")]
@@ -2422,7 +2422,7 @@ pub enum TextVertOverflowType {
 }
 
 /// This simple type specifies the text horizontal overflow types
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum TextHorizontalOverflowType {
     /// When a big character does not fit into a line, allow a horizontal overflow.
     #[strum(serialize = "overflow")]
@@ -2433,7 +2433,7 @@ pub enum TextHorizontalOverflowType {
 }
 
 /// If there is vertical text, determines what kind of vertical text is going to be used.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum TextVerticalType {
     /// Horizontal text. This should be default.
     #[strum(serialize = "horz")]
@@ -2463,7 +2463,7 @@ pub enum TextVerticalType {
     WordArtVerticalRtl,
 }
 
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum TextWrappingType {
     /// No wrapping occurs on this text body. Words spill out without paying attention to the bounding rectangle
     /// boundaries.
@@ -2475,7 +2475,7 @@ pub enum TextWrappingType {
 }
 
 /// This simple type specifies a list of available anchoring types for text.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum TextAnchoringType {
     /// Anchor the text at the top of the bounding rectangle.
     #[strum(serialize = "t")]
@@ -2502,7 +2502,7 @@ pub enum TextAnchoringType {
 }
 
 /// This simple type specifies how an object should be rendered when specified to be in black and white mode.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum BlackWhiteMode {
     /// Object rendered with normal coloring
     #[strum(serialize = "clr")]
@@ -2540,7 +2540,7 @@ pub enum BlackWhiteMode {
 }
 
 /// This simple type specifies the ways that an animation can be built, or animated.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum AnimationBuildType {
     #[strum(serialize = "allAtOnce")]
     AllAtOnce,
@@ -2548,7 +2548,7 @@ pub enum AnimationBuildType {
 
 /// This simple type specifies the build options available only for animating a diagram. These options specify the
 /// manner in which the objects within the chart should be grouped and animated.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum AnimationDgmOnlyBuildType {
     /// Animate the diagram by elements. For a tree diagram the animation occurs by branch within the diagram tree.
     #[strum(serialize = "one")]
@@ -2563,7 +2563,7 @@ pub enum AnimationDgmOnlyBuildType {
 
 /// This simple type specifies the ways that a diagram animation can be built. That is, it specifies the way in which
 /// the objects within the diagram graphical object should be animated.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum AnimationDgmBuildType {
     #[strum(serialize = "allAtOnce")]
     AllAtOnce,
@@ -2577,7 +2577,7 @@ pub enum AnimationDgmBuildType {
 
 /// This simple type specifies the build options available only for animating a chart. These options specify the
 /// manner in which the objects within the chart should be grouped and animated.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum AnimationChartOnlyBuildType {
     /// Animate by each series
     #[strum(serialize = "series")]
@@ -2595,7 +2595,7 @@ pub enum AnimationChartOnlyBuildType {
 
 /// This simple type specifies the ways that a chart animation can be built. That is, it specifies the way in which the
 /// objects within the chart should be animated.
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum AnimationChartBuildType {
     #[strum(serialize = "allAtOnce")]
     AllAtOnce,
@@ -2611,7 +2611,7 @@ pub enum AnimationChartBuildType {
 
 /// This type specifies the amount of compression that has been used for a particular binary large image or picture
 /// (blip).
-#[derive(Debug, Clone, Copy, EnumString)]
+#[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum BlipCompression {
     /// Compression size suitable for inclusion with email
     #[strum(serialize = "email")]

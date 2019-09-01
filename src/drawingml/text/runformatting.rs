@@ -9,7 +9,7 @@ use crate::xml::XmlNode;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct TextFont {
     /// Specifies the typeface, or name of the font that is to be used. The typeface is a string
     /// name of the specific font that should be used in rendering the presentation. If this font is
@@ -124,7 +124,7 @@ impl TextFont {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TextRun {
     /// This element specifies the presence of a run of text within the containing text body. The run element is the
     /// lowest level text separation mechanism within a text body. A text run can contain text run properties associated
@@ -232,7 +232,7 @@ impl TextRun {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct RegularTextRun {
     /// This element contains all run level text properties for the text runs within a containing paragraph.
     ///
@@ -295,7 +295,7 @@ impl RegularTextRun {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TextUnderlineLine {
     /// This element specifies that the stroke style of an underline for a run of text should be of the same as the text run
     /// within which it is contained.
@@ -365,7 +365,7 @@ impl TextUnderlineLine {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum TextUnderlineFill {
     /// This element specifies that the fill color of an underline for a run of text should be of the same color as the text
     /// run within which it is contained.

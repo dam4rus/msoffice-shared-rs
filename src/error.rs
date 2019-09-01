@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt::{Display, Formatter, Result};
 
 /// An error indicating that an xml element doesn't have an attribute that's marked as required in the schema
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct MissingAttributeError {
     pub node_name: String,
     pub attr: &'static str,
@@ -37,7 +37,7 @@ impl Error for MissingAttributeError {
 }
 
 /// An error indicating that an xml element doesn't have a child node that's marked as required in the schema
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct MissingChildNodeError {
     pub node_name: String,
     pub child_node: &'static str,
@@ -72,7 +72,7 @@ impl Error for MissingChildNodeError {
 }
 
 /// An error indicating that an xml element is not a member of a given element group
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct NotGroupMemberError {
     node_name: String,
     group: &'static str,
@@ -106,7 +106,7 @@ impl Error for NotGroupMemberError {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum Limit {
     Value(u32),
     Unbounded,
@@ -122,7 +122,7 @@ impl Display for Limit {
 }
 
 /// An error indicating that the xml element violates either minOccurs or maxOccurs of the schema
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct LimitViolationError {
     node_name: String,
     violating_node_name: &'static str,
@@ -169,7 +169,7 @@ impl Error for LimitViolationError {
 }
 
 /// Chained error type for all possible xml error
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum XmlError {
     Attribute(MissingAttributeError),
     ChildNode(MissingChildNodeError),
@@ -242,7 +242,7 @@ impl Error for InvalidXmlError {
 
 /// Error indicating that an xml element's attribute is not a valid bool value
 /// Valid bool values are: true, false, 0, 1
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ParseBoolError {
     pub attr_value: String,
 }
@@ -271,7 +271,7 @@ impl Error for ParseBoolError {
 }
 
 /// Error indicating that a string cannot be converted to an enum type
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ParseEnumError {
     enum_name: &'static str,
 }
@@ -294,7 +294,7 @@ impl Error for ParseEnumError {
     }
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 /// Error indicating that parsing an AdjCoordinate or AdjAngle has failed
 pub struct AdjustParseError {}
 

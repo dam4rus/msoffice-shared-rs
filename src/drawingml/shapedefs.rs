@@ -7,7 +7,7 @@ use crate::xml::{parse_xml_bool, XmlNode};
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GeomRect {
     /// Specifies the x coordinate of the left edge for a shape text rectangle. The units for this
     /// edge is specified in EMUs as the positioning here is based on the shape coordinate
@@ -65,7 +65,7 @@ impl GeomRect {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PolarAdjustHandle {
     /// Specifies the name of the guide that is updated with the adjustment radius from this
     /// adjust handle.
@@ -136,7 +136,7 @@ impl PolarAdjustHandle {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct XYAdjustHandle {
     /// Specifies the name of the guide that is updated with the adjustment x position from this
     /// adjust handle.
@@ -255,7 +255,7 @@ impl XYAdjustHandle {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum AdjustHandle {
     /// This element specifies an XY-based adjust handle for a custom shape. The position of this adjust handle is
     /// specified by the corresponding pos child element. The allowed adjustment of this adjust handle are specified via
@@ -341,7 +341,7 @@ impl AdjustHandle {
 ///   </a:pathLst>
 /// </a:custGeom>
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AdjPoint2D {
     /// Specifies the x coordinate for this position coordinate. The units for this coordinate space
     /// are defined by the width of the path coordinate system. This coordinate system is
@@ -378,7 +378,7 @@ impl AdjPoint2D {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Path2DArcTo {
     /// This attribute specifies the width radius of the supposed circle being used to draw the
     /// arc. This gives the circle a total width of (2 * wR). This total width could also be called it's
@@ -468,7 +468,7 @@ impl Path2DArcTo {
 /// In the above example there is specified a four sided geometric shape that has all straight sides. While we only
 /// see three lines being drawn via the lnTo element there are actually four sides because the last point of
 /// (x=1562585, y=0) is connected to the first point in the creation path via a lnTo element
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct Path2D {
     /// Specifies the width, or maximum x coordinate that should be used for within the path
     /// coordinate system. This value determines the horizontal placement of all points within
@@ -590,7 +590,7 @@ impl Path2D {
 ///   <a:gd name="myGuide" fmla="*/ h 1 3"/>
 /// </a:gdLst>
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct GeomGuide {
     /// Specifies the name that is used to reference to this guide. This name can be used just as a
     /// variable would within an equation. That is this name can be substituted for literal values
@@ -736,7 +736,7 @@ impl GeomGuide {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Path2DCommand {
     /// This element specifies the ending of a series of lines and curves in the creation path of a custom geometric
     /// shape. When this element is encountered, the generating application should consider the corresponding path
@@ -913,7 +913,7 @@ impl Path2DCommand {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct CustomGeometry2D {
     /// This element specifies the adjust values that are applied to the specified shape. An adjust value is simply a guide
     /// that has a value based formula specified. That is, no calculation takes place for an adjust value guide. Instead,
@@ -1078,7 +1078,7 @@ impl CustomGeometry2D {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PresetGeometry2D {
     /// Specifies the preset geometry that is used for this shape. This preset can have any of the
     /// values in the enumerated list for ShapeType. This attribute is required in order for a
@@ -1133,7 +1133,7 @@ impl PresetGeometry2D {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Geometry {
     /// This element specifies the existence of a custom geometric shape. This shape consists of a series of lines and
     /// curves described within a creation path. In addition to this there can also be adjust values, guides, adjust
@@ -1219,7 +1219,7 @@ impl Geometry {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct PresetTextShape {
     /// Specifies the preset geometry that is used for a shape warp on a piece of text. This preset
     /// can have any of the values in the enumerated list for TextShapeType. This attribute
@@ -1325,7 +1325,7 @@ impl PresetTextShape {
 ///   </a:pathLst>
 /// </a:custGeom>
 /// ```
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ConnectionSite {
     /// Specifies the incoming connector angle. This angle is the angle around the connection
     /// site that an incoming connector tries to be routed to. This allows connectors to know

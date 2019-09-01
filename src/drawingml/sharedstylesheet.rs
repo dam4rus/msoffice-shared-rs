@@ -11,7 +11,7 @@ use zip::read::ZipFile;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ColorMapping {
     /// A color defined which is associated as the first background color.
     pub background1: ColorSchemeIndex,
@@ -114,7 +114,7 @@ impl ColorMapping {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ColorScheme {
     /// The common name for this color scheme. This name can show up in the user interface in
     /// a list of color schemes.
@@ -243,7 +243,7 @@ impl ColorScheme {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ColorSchemeAndMapping {
     /// This element defines a set of colors which are referred to as a color scheme. The color scheme is responsible for
     /// defining a list of twelve colors. The twelve colors consist of six accent colors, two dark colors, two light colors
@@ -351,7 +351,7 @@ impl ColorSchemeAndMapping {
     }
 }
 
-#[derive(Default, Debug, Clone)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct ObjectStyleDefaults {
     /// This element defines the formatting that is associated with the default shape. The default formatting can be
     /// applied to a shape when it is initially inserted into a document.
@@ -484,7 +484,7 @@ impl ObjectStyleDefaults {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct OfficeStyleSheet {
     pub name: Option<String>,
 
@@ -637,7 +637,7 @@ impl OfficeStyleSheet {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct BaseStyles {
     pub color_scheme: Box<ColorScheme>,
 

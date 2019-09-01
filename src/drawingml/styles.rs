@@ -12,7 +12,7 @@ use log::trace;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct EffectStyleItem {
     pub effect_props: EffectProperties,
     // TODO implement
@@ -39,7 +39,7 @@ impl EffectStyleItem {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct StyleMatrixReference {
     /// Specifies the style matrix index of the style referred to.
     pub index: StyleMatrixColumnIndex,
@@ -64,7 +64,7 @@ impl StyleMatrixReference {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct StyleMatrix {
     /// Defines the name for the format scheme. The name is simply a human readable string
     /// which identifies the format scheme in the user interface.
@@ -283,7 +283,7 @@ impl StyleMatrix {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SupplementalFont {
     /// Specifies the script, or language, in which the typeface is supposed to be used.
     ///
@@ -316,7 +316,7 @@ impl SupplementalFont {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FontReference {
     /// Specifies the identifier of the font to reference.
     pub index: FontCollectionIndex,
@@ -339,7 +339,7 @@ impl FontReference {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FontScheme {
     /// The name of the font scheme shown in the user interface.
     pub name: String,
@@ -427,7 +427,7 @@ impl FontScheme {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DefaultShapeDefinition {
     /// This element specifies the visual shape properties that can be applied to a shape.
     pub shape_properties: Box<ShapeProperties>,
@@ -471,7 +471,7 @@ impl DefaultShapeDefinition {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FontCollection {
     /// Specifies the font used for latin characters.
     pub latin: TextFont,
