@@ -1,6 +1,4 @@
 use crate::error::AdjustParseError;
-use enum_from_str::ParseEnumVariantError;
-use enum_from_str_derive::FromStr;
 use std::str::FromStr;
 
 /// This simple type specifies that its values shall be a 128-bit globally unique identifier (GUID) value.
@@ -237,62 +235,62 @@ impl FromStr for AdjAngle {
 
 /// This simple type indicates whether/how to flip the contents of a tile region when using it to fill a larger fill
 /// region.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum TileFlipMode {
-    #[from_str = "none"]
+    #[strum(serialize = "none")]
     None,
-    #[from_str = "x"]
+    #[strum(serialize = "x")]
     X,
-    #[from_str = "y"]
+    #[strum(serialize = "y")]
     Y,
-    #[from_str = "xy"]
+    #[strum(serialize = "xy")]
     XY,
 }
 
 /// This simple type describes how to position two rectangles relative to each other.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum RectAlignment {
-    #[from_str = "l"]
+    #[strum(serialize = "l")]
     Left,
-    #[from_str = "t"]
+    #[strum(serialize = "t")]
     Top,
-    #[from_str = "r"]
+    #[strum(serialize = "r")]
     Right,
-    #[from_str = "b"]
+    #[strum(serialize = "b")]
     Bottom,
-    #[from_str = "tl"]
+    #[strum(serialize = "tl")]
     TopLeft,
-    #[from_str = "tr"]
+    #[strum(serialize = "tr")]
     TopRight,
-    #[from_str = "bl"]
+    #[strum(serialize = "bl")]
     BottomLeft,
-    #[from_str = "br"]
+    #[strum(serialize = "br")]
     BottomRight,
-    #[from_str = "ctr"]
+    #[strum(serialize = "ctr")]
     Center,
 }
 
 /// This simple type specifies the manner in which a path should be filled. The lightening and darkening of a path
 /// allow for certain parts of the shape to be colored lighter of darker depending on user preference.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum PathFillMode {
     /// This specifies that the corresponding path should have no fill.
-    #[from_str = "none"]
+    #[strum(serialize = "none")]
     None,
     /// This specifies that the corresponding path should have a normally shaded color applied to it’s fill.
-    #[from_str = "norm"]
+    #[strum(serialize = "norm")]
     Norm,
     /// This specifies that the corresponding path should have a lightly shaded color applied to it’s fill.
-    #[from_str = "lighten"]
+    #[strum(serialize = "lighten")]
     Lighten,
     /// This specifies that the corresponding path should have a slightly lighter shaded color applied to it’s fill.
-    #[from_str = "lightenLess"]
+    #[strum(serialize = "lightenLess")]
     LightenLess,
     /// This specifies that the corresponding path should have a darker shaded color applied to it’s fill.
-    #[from_str = "darken"]
+    #[strum(serialize = "darken")]
     Darken,
     /// This specifies that the corresponding path should have a slightly darker shaded color applied to it’s fill.
-    #[from_str = "darkenLess"]
+    #[strum(serialize = "darkenLess")]
     DarkenLess,
 }
 
@@ -435,427 +433,427 @@ pub enum PathFillMode {
 /// * **1/10 of Shape Width ('wd10') - Calculated value of "\*/ w 1.0 10.0"**
 ///
 ///     This is 1/10 the shape width.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum ShapeType {
-    #[from_str = "line"]
+    #[strum(serialize = "line")]
     Line,
-    #[from_str = "lineInv"]
+    #[strum(serialize = "lineInv")]
     LineInverse,
-    #[from_str = "triangle"]
+    #[strum(serialize = "triangle")]
     Triangle,
-    #[from_str = "rtTriangle"]
+    #[strum(serialize = "rtTriangle")]
     RightTriangle,
-    #[from_str = "rect"]
+    #[strum(serialize = "rect")]
     Rect,
-    #[from_str = "diamond"]
+    #[strum(serialize = "diamond")]
     Diamond,
-    #[from_str = "parallelogram"]
+    #[strum(serialize = "parallelogram")]
     Parallelogram,
-    #[from_str = "trapezoid"]
+    #[strum(serialize = "trapezoid")]
     Trapezoid,
-    #[from_str = "nonIsoscelesTrapezoid"]
+    #[strum(serialize = "nonIsoscelesTrapezoid")]
     NonIsoscelesTrapezoid,
-    #[from_str = "pentagon"]
+    #[strum(serialize = "pentagon")]
     Pentagon,
-    #[from_str = "hexagon"]
+    #[strum(serialize = "hexagon")]
     Hexagon,
-    #[from_str = "heptagon"]
+    #[strum(serialize = "heptagon")]
     Heptagon,
-    #[from_str = "octagon"]
+    #[strum(serialize = "octagon")]
     Octagon,
-    #[from_str = "decagon"]
+    #[strum(serialize = "decagon")]
     Decagon,
-    #[from_str = "dodecagon"]
+    #[strum(serialize = "dodecagon")]
     Dodecagon,
-    #[from_str = "star4"]
+    #[strum(serialize = "star4")]
     Star4,
-    #[from_str = "star5"]
+    #[strum(serialize = "star5")]
     Star5,
-    #[from_str = "star6"]
+    #[strum(serialize = "star6")]
     Star6,
-    #[from_str = "star7"]
+    #[strum(serialize = "star7")]
     Star7,
-    #[from_str = "star8"]
+    #[strum(serialize = "star8")]
     Star8,
-    #[from_str = "star10"]
+    #[strum(serialize = "star10")]
     Star10,
-    #[from_str = "star12"]
+    #[strum(serialize = "star12")]
     Star12,
-    #[from_str = "star16"]
+    #[strum(serialize = "star16")]
     Star16,
-    #[from_str = "star24"]
+    #[strum(serialize = "star24")]
     Star24,
-    #[from_str = "star32"]
+    #[strum(serialize = "star32")]
     Star32,
-    #[from_str = "roundRect"]
+    #[strum(serialize = "roundRect")]
     RoundRect,
-    #[from_str = "round1Rect"]
+    #[strum(serialize = "round1Rect")]
     Round1Rect,
-    #[from_str = "round2SameRect"]
+    #[strum(serialize = "round2SameRect")]
     Round2SameRect,
-    #[from_str = "round2DiagRect"]
+    #[strum(serialize = "round2DiagRect")]
     Round2DiagRect,
-    #[from_str = "snipRoundRect"]
+    #[strum(serialize = "snipRoundRect")]
     SnipRoundRect,
-    #[from_str = "snip1Rect"]
+    #[strum(serialize = "snip1Rect")]
     Snip1Rect,
-    #[from_str = "snip2SameRect"]
+    #[strum(serialize = "snip2SameRect")]
     Snip2SameRect,
-    #[from_str = "snip2DiagRect"]
+    #[strum(serialize = "snip2DiagRect")]
     Snip2DiagRect,
-    #[from_str = "plaque"]
+    #[strum(serialize = "plaque")]
     Plaque,
-    #[from_str = "ellipse"]
+    #[strum(serialize = "ellipse")]
     Ellipse,
-    #[from_str = "teardrop"]
+    #[strum(serialize = "teardrop")]
     Teardrop,
-    #[from_str = "homePlate"]
+    #[strum(serialize = "homePlate")]
     HomePlate,
-    #[from_str = "chevron"]
+    #[strum(serialize = "chevron")]
     Chevron,
-    #[from_str = "pieWedge"]
+    #[strum(serialize = "pieWedge")]
     PieWedge,
-    #[from_str = "pie"]
+    #[strum(serialize = "pie")]
     Pie,
-    #[from_str = "blockArc"]
+    #[strum(serialize = "blockArc")]
     BlockArc,
-    #[from_str = "donut"]
+    #[strum(serialize = "donut")]
     Donut,
-    #[from_str = "noSmoking"]
+    #[strum(serialize = "noSmoking")]
     NoSmoking,
-    #[from_str = "rightArrow"]
+    #[strum(serialize = "rightArrow")]
     RightArrow,
-    #[from_str = "leftArrow"]
+    #[strum(serialize = "leftArrow")]
     LeftArrow,
-    #[from_str = "upArrow"]
+    #[strum(serialize = "upArrow")]
     UpArrow,
-    #[from_str = "downArrow"]
+    #[strum(serialize = "downArrow")]
     DownArrow,
-    #[from_str = "stripedRightArrow"]
+    #[strum(serialize = "stripedRightArrow")]
     StripedRightArrow,
-    #[from_str = "notchedRightArrow"]
+    #[strum(serialize = "notchedRightArrow")]
     NotchedRightArrow,
-    #[from_str = "bentUpArrow"]
+    #[strum(serialize = "bentUpArrow")]
     BentUpArrow,
-    #[from_str = "leftRightArrow"]
+    #[strum(serialize = "leftRightArrow")]
     LeftRightArrow,
-    #[from_str = "upDownArrow"]
+    #[strum(serialize = "upDownArrow")]
     UpDownArrow,
-    #[from_str = "leftUpArrow"]
+    #[strum(serialize = "leftUpArrow")]
     LeftUpArrow,
-    #[from_str = "leftRightUpArrow"]
+    #[strum(serialize = "leftRightUpArrow")]
     LeftRightUpArrow,
-    #[from_str = "quadArrow"]
+    #[strum(serialize = "quadArrow")]
     QuadArrow,
-    #[from_str = "leftArrowCallout"]
+    #[strum(serialize = "leftArrowCallout")]
     LeftArrowCallout,
-    #[from_str = "rightArrowCallout"]
+    #[strum(serialize = "rightArrowCallout")]
     RightArrowCallout,
-    #[from_str = "upArrowCallout"]
+    #[strum(serialize = "upArrowCallout")]
     UpArrowCallout,
-    #[from_str = "downArrowCallout"]
+    #[strum(serialize = "downArrowCallout")]
     DownArrowCallout,
-    #[from_str = "leftRightArrowCallout"]
+    #[strum(serialize = "leftRightArrowCallout")]
     LeftRightArrowCallout,
-    #[from_str = "upDownArrowCallout"]
+    #[strum(serialize = "upDownArrowCallout")]
     UpDownArrowCallout,
-    #[from_str = "quadArrowCallout"]
+    #[strum(serialize = "quadArrowCallout")]
     QuadArrowCallout,
-    #[from_str = "bentArrow"]
+    #[strum(serialize = "bentArrow")]
     BentArrow,
-    #[from_str = "uturnArrow"]
+    #[strum(serialize = "uturnArrow")]
     UturnArrow,
-    #[from_str = "circularArrow"]
+    #[strum(serialize = "circularArrow")]
     CircularArrow,
-    #[from_str = "leftCircularArrow"]
+    #[strum(serialize = "leftCircularArrow")]
     LeftCircularArrow,
-    #[from_str = "leftRightCircularArrow"]
+    #[strum(serialize = "leftRightCircularArrow")]
     LeftRightCircularArrow,
-    #[from_str = "curvedRightArrow"]
+    #[strum(serialize = "curvedRightArrow")]
     CurvedRightArrow,
-    #[from_str = "curvedLeftArrow"]
+    #[strum(serialize = "curvedLeftArrow")]
     CurvedLeftArrow,
-    #[from_str = "curvedUpArrow"]
+    #[strum(serialize = "curvedUpArrow")]
     CurvedUpArrow,
-    #[from_str = "curvedDownArrow"]
+    #[strum(serialize = "curvedDownArrow")]
     CurvedDownArrow,
-    #[from_str = "swooshArrow"]
+    #[strum(serialize = "swooshArrow")]
     SwooshArrow,
-    #[from_str = "cube"]
+    #[strum(serialize = "cube")]
     Cube,
-    #[from_str = "can"]
+    #[strum(serialize = "can")]
     Can,
-    #[from_str = "lightningBolt"]
+    #[strum(serialize = "lightningBolt")]
     LightningBolt,
-    #[from_str = "heart"]
+    #[strum(serialize = "heart")]
     Heart,
-    #[from_str = "sun"]
+    #[strum(serialize = "sun")]
     Sun,
-    #[from_str = "moon"]
+    #[strum(serialize = "moon")]
     Moon,
-    #[from_str = "smileyFace"]
+    #[strum(serialize = "smileyFace")]
     SmileyFace,
-    #[from_str = "irregularSeal1"]
+    #[strum(serialize = "irregularSeal1")]
     IrregularSeal1,
-    #[from_str = "irregularSeal2"]
+    #[strum(serialize = "irregularSeal2")]
     IrregularSeal2,
-    #[from_str = "foldedCorner"]
+    #[strum(serialize = "foldedCorner")]
     FoldedCorner,
-    #[from_str = "bevel"]
+    #[strum(serialize = "bevel")]
     Bevel,
-    #[from_str = "frame"]
+    #[strum(serialize = "frame")]
     Frame,
-    #[from_str = "halfFrame"]
+    #[strum(serialize = "halfFrame")]
     HalfFrame,
-    #[from_str = "corner"]
+    #[strum(serialize = "corner")]
     Corner,
-    #[from_str = "diagStripe"]
+    #[strum(serialize = "diagStripe")]
     DiagStripe,
-    #[from_str = "chord"]
+    #[strum(serialize = "chord")]
     Chord,
-    #[from_str = "arc"]
+    #[strum(serialize = "arc")]
     Arc,
-    #[from_str = "leftBracket"]
+    #[strum(serialize = "leftBracket")]
     LeftBracket,
-    #[from_str = "rightBracket"]
+    #[strum(serialize = "rightBracket")]
     RightBracket,
-    #[from_str = "leftBrace"]
+    #[strum(serialize = "leftBrace")]
     LeftBrace,
-    #[from_str = "rightBrace"]
+    #[strum(serialize = "rightBrace")]
     RightBrace,
-    #[from_str = "bracketPair"]
+    #[strum(serialize = "bracketPair")]
     BracketPair,
-    #[from_str = "bracePair"]
+    #[strum(serialize = "bracePair")]
     BracePair,
-    #[from_str = "straightConnector1"]
+    #[strum(serialize = "straightConnector1")]
     StraightConnector1,
-    #[from_str = "bentConnector2"]
+    #[strum(serialize = "bentConnector2")]
     BentConnector2,
-    #[from_str = "bentConnector3"]
+    #[strum(serialize = "bentConnector3")]
     BentConnector3,
-    #[from_str = "bentConnector4"]
+    #[strum(serialize = "bentConnector4")]
     BentConnector4,
-    #[from_str = "bentConnector5"]
+    #[strum(serialize = "bentConnector5")]
     BentConnector5,
-    #[from_str = "curvedConnector2"]
+    #[strum(serialize = "curvedConnector2")]
     CurvedConnector2,
-    #[from_str = "curvedConnector3"]
+    #[strum(serialize = "curvedConnector3")]
     CurvedConnector3,
-    #[from_str = "curvedConnector4"]
+    #[strum(serialize = "curvedConnector4")]
     CurvedConnector4,
-    #[from_str = "curvedConnector5"]
+    #[strum(serialize = "curvedConnector5")]
     CurvedConnector5,
-    #[from_str = "callout1"]
+    #[strum(serialize = "callout1")]
     Callout1,
-    #[from_str = "callout2"]
+    #[strum(serialize = "callout2")]
     Callout2,
-    #[from_str = "callout3"]
+    #[strum(serialize = "callout3")]
     Callout3,
-    #[from_str = "accentCallout1"]
+    #[strum(serialize = "accentCallout1")]
     AccentCallout1,
-    #[from_str = "accentCallout2"]
+    #[strum(serialize = "accentCallout2")]
     AccentCallout2,
-    #[from_str = "accentCallout3"]
+    #[strum(serialize = "accentCallout3")]
     AccentCallout3,
-    #[from_str = "borderCallout1"]
+    #[strum(serialize = "borderCallout1")]
     BorderCallout1,
-    #[from_str = "borderCallout2"]
+    #[strum(serialize = "borderCallout2")]
     BorderCallout2,
-    #[from_str = "borderCallout3"]
+    #[strum(serialize = "borderCallout3")]
     BorderCallout3,
-    #[from_str = "accentBorderCallout1"]
+    #[strum(serialize = "accentBorderCallout1")]
     AccentBorderCallout1,
-    #[from_str = "accentBorderCallout2"]
+    #[strum(serialize = "accentBorderCallout2")]
     AccentBorderCallout2,
-    #[from_str = "accentBorderCallout3"]
+    #[strum(serialize = "accentBorderCallout3")]
     AccentBorderCallout3,
-    #[from_str = "wedgeRectCallout"]
+    #[strum(serialize = "wedgeRectCallout")]
     WedgeRectCallout,
-    #[from_str = "wedgeRoundRectCallout"]
+    #[strum(serialize = "wedgeRoundRectCallout")]
     WedgeRoundRectCallout,
-    #[from_str = "wedgeEllipseCallout"]
+    #[strum(serialize = "wedgeEllipseCallout")]
     WedgeEllipseCallout,
-    #[from_str = "cloudCallout"]
+    #[strum(serialize = "cloudCallout")]
     CloudCallout,
-    #[from_str = "cloud"]
+    #[strum(serialize = "cloud")]
     Cloud,
-    #[from_str = "ribbon"]
+    #[strum(serialize = "ribbon")]
     Ribbon,
-    #[from_str = "ribbon2"]
+    #[strum(serialize = "ribbon2")]
     Ribbon2,
-    #[from_str = "ellipseRibbon"]
+    #[strum(serialize = "ellipseRibbon")]
     EllipseRibbon,
-    #[from_str = "ellipseRibbon2"]
+    #[strum(serialize = "ellipseRibbon2")]
     EllipseRibbon2,
-    #[from_str = "leftRightRibbon"]
+    #[strum(serialize = "leftRightRibbon")]
     LeftRightRibbon,
-    #[from_str = "verticalScroll"]
+    #[strum(serialize = "verticalScroll")]
     VerticalScroll,
-    #[from_str = "horizontalScroll"]
+    #[strum(serialize = "horizontalScroll")]
     HorizontalScroll,
-    #[from_str = "wave"]
+    #[strum(serialize = "wave")]
     Wave,
-    #[from_str = "doubleWave"]
+    #[strum(serialize = "doubleWave")]
     DoubleWave,
-    #[from_str = "plus"]
+    #[strum(serialize = "plus")]
     Plus,
-    #[from_str = "flowChartProcess"]
+    #[strum(serialize = "flowChartProcess")]
     FlowChartProcess,
-    #[from_str = "flowChartDecision"]
+    #[strum(serialize = "flowChartDecision")]
     FlowChartDecision,
-    #[from_str = "flowChartInputOutput"]
+    #[strum(serialize = "flowChartInputOutput")]
     FlowChartInputOutput,
-    #[from_str = "flowChartPredefinedProcess"]
+    #[strum(serialize = "flowChartPredefinedProcess")]
     FlowChartPredefinedProcess,
-    #[from_str = "flowChartInternalStorage"]
+    #[strum(serialize = "flowChartInternalStorage")]
     FlowChartInternalStorage,
-    #[from_str = "flowChartDocument"]
+    #[strum(serialize = "flowChartDocument")]
     FlowChartDocument,
-    #[from_str = "flowChartMultidocument"]
+    #[strum(serialize = "flowChartMultidocument")]
     FlowChartMultidocument,
-    #[from_str = "flowChartTerminator"]
+    #[strum(serialize = "flowChartTerminator")]
     FlowChartTerminator,
-    #[from_str = "flowChartPreparation"]
+    #[strum(serialize = "flowChartPreparation")]
     FlowChartPreparation,
-    #[from_str = "flowChartManualInput"]
+    #[strum(serialize = "flowChartManualInput")]
     FlowChartManualInput,
-    #[from_str = "flowChartOperation"]
+    #[strum(serialize = "flowChartOperation")]
     FlowChartManualOperation,
-    #[from_str = "flowChartConnector"]
+    #[strum(serialize = "flowChartConnector")]
     FlowChartConnector,
-    #[from_str = "flowChartPunchedCard"]
+    #[strum(serialize = "flowChartPunchedCard")]
     FlowChartPunchedCard,
-    #[from_str = "flowChartPunchedTape"]
+    #[strum(serialize = "flowChartPunchedTape")]
     FlowChartPunchedTape,
-    #[from_str = "flowChartSummingJunction"]
+    #[strum(serialize = "flowChartSummingJunction")]
     FlowChartSummingJunction,
-    #[from_str = "flowChartOr"]
+    #[strum(serialize = "flowChartOr")]
     FlowChartOr,
-    #[from_str = "flowChartCollate"]
+    #[strum(serialize = "flowChartCollate")]
     FlowChartCollate,
-    #[from_str = "flowChartSort"]
+    #[strum(serialize = "flowChartSort")]
     FlowChartSort,
-    #[from_str = "flowChartExtract"]
+    #[strum(serialize = "flowChartExtract")]
     FlowChartExtract,
-    #[from_str = "flowChartMerge"]
+    #[strum(serialize = "flowChartMerge")]
     FlowChartMerge,
-    #[from_str = "flowChartOfflineStorage"]
+    #[strum(serialize = "flowChartOfflineStorage")]
     FlowChartOfflineStorage,
-    #[from_str = "flowChartOnlineStorage"]
+    #[strum(serialize = "flowChartOnlineStorage")]
     FlowChartOnlineStorage,
-    #[from_str = "flowChartMagneticTape"]
+    #[strum(serialize = "flowChartMagneticTape")]
     FlowChartMagneticTape,
-    #[from_str = "flowChartMagneticDisk"]
+    #[strum(serialize = "flowChartMagneticDisk")]
     FlowChartMagneticDisk,
-    #[from_str = "flowChartMagneticDrum"]
+    #[strum(serialize = "flowChartMagneticDrum")]
     FlowChartMagneticDrum,
-    #[from_str = "flowChartDisplay"]
+    #[strum(serialize = "flowChartDisplay")]
     FlowChartDisplay,
-    #[from_str = "flowChartDelay"]
+    #[strum(serialize = "flowChartDelay")]
     FlowChartDelay,
-    #[from_str = "flowChartAlternateProcess"]
+    #[strum(serialize = "flowChartAlternateProcess")]
     FlowChartAlternateProcess,
-    #[from_str = "flowChartOffpageConnector"]
+    #[strum(serialize = "flowChartOffpageConnector")]
     FlowChartOffpageConnector,
-    #[from_str = "actionButtonBlank"]
+    #[strum(serialize = "actionButtonBlank")]
     ActionButtonBlank,
-    #[from_str = "actionButtonHome"]
+    #[strum(serialize = "actionButtonHome")]
     ActionButtonHome,
-    #[from_str = "actionButtonHelp"]
+    #[strum(serialize = "actionButtonHelp")]
     ActionButtonHelp,
-    #[from_str = "actionButtonInformation"]
+    #[strum(serialize = "actionButtonInformation")]
     ActionButtonInformation,
-    #[from_str = "actionButtonForwardNext"]
+    #[strum(serialize = "actionButtonForwardNext")]
     ActionButtonForwardNext,
-    #[from_str = "actionButtonBackPrevious"]
+    #[strum(serialize = "actionButtonBackPrevious")]
     ActionButtonBackPrevious,
-    #[from_str = "actionButtonEnd"]
+    #[strum(serialize = "actionButtonEnd")]
     ActionButtonEnd,
-    #[from_str = "actionButtonBeginning"]
+    #[strum(serialize = "actionButtonBeginning")]
     ActionButtonBeginning,
-    #[from_str = "actionButtonReturn"]
+    #[strum(serialize = "actionButtonReturn")]
     ActionButtonReturn,
-    #[from_str = "actionButtonDocument"]
+    #[strum(serialize = "actionButtonDocument")]
     ActionButtonDocument,
-    #[from_str = "actionButtonSound"]
+    #[strum(serialize = "actionButtonSound")]
     ActionButtonSound,
-    #[from_str = "actionButtonMovie"]
+    #[strum(serialize = "actionButtonMovie")]
     ActionButtonMovie,
-    #[from_str = "gear6"]
+    #[strum(serialize = "gear6")]
     Gear6,
-    #[from_str = "gear9"]
+    #[strum(serialize = "gear9")]
     Gear9,
-    #[from_str = "funnel"]
+    #[strum(serialize = "funnel")]
     Funnel,
-    #[from_str = "mathPlus"]
+    #[strum(serialize = "mathPlus")]
     MathPlus,
-    #[from_str = "mathMinus"]
+    #[strum(serialize = "mathMinus")]
     MathMinus,
-    #[from_str = "mathMultiply"]
+    #[strum(serialize = "mathMultiply")]
     MathMultiply,
-    #[from_str = "mathDivide"]
+    #[strum(serialize = "mathDivide")]
     MathDivide,
-    #[from_str = "mathEqual"]
+    #[strum(serialize = "mathEqual")]
     MathEqual,
-    #[from_str = "mathNotEqual"]
+    #[strum(serialize = "mathNotEqual")]
     MathNotEqual,
-    #[from_str = "cornerTabs"]
+    #[strum(serialize = "cornerTabs")]
     CornerTabs,
-    #[from_str = "squareTabs"]
+    #[strum(serialize = "squareTabs")]
     SquareTabs,
-    #[from_str = "plaqueTabs"]
+    #[strum(serialize = "plaqueTabs")]
     PlaqueTabs,
-    #[from_str = "chartX"]
+    #[strum(serialize = "chartX")]
     ChartX,
-    #[from_str = "chartStar"]
+    #[strum(serialize = "chartStar")]
     ChartStar,
-    #[from_str = "chartPlus"]
+    #[strum(serialize = "chartPlus")]
     ChartPlus,
 }
 
 /// This simple type specifies how to cap the ends of lines. This also affects the ends of line segments for dashed
 /// lines.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum LineCap {
     /// Rounded ends. Semi-circle protrudes by half line width.
-    #[from_str = "rnd"]
+    #[strum(serialize = "rnd")]
     Round,
     /// Square protrudes by half line width.
-    #[from_str = "sq"]
+    #[strum(serialize = "sq")]
     Square,
     /// Line ends at end point.
-    #[from_str = "flat"]
+    #[strum(serialize = "flat")]
     Flat,
 }
 
 /// This simple type specifies the compound line type that is to be used for lines with text such as underlines.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum CompoundLine {
     /// Single line: one normal width
-    #[from_str = "sng"]
+    #[strum(serialize = "sng")]
     Single,
     /// Double lines of equal width
-    #[from_str = "dbl"]
+    #[strum(serialize = "dbl")]
     Double,
     /// Double lines: one thick, one thin
-    #[from_str = "thickThin"]
+    #[strum(serialize = "thickThin")]
     ThickThin,
     /// Double lines: one thin, one thick
-    #[from_str = "thinThick"]
+    #[strum(serialize = "thinThick")]
     ThinThick,
     /// Three lines: thin, thick, thin
-    #[from_str = "tri"]
+    #[strum(serialize = "tri")]
     Triple,
 }
 
 /// This simple type specifies the Pen Alignment type for use within a text body.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum PenAlignment {
     /// Center pen (line drawn at center of path stroke).
-    #[from_str = "ctr"]
+    #[strum(serialize = "ctr")]
     Center,
     /// Inset pen (the pen is aligned on the inside of the edge of the path).
-    #[from_str = "in"]
+    #[strum(serialize = "in")]
     Inset,
 }
 
@@ -863,141 +861,141 @@ pub enum PenAlignment {
 /// line style. Each style also contains a precise binary representation of the repeating dash style. Each 1
 /// corresponds to a line segment of the same length as the line width, and each 0 corresponds to a space of the
 /// same length as the line width.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum PresetLineDashVal {
     /// 1
-    #[from_str = "solid"]
+    #[strum(serialize = "solid")]
     Solid,
     /// 1000
-    #[from_str = "dot"]
+    #[strum(serialize = "dot")]
     Dot,
     /// 1111000
-    #[from_str = "dash"]
+    #[strum(serialize = "dash")]
     Dash,
     /// 11111111000
-    #[from_str = "lgDash"]
+    #[strum(serialize = "lgDash")]
     LargeDash,
     /// 11110001000
-    #[from_str = "dashDot"]
+    #[strum(serialize = "dashDot")]
     DashDot,
     /// 111111110001000
-    #[from_str = "lgDashDot"]
+    #[strum(serialize = "lgDashDot")]
     LargeDashDot,
     /// 1111111100010001000
-    #[from_str = "ldDashDotDot"]
+    #[strum(serialize = "ldDashDotDot")]
     LargeDashDotDot,
     /// 1110
-    #[from_str = "sysDash"]
+    #[strum(serialize = "sysDash")]
     SystemDash,
     /// 10
-    #[from_str = "sysDot"]
+    #[strum(serialize = "sysDot")]
     SystemDot,
     /// 111010
-    #[from_str = "sysDashDot"]
+    #[strum(serialize = "sysDashDot")]
     SystemDashDot,
     /// 11101010
-    #[from_str = "sysDashDotDot"]
+    #[strum(serialize = "sysDashDotDot")]
     SystemDashDotDot,
 }
 
 /// This simple type represents the shape decoration that appears at the ends of lines. For example, one choice is an
 /// arrow head.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum LineEndType {
-    #[from_str = "none"]
+    #[strum(serialize = "none")]
     None,
-    #[from_str = "triangle"]
+    #[strum(serialize = "triangle")]
     Triangle,
-    #[from_str = "stealth"]
+    #[strum(serialize = "stealth")]
     Stealth,
-    #[from_str = "diamond"]
+    #[strum(serialize = "diamond")]
     Diamond,
-    #[from_str = "oval"]
+    #[strum(serialize = "oval")]
     Oval,
-    #[from_str = "arrow"]
+    #[strum(serialize = "arrow")]
     Arrow,
 }
 
 /// This simple type represents the width of the line end decoration (e.g., arrowhead) relative to the width of the
 /// line itself.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum LineEndWidth {
-    #[from_str = "sm"]
+    #[strum(serialize = "sm")]
     Small,
-    #[from_str = "med"]
+    #[strum(serialize = "med")]
     Medium,
-    #[from_str = "lg"]
+    #[strum(serialize = "lg")]
     Large,
 }
 
 /// This simple type represents the length of the line end decoration (e.g., arrowhead) relative to the width of the
 /// line itself.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum LineEndLength {
-    #[from_str = "sm"]
+    #[strum(serialize = "sm")]
     Small,
-    #[from_str = "med"]
+    #[strum(serialize = "med")]
     Medium,
-    #[from_str = "lg"]
+    #[strum(serialize = "lg")]
     Large,
 }
 
 /// This simple type indicates one of 20 preset shadow types. Each enumeration value description illustrates the
 /// type of shadow represented by the value. Each description contains the parameters to the outer shadow effect
 /// represented by the preset, in addition to those attributes common to all prstShdw effects.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum PresetShadowVal {
     /// No additional attributes specified.
-    #[from_str = "shdw1"]
+    #[strum(serialize = "shdw1")]
     TopLeftDropShadow,
     /// No additional attributes specified.
-    #[from_str = "shdw2"]
+    #[strum(serialize = "shdw2")]
     TopRightDropShadow,
     /// align = "b"
     /// ky = 40.89°
     /// sy = 50%
-    #[from_str = "shdw3"]
+    #[strum(serialize = "shdw3")]
     BackLeftPerspectiveShadow,
     /// align = "b"
     /// kx = -40.89°
     /// sy = 50%
-    #[from_str = "shdw4"]
+    #[strum(serialize = "shdw4")]
     BackRightPerspectiveShadow,
     /// No additional attributes specified.
-    #[from_str = "shdw5"]
+    #[strum(serialize = "shdw5")]
     BottomLeftDropShadow,
     /// No additional attributes specified.
-    #[from_str = "shdw6"]
+    #[strum(serialize = "shdw6")]
     BottomRightDropShadow,
     /// align = "b"
     /// kx = 40.89°
     /// sy = -50%
-    #[from_str = "shdw7"]
+    #[strum(serialize = "shdw7")]
     FrontLeftPerspectiveShadow,
     /// align = "b"
     /// kx = -40.89°
     /// sy = -50%
-    #[from_str = "shdw8"]
+    #[strum(serialize = "shdw8")]
     FrontRightPerspectiveShadow,
     /// align = "tl"
     /// sx = 75%
     /// sy = 75%
-    #[from_str = "shdw9"]
+    #[strum(serialize = "shdw9")]
     TopLeftSmallDropShadow,
     /// align = "br"
     /// sx = 125%
     /// sy = 125%
-    #[from_str = "shdw10"]
+    #[strum(serialize = "shdw10")]
     TopLeftLargeDropShadow,
     /// align = "b"
     /// kx = 40.89°
     /// sy = 50%
-    #[from_str = "shdw11"]
+    #[strum(serialize = "shdw11")]
     BackLeftLongPerspectiveShadow,
     /// align = "b"
     /// kx = -40.89°
     /// sy = 50%
-    #[from_str = "shdw12"]
+    #[strum(serialize = "shdw12")]
     BackRightLongPerspectiveShadow,
     /// Equivalent to two outer shadow effects.
     ///
@@ -1008,20 +1006,20 @@ pub enum PresetShadowVal {
     /// color = min(1, shadow 1's color (0 <= r, g, b <= 1) +
     /// 102/255), per r, g, b component
     /// dist = 2 * shadow 1's distance
-    #[from_str = "shdw13"]
+    #[strum(serialize = "shdw13")]
     TopLeftDoubleDropShadow,
     /// No additional attributes specified.
-    #[from_str = "shdw14"]
+    #[strum(serialize = "shdw14")]
     BottomRightSmallDropShadow,
     /// align = "b"
     /// kx = 40.89°
     /// sy = -50%
-    #[from_str = "shdw15"]
+    #[strum(serialize = "shdw15")]
     FrontLeftLongPerspectiveShadow,
     /// align = "b"
     /// kx = -40.89°
     /// sy = -50%
-    #[from_str = "shdw16"]
+    #[strum(serialize = "shdw16")]
     FrontRightLongPerspectiveShadow,
     /// Equivalent to two outer shadow effects.
     ///
@@ -1032,7 +1030,7 @@ pub enum PresetShadowVal {
     /// color = min(1, shadow 1's color (0 <= r, g, b <= 1) +
     /// 102/255), per r, g, b component
     /// dir = shadow 1's direction + 180°
-    #[from_str = "shdw17"]
+    #[strum(serialize = "shdw17")]
     ThreeDOuterBoxShadow,
     /// Equivalent to two outer shadow effects.
     ///
@@ -1043,20 +1041,20 @@ pub enum PresetShadowVal {
     /// color = min(1, shadow 1's color (0 <= r, g, b <= 1) +
     /// 102/255), per r, g, b component
     /// dir = shadow 1's direction + 180°
-    #[from_str = "shdw18"]
+    #[strum(serialize = "shdw18")]
     ThreeDInnerBoxShadow,
     /// align = "b"
     /// sy = 50°
-    #[from_str = "shdw19"]
+    #[strum(serialize = "shdw19")]
     BackCenterPerspectiveShadow,
     /// align = "b"
     /// sy = -100°
-    #[from_str = "shdw20"]
+    #[strum(serialize = "shdw20")]
     FrontBottomShadow,
 }
 
 /// This simple type determines the relationship between effects in a container, either sibling or tree.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum EffectContainerType {
     /// Each effect is separately applied to the parent object.
     ///
@@ -1064,7 +1062,7 @@ pub enum EffectContainerType {
     ///
     /// If the parent element contains an outer shadow and a reflection, the resulting effect is a
     /// shadow around the parent object and a reflection of the object. The reflection does not have a shadow.
-    #[from_str = "sib"]
+    #[strum(serialize = "sib")]
     Sib,
     /// Each effect is applied to the result of the previous effect.
     ///
@@ -1073,70 +1071,70 @@ pub enum EffectContainerType {
     /// If the parent element contains an outer shadow followed by a glow, the shadow is first applied
     /// to the parent object. Then, the glow is applied to the shadow (rather than the original object). The resulting
     /// effect would be a glowing shadow.
-    #[from_str = "tree"]
+    #[strum(serialize = "tree")]
     Tree,
 }
 
 /// This simple type represents one of the fonts associated with the style.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum FontCollectionIndex {
     /// The major font of the style's font scheme.
-    #[from_str = "major"]
+    #[strum(serialize = "major")]
     Major,
     /// The minor font of the style's font scheme.
-    #[from_str = "minor"]
+    #[strum(serialize = "minor")]
     Minor,
     /// No font reference.
-    #[from_str = "none"]
+    #[strum(serialize = "none")]
     None,
 }
 
 /// This simple type specifies an animation build step within a diagram animation.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum DgmBuildStep {
     /// Animate a diagram shape for this animation build step
-    #[from_str = "sp"]
+    #[strum(serialize = "sp")]
     Shape,
     /// Animate the diagram background for this animation build step
-    #[from_str = "bg"]
+    #[strum(serialize = "bg")]
     Background,
 }
 
 /// This simple type specifies an animation build step within a chart animation.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum ChartBuildStep {
     /// Animate a chart category for this animation build step
-    #[from_str = "category"]
+    #[strum(serialize = "category")]
     Category,
     /// Animate a point in a chart category for this animation build step
-    #[from_str = "ptInCategory"]
+    #[strum(serialize = "ptInCategory")]
     PtInCategory,
     /// Animate a chart series for this animation build step
-    #[from_str = "series"]
+    #[strum(serialize = "series")]
     Series,
     /// Animate a point in a chart series for this animation build step
-    #[from_str = "ptInSeries"]
+    #[strum(serialize = "ptInSeries")]
     PtInSeries,
     /// Animate all points within the chart for this animation build step
-    #[from_str = "allPts"]
+    #[strum(serialize = "allPts")]
     AllPts,
     /// Animate the chart grid and legend for this animation build step
-    #[from_str = "gridLegend"]
+    #[strum(serialize = "gridLegend")]
     GridLegend,
 }
 
 /// This simple type represents whether a style property should be applied.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum OnOffStyleType {
     /// Property is on.
-    #[from_str = "on"]
+    #[strum(serialize = "on")]
     On,
     /// Property is off.
-    #[from_str = "off"]
+    #[strum(serialize = "off")]
     Off,
     /// Follow parent settings. For a themed property, follow the theme settings. For an unthemed property, follow
     /// the parent setting in the property inheritance chain.
-    #[from_str = "def"]
+    #[strum(serialize = "def")]
     Default,
 }
 
@@ -1145,934 +1143,934 @@ pub enum OnOffStyleType {
 ///
 /// Applications shall use the lastClr attribute to determine the absolute value of the last color used if system colors
 /// are not supported.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum SystemColorVal {
     /// Specifies the scroll bar gray area color.
-    #[from_str = "scrollBar"]
+    #[strum(serialize = "scrollBar")]
     ScrollBar,
     ///Specifies the desktop background color.
-    #[from_str = "background"]
+    #[strum(serialize = "background")]
     Background,
     /// Specifies the active window title bar color. In particular the left side color in the color gradient of an
     /// active window's title bar if the gradient effect is enabled.
-    #[from_str = "activeCaption"]
+    #[strum(serialize = "activeCaption")]
     ActiveCaption,
     /// Specifies the color of the Inactive window caption.
     /// Specifies the left side color in the color gradient of an inactive window's title bar if the gradient effect is
     /// enabled.
-    #[from_str = "inactiveCaption"]
+    #[strum(serialize = "inactiveCaption")]
     InactiveCaption,
     /// Specifies the menu background color.
-    #[from_str = "menu"]
+    #[strum(serialize = "menu")]
     Menu,
     /// Specifies window background color.
-    #[from_str = "window"]
+    #[strum(serialize = "window")]
     Window,
     /// Specifies the window frame color.
-    #[from_str = "windowFrame"]
+    #[strum(serialize = "windowFrame")]
     WindowFrame,
     /// Specifies the color of Text in menus.
-    #[from_str = "menuText"]
+    #[strum(serialize = "menuText")]
     MenuText,
     /// Specifies the color of text in windows.
-    #[from_str = "windowText"]
+    #[strum(serialize = "windowText")]
     WindowText,
     /// Specifies the color of text in the caption, size box, and scroll bar arrow box.
-    #[from_str = "captionText"]
+    #[strum(serialize = "captionText")]
     CaptionText,
     /// Specifies an Active Window Border Color.
-    #[from_str = "activeBorder"]
+    #[strum(serialize = "activeBorder")]
     ActiveBorder,
     /// Specifies the color of the Inactive window border.
-    #[from_str = "inactiveBorder"]
+    #[strum(serialize = "inactiveBorder")]
     InactiveBorder,
     /// Specifies the Background color of multiple document interface (MDI) applications
-    #[from_str = "appWorkspace"]
+    #[strum(serialize = "appWorkspace")]
     AppWorkspace,
     /// Specifies the color of Item(s) selected in a control.
-    #[from_str = "highlight"]
+    #[strum(serialize = "highlight")]
     Highlight,
     /// Specifies the text color of item(s) selected in a control.
-    #[from_str = "highlightText"]
+    #[strum(serialize = "highlightText")]
     HighlightText,
     /// Specifies the face color for three-dimensional display elements and for dialog box backgrounds.
-    #[from_str = "btnFace"]
+    #[strum(serialize = "btnFace")]
     ButtonFace,
     /// Specifies the shadow color for three-dimensional display elements (for edges facing away from the light source).
-    #[from_str = "btnShadow"]
+    #[strum(serialize = "btnShadow")]
     ButtonShadow,
     /// Specifies a grayed (disabled) text. This color is set to 0 if the current display driver does not support a
     /// solid gray color.
-    #[from_str = "grayText"]
+    #[strum(serialize = "grayText")]
     GrayText,
     /// Specifies the color of text on push buttons.
-    #[from_str = "btnText"]
+    #[strum(serialize = "btnText")]
     ButtonText,
     /// Specifies the color of text in an inactive caption.
-    #[from_str = "inactiveCaptionText"]
+    #[strum(serialize = "inactiveCaptionText")]
     InactiveCaptionText,
     /// Specifies the highlight color for three-dimensional display elements (for edges facing the light source).
-    #[from_str = "btnHighlight"]
+    #[strum(serialize = "btnHighlight")]
     ButtonHighlight,
     /// Specifies a Dark shadow color for three-dimensional display elements.
-    #[from_str = "3dDkShadow"]
+    #[strum(serialize = "3dDkShadow")]
     DarkShadow3d,
     /// Specifies a Light color for three-dimensional display elements (for edges facing the light source).
-    #[from_str = "3dLight"]
+    #[strum(serialize = "3dLight")]
     Light3d,
     /// Specifies the text color for tooltip controls.
-    #[from_str = "infoText"]
+    #[strum(serialize = "infoText")]
     InfoText,
     /// Specifies the background color for tooltip controls.
-    #[from_str = "infoBk"]
+    #[strum(serialize = "infoBk")]
     InfoBack,
-    #[from_str = "hotLight"]
+    #[strum(serialize = "hotLight")]
     /// Specifies the color for a hyperlink or hot-tracked item.
     HotLight,
-    #[from_str = "gradientActiveCaption"]
+    #[strum(serialize = "gradientActiveCaption")]
     /// Specifies the right side color in the color gradient of an active window's title bar.
     GradientActiveCaption,
     /// Specifies the right side color in the color gradient of an inactive window's title bar.
-    #[from_str = "gradientInactiveCaption"]
+    #[strum(serialize = "gradientInactiveCaption")]
     GradientInactiveCaption,
     /// Specifies the color used to highlight menu items when the menu appears as a flat menu.
-    #[from_str = "menuHighlight"]
+    #[strum(serialize = "menuHighlight")]
     MenuHighlight,
     /// Specifies the background color for the menu bar when menus appear as flat menus.
-    #[from_str = "menubar"]
+    #[strum(serialize = "menubar")]
     MenuBar,
 }
 
 /// This simple type represents a preset color value.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum PresetColorVal {
     /// Specifies a color with RGB value (240,248,255)
-    #[from_str = "aliceBlue"]
+    #[strum(serialize = "aliceBlue")]
     AliceBlue,
     /// Specifies a color with RGB value (250,235,215)
-    #[from_str = "antiqueWhite"]
+    #[strum(serialize = "antiqueWhite")]
     AntiqueWhite,
     /// Specifies a color with RGB value (0,255,255)
-    #[from_str = "aqua"]
+    #[strum(serialize = "aqua")]
     Aqua,
     /// Specifies a color with RGB value (127,255,212)
-    #[from_str = "aquamarine"]
+    #[strum(serialize = "aquamarine")]
     Aquamarine,
     /// Specifies a color with RGB value (240,255,255)
-    #[from_str = "azure"]
+    #[strum(serialize = "azure")]
     Azure,
     ///Specifies a color with RGB value (245,245,220)
-    #[from_str = "beige"]
+    #[strum(serialize = "beige")]
     Beige,
     /// Specifies a color with RGB value (255,228,196)
-    #[from_str = "bisque"]
+    #[strum(serialize = "bisque")]
     Bisque,
     /// Specifies a color with RGB value (0,0,0)
-    #[from_str = "black"]
+    #[strum(serialize = "black")]
     Black,
     /// Specifies a color with RGB value (255,235,205)
-    #[from_str = "blanchedAlmond"]
+    #[strum(serialize = "blanchedAlmond")]
     BlanchedAlmond,
     /// Specifies a color with RGB value (0,0,255)
-    #[from_str = "blue"]
+    #[strum(serialize = "blue")]
     Blue,
     /// Specifies a color with RGB value (138,43,226)
-    #[from_str = "blueViolet"]
+    #[strum(serialize = "blueViolet")]
     BlueViolet,
     /// Specifies a color with RGB value (165,42,42)
-    #[from_str = "brown"]
+    #[strum(serialize = "brown")]
     Brown,
     /// Specifies a color with RGB value (222,184,135)
-    #[from_str = "burlyWood"]
+    #[strum(serialize = "burlyWood")]
     BurlyWood,
     /// Specifies a color with RGB value (95,158,160)
-    #[from_str = "cadetBlue"]
+    #[strum(serialize = "cadetBlue")]
     CadetBlue,
     /// Specifies a color with RGB value (127,255,0)
-    #[from_str = "chartreuse"]
+    #[strum(serialize = "chartreuse")]
     Chartreuse,
     /// Specifies a color with RGB value (210,105,30)
-    #[from_str = "chocolate"]
+    #[strum(serialize = "chocolate")]
     Chocolate,
     /// Specifies a color with RGB value (255,127,80)
-    #[from_str = "coral"]
+    #[strum(serialize = "coral")]
     Coral,
     /// Specifies a color with RGB value (100,149,237)
-    #[from_str = "cornflowerBlue"]
+    #[strum(serialize = "cornflowerBlue")]
     CornflowerBlue,
     /// Specifies a color with RGB value (255,248,220)
-    #[from_str = "cornsilk"]
+    #[strum(serialize = "cornsilk")]
     Cornsilk,
     /// Specifies a color with RGB value (220,20,60)
-    #[from_str = "crimson"]
+    #[strum(serialize = "crimson")]
     Crimson,
     /// Specifies a color with RGB value (0,255,255)
-    #[from_str = "cyan"]
+    #[strum(serialize = "cyan")]
     Cyan,
     /// Specifies a color with RGB value (0,0,139)
-    #[from_str = "darkBlue"]
+    #[strum(serialize = "darkBlue")]
     DarkBlue,
     /// Specifies a color with RGB value (0,139,139)
-    #[from_str = "darkCyan"]
+    #[strum(serialize = "darkCyan")]
     DarkCyan,
     /// Specifies a color with RGB value (184,134,11)
-    #[from_str = "darkGoldenrod"]
+    #[strum(serialize = "darkGoldenrod")]
     DarkGoldenrod,
     /// Specifies a color with RGB value (169,169,169)
-    #[from_str = "darkGray"]
+    #[strum(serialize = "darkGray")]
     DarkGray,
     /// Specifies a color with RGB value (169,169,169)
-    #[from_str = "darkGrey"]
+    #[strum(serialize = "darkGrey")]
     DarkGrey,
     /// Specifies a color with RGB value (0,100,0)
-    #[from_str = "darkGreen"]
+    #[strum(serialize = "darkGreen")]
     DarkGreen,
     /// Specifies a color with RGB value (189,183,107)
-    #[from_str = "darkKhaki"]
+    #[strum(serialize = "darkKhaki")]
     DarkKhaki,
     /// Specifies a color with RGB value (139,0,139)
-    #[from_str = "darkMagenta"]
+    #[strum(serialize = "darkMagenta")]
     DarkMagenta,
     /// Specifies a color with RGB value (85,107,47)
-    #[from_str = "darkOliveGreen"]
+    #[strum(serialize = "darkOliveGreen")]
     DarkOliveGreen,
     /// Specifies a color with RGB value (255,140,0)
-    #[from_str = "darkOrange"]
+    #[strum(serialize = "darkOrange")]
     DarkOrange,
     /// Specifies a color with RGB value (153,50,204)
-    #[from_str = "darkOrchid"]
+    #[strum(serialize = "darkOrchid")]
     DarkOrchid,
     /// Specifies a color with RGB value (139,0,0)
-    #[from_str = "darkRed"]
+    #[strum(serialize = "darkRed")]
     DarkRed,
     /// Specifies a color with RGB value (233,150,122)
-    #[from_str = "darkSalmon"]
+    #[strum(serialize = "darkSalmon")]
     DarkSalmon,
     /// Specifies a color with RGB value (143,188,143)
-    #[from_str = "darkSeaGreen"]
+    #[strum(serialize = "darkSeaGreen")]
     DarkSeaGreen,
     /// Specifies a color with RGB value (72,61,139)
-    #[from_str = "darkSlateBlue"]
+    #[strum(serialize = "darkSlateBlue")]
     DarkSlateBlue,
     /// Specifies a color with RGB value (47,79,79)
-    #[from_str = "darkSlateGray"]
+    #[strum(serialize = "darkSlateGray")]
     DarkSlateGray,
     /// Specifies a color with RGB value (47,79,79)
-    #[from_str = "darkSlateGrey"]
+    #[strum(serialize = "darkSlateGrey")]
     DarkSlateGrey,
     /// Specifies a color with RGB value (0,206,209)
-    #[from_str = "darkTurquoise"]
+    #[strum(serialize = "darkTurquoise")]
     DarkTurqoise,
     /// Specifies a color with RGB value (148,0,211)
-    #[from_str = "darkViolet"]
+    #[strum(serialize = "darkViolet")]
     DarkViolet,
     /// Specifies a color with RGB value (0,0,139)
-    #[from_str = "dkBlue"]
+    #[strum(serialize = "dkBlue")]
     DkBlue,
     /// Specifies a color with RGB value (0,139,139)
-    #[from_str = "dkCyan"]
+    #[strum(serialize = "dkCyan")]
     DkCyan,
     /// Specifies a color with RGB value (184,134,11)
-    #[from_str = "dkGoldenrod"]
+    #[strum(serialize = "dkGoldenrod")]
     DkGoldenrod,
     /// Specifies a color with RGB value (169,169,169)
-    #[from_str = "dkGray"]
+    #[strum(serialize = "dkGray")]
     DkGray,
     /// Specifies a color with RGB value (169,169,169)
-    #[from_str = "dkGrey"]
+    #[strum(serialize = "dkGrey")]
     DkGrey,
     /// Specifies a color with RGB value (0,100,0)
-    #[from_str = "dkGreen"]
+    #[strum(serialize = "dkGreen")]
     DkGreen,
     /// Specifies a color with RGB value (189,183,107)
-    #[from_str = "dkKhaki"]
+    #[strum(serialize = "dkKhaki")]
     DkKhaki,
     /// Specifies a color with RGB value (139,0,139)
-    #[from_str = "dkMagenta"]
+    #[strum(serialize = "dkMagenta")]
     DkMagenta,
     /// Specifies a color with RGB value (85,107,47)
-    #[from_str = "dkOliveGreen"]
+    #[strum(serialize = "dkOliveGreen")]
     DkOliveGreen,
     /// Specifies a color with RGB value (255,140,0)
-    #[from_str = "dkOrange"]
+    #[strum(serialize = "dkOrange")]
     DkOrange,
     /// Specifies a color with RGB value (153,50,204)
-    #[from_str = "dkOrchid"]
+    #[strum(serialize = "dkOrchid")]
     DkOrchid,
     /// Specifies a color with RGB value (139,0,0)
-    #[from_str = "dkRed"]
+    #[strum(serialize = "dkRed")]
     DkRed,
     /// Specifies a color with RGB value (233,150,122)
-    #[from_str = "dkSalmon"]
+    #[strum(serialize = "dkSalmon")]
     DkSalmon,
     /// Specifies a color with RGB value (143,188,139)
-    #[from_str = "dkSeaGreen"]
+    #[strum(serialize = "dkSeaGreen")]
     DkSeaGreen,
     /// Specifies a color with RGB value (72,61,139)
-    #[from_str = "dkSlateBlue"]
+    #[strum(serialize = "dkSlateBlue")]
     DkSlateBlue,
     /// Specifies a color with RGB value (47,79,79)
-    #[from_str = "dkSlateGray"]
+    #[strum(serialize = "dkSlateGray")]
     DkSlateGray,
     /// Specifies a color with RGB value (47,79,79)
-    #[from_str = "dkSlateGrey"]
+    #[strum(serialize = "dkSlateGrey")]
     DkSlateGrey,
     /// Specifies a color with RGB value (0,206,209)
-    #[from_str = "dkTurquoise"]
+    #[strum(serialize = "dkTurquoise")]
     DkTurquoise,
     /// Specifies a color with RGB value (148,0,211)
-    #[from_str = "dkViolet"]
+    #[strum(serialize = "dkViolet")]
     DkViolet,
     /// Specifies a color with RGB value (255,20,147)
-    #[from_str = "deepPink"]
+    #[strum(serialize = "deepPink")]
     DeepPink,
     /// Specifies a color with RGB value (0,191,255)
-    #[from_str = "deepSkyBlue"]
+    #[strum(serialize = "deepSkyBlue")]
     DeepSkyBlue,
     /// Specifies a color with RGB value (105,105,105)
-    #[from_str = "dimGray"]
+    #[strum(serialize = "dimGray")]
     DimGray,
     /// Specifies a color with RGB value (105,105,105)
-    #[from_str = "dimGrey"]
+    #[strum(serialize = "dimGrey")]
     DimGrey,
     /// Specifies a color with RGB value (30,144,255)
-    #[from_str = "dodgerBlue"]
+    #[strum(serialize = "dodgerBlue")]
     DodgerBluet,
     /// Specifies a color with RGB value (178,34,34)
-    #[from_str = "firebrick"]
+    #[strum(serialize = "firebrick")]
     Firebrick,
     /// Specifies a color with RGB value (255,250,240)
-    #[from_str = "floralWhite"]
+    #[strum(serialize = "floralWhite")]
     FloralWhite,
     /// Specifies a color with RGB value (34,139,34)
-    #[from_str = "forestGreen"]
+    #[strum(serialize = "forestGreen")]
     ForestGreen,
     /// Specifies a color with RGB value (255,0,255)
-    #[from_str = "fuchsia"]
+    #[strum(serialize = "fuchsia")]
     Fuchsia,
     /// Specifies a color with RGB value (220,220,220)
-    #[from_str = "gainsboro"]
+    #[strum(serialize = "gainsboro")]
     Gainsboro,
     /// Specifies a color with RGB value (248,248,255)
-    #[from_str = "ghostWhite"]
+    #[strum(serialize = "ghostWhite")]
     GhostWhite,
     /// Specifies a color with RGB value (255,215,0)
-    #[from_str = "gold"]
+    #[strum(serialize = "gold")]
     Gold,
     /// Specifies a color with RGB value (218,165,32)
-    #[from_str = "goldenrod"]
+    #[strum(serialize = "goldenrod")]
     Goldenrod,
     /// Specifies a color with RGB value (128,128,128)
-    #[from_str = "gray"]
+    #[strum(serialize = "gray")]
     Gray,
     /// Specifies a color with RGB value (128,128,128)
-    #[from_str = "grey"]
+    #[strum(serialize = "grey")]
     Grey,
     /// Specifies a color with RGB value (0,128,0)
-    #[from_str = "green"]
+    #[strum(serialize = "green")]
     Green,
     /// Specifies a color with RGB value (173,255,47)
-    #[from_str = "greenYellow"]
+    #[strum(serialize = "greenYellow")]
     GreenYellow,
     /// Specifies a color with RGB value (240,255,240)
-    #[from_str = "honeydew"]
+    #[strum(serialize = "honeydew")]
     Honeydew,
     /// Specifies a color with RGB value (255,105,180)
-    #[from_str = "hotPink"]
+    #[strum(serialize = "hotPink")]
     HotPink,
     /// Specifies a color with RGB value (205,92,92)
-    #[from_str = "indianRed"]
+    #[strum(serialize = "indianRed")]
     IndianRed,
     /// Specifies a color with RGB value (75,0,130)
-    #[from_str = "indigo"]
+    #[strum(serialize = "indigo")]
     Indigo,
     /// Specifies a color with RGB value (255,255,240)
-    #[from_str = "ivory"]
+    #[strum(serialize = "ivory")]
     Ivory,
     /// Specifies a color with RGB value (240,230,140)
-    #[from_str = "khaki"]
+    #[strum(serialize = "khaki")]
     Khaki,
     /// Specifies a color with RGB value (230,230,250)
-    #[from_str = "lavender"]
+    #[strum(serialize = "lavender")]
     Lavender,
     /// Specifies a color with RGB value (255,240,245)
-    #[from_str = "lavenderBlush"]
+    #[strum(serialize = "lavenderBlush")]
     LavenderBlush,
     /// Specifies a color with RGB value (124,252,0)
-    #[from_str = "lawnGreen"]
+    #[strum(serialize = "lawnGreen")]
     LawnGreen,
     /// Specifies a color with RGB value (255,250,205)
-    #[from_str = "lemonChiffon"]
+    #[strum(serialize = "lemonChiffon")]
     LemonChiffon,
     /// Specifies a color with RGB value (173,216,230)
-    #[from_str = "lightBlue"]
+    #[strum(serialize = "lightBlue")]
     LightBlue,
     /// Specifies a color with RGB value (240,128,128)
-    #[from_str = "lightCoral"]
+    #[strum(serialize = "lightCoral")]
     LightCoral,
     /// Specifies a color with RGB value (224,255,255)
-    #[from_str = "lightCyan"]
+    #[strum(serialize = "lightCyan")]
     LightCyan,
     /// Specifies a color with RGB value (250,250,210)
-    #[from_str = "lightGoldenrodYellow"]
+    #[strum(serialize = "lightGoldenrodYellow")]
     LightGoldenrodYellow,
     /// Specifies a color with RGB value (211,211,211)
-    #[from_str = "lightGray"]
+    #[strum(serialize = "lightGray")]
     LightGray,
     /// Specifies a color with RGB value (211,211,211)
-    #[from_str = "lightGrey"]
+    #[strum(serialize = "lightGrey")]
     LightGrey,
     /// Specifies a color with RGB value (144,238,144)
-    #[from_str = "lightGreen"]
+    #[strum(serialize = "lightGreen")]
     LightGreen,
     /// Specifies a color with RGB value (255,182,193)
-    #[from_str = "lightPink"]
+    #[strum(serialize = "lightPink")]
     LightPink,
     /// Specifies a color with RGB value (255,160,122)
-    #[from_str = "lightSalmon"]
+    #[strum(serialize = "lightSalmon")]
     LightSalmon,
     /// Specifies a color with RGB value (32,178,170)
-    #[from_str = "lightSeaGreen"]
+    #[strum(serialize = "lightSeaGreen")]
     LightSeaGreen,
     /// Specifies a color with RGB value (135,206,250)
-    #[from_str = "lightSkyBlue"]
+    #[strum(serialize = "lightSkyBlue")]
     LightSkyBlue,
     /// Specifies a color with RGB value (119,136,153)
-    #[from_str = "lightSlateGray"]
+    #[strum(serialize = "lightSlateGray")]
     LightSlateGray,
     /// Specifies a color with RGB value (119,136,153)
-    #[from_str = "lightSlateGrey"]
+    #[strum(serialize = "lightSlateGrey")]
     LightSlateGrey,
     /// Specifies a color with RGB value (176,196,222)
-    #[from_str = "lightSteelBlue"]
+    #[strum(serialize = "lightSteelBlue")]
     LightSteelBlue,
     /// Specifies a color with RGB value (255,255,224)
-    #[from_str = "lightYellow"]
+    #[strum(serialize = "lightYellow")]
     LightYellow,
     /// Specifies a color with RGB value (173,216,230)
-    #[from_str = "ltBlue"]
+    #[strum(serialize = "ltBlue")]
     LtBlue,
     /// Specifies a color with RGB value (240,128,128)
-    #[from_str = "ltCoral"]
+    #[strum(serialize = "ltCoral")]
     LtCoral,
     /// Specifies a color with RGB value (224,255,255)
-    #[from_str = "ltCyan"]
+    #[strum(serialize = "ltCyan")]
     LtCyan,
     /// Specifies a color with RGB value (250,250,120)
-    #[from_str = "ltGoldenrodYellow"]
+    #[strum(serialize = "ltGoldenrodYellow")]
     LtGoldenrodYellow,
     /// Specifies a color with RGB value (211,211,211)
-    #[from_str = "ltGray"]
+    #[strum(serialize = "ltGray")]
     LtGray,
     /// Specifies a color with RGB value (211,211,211)
-    #[from_str = "ltGrey"]
+    #[strum(serialize = "ltGrey")]
     LtGrey,
     /// Specifies a color with RGB value (144,238,144)
-    #[from_str = "ltGreen"]
+    #[strum(serialize = "ltGreen")]
     LtGreen,
     /// Specifies a color with RGB value (255,182,193)
-    #[from_str = "ltPink"]
+    #[strum(serialize = "ltPink")]
     LtPink,
     /// Specifies a color with RGB value (255,160,122)
-    #[from_str = "ltSalmon"]
+    #[strum(serialize = "ltSalmon")]
     LtSalmon,
     /// Specifies a color with RGB value (32,178,170)
-    #[from_str = "ltSeaGreen"]
+    #[strum(serialize = "ltSeaGreen")]
     LtSeaGreen,
     /// Specifies a color with RGB value (135,206,250)
-    #[from_str = "ltSkyBlue"]
+    #[strum(serialize = "ltSkyBlue")]
     LtSkyBlue,
     /// Specifies a color with RGB value (119,136,153)
-    #[from_str = "ltSlateGray"]
+    #[strum(serialize = "ltSlateGray")]
     LtSlateGray,
     /// Specifies a color with RGB value (119,136,153)
-    #[from_str = "ltSlateGrey"]
+    #[strum(serialize = "ltSlateGrey")]
     LtSlateGrey,
     /// Specifies a color with RGB value (176,196,222)
-    #[from_str = "ltSteelBlue"]
+    #[strum(serialize = "ltSteelBlue")]
     LtSteelBlue,
     /// Specifies a color with RGB value (255,255,224)
-    #[from_str = "ltYellow"]
+    #[strum(serialize = "ltYellow")]
     LtYellow,
     /// Specifies a color with RGB value (0,255,0)
-    #[from_str = "lime"]
+    #[strum(serialize = "lime")]
     Lime,
     /// Specifies a color with RGB value (50,205,50)
-    #[from_str = "limeGreen"]
+    #[strum(serialize = "limeGreen")]
     LimeGreen,
     /// Specifies a color with RGB value (250,240,230)
-    #[from_str = "linen"]
+    #[strum(serialize = "linen")]
     Linen,
     /// Specifies a color with RGB value (255,0,255)
-    #[from_str = "magenta"]
+    #[strum(serialize = "magenta")]
     Magenta,
     /// Specifies a color with RGB value (128,0,0)
-    #[from_str = "maroon"]
+    #[strum(serialize = "maroon")]
     Maroon,
     /// Specifies a color with RGB value (102,205,170)
-    #[from_str = "medAquamarine"]
+    #[strum(serialize = "medAquamarine")]
     MedAquamarine,
     /// Specifies a color with RGB value (0,0,205)
-    #[from_str = "medBlue"]
+    #[strum(serialize = "medBlue")]
     MedBlue,
     /// Specifies a color with RGB value (186,85,211)
-    #[from_str = "medOrchid"]
+    #[strum(serialize = "medOrchid")]
     MedOrchid,
     /// Specifies a color with RGB value (147,112,219)
-    #[from_str = "medPurple"]
+    #[strum(serialize = "medPurple")]
     MedPurple,
     /// Specifies a color with RGB value (60,179,113)
-    #[from_str = "medSeaGreen"]
+    #[strum(serialize = "medSeaGreen")]
     MedSeaGreen,
     /// Specifies a color with RGB value (123,104,238)
-    #[from_str = "medSlateBlue"]
+    #[strum(serialize = "medSlateBlue")]
     MedSlateBlue,
     /// Specifies a color with RGB value (0,250,154)
-    #[from_str = "medSpringGreen"]
+    #[strum(serialize = "medSpringGreen")]
     MedSpringGreen,
     /// Specifies a color with RGB value (72,209,204)
-    #[from_str = "medTurquoise"]
+    #[strum(serialize = "medTurquoise")]
     MedTurquoise,
     /// Specifies a color with RGB value (199,21,133)
-    #[from_str = "medVioletRed"]
+    #[strum(serialize = "medVioletRed")]
     MedVioletRed,
     /// Specifies a color with RGB value (102,205,170)
-    #[from_str = "mediumAquamarine"]
+    #[strum(serialize = "mediumAquamarine")]
     MediumAquamarine,
     /// Specifies a color with RGB value (0,0,205)
-    #[from_str = "mediumBlue"]
+    #[strum(serialize = "mediumBlue")]
     MediumBlue,
     /// Specifies a color with RGB value (186,85,211)
-    #[from_str = "mediumOrchid"]
+    #[strum(serialize = "mediumOrchid")]
     MediumOrchid,
     /// Specifies a color with RGB value (147,112,219)
-    #[from_str = "mediumPurple"]
+    #[strum(serialize = "mediumPurple")]
     MediumPurple,
     /// Specifies a color with RGB value (60,179,113)
-    #[from_str = "mediumSeaGreen"]
+    #[strum(serialize = "mediumSeaGreen")]
     MediumSeaGreen,
     /// Specifies a color with RGB value (123,104,238)
-    #[from_str = "mediumSlateBlue"]
+    #[strum(serialize = "mediumSlateBlue")]
     MediumSlateBlue,
     /// Specifies a color with RGB value (0,250,154)
-    #[from_str = "mediumSpringGreen"]
+    #[strum(serialize = "mediumSpringGreen")]
     MediumSpringGreen,
     /// Specifies a color with RGB value (72,209,204)
-    #[from_str = "mediumTurquoise"]
+    #[strum(serialize = "mediumTurquoise")]
     MediumTurquoise,
     /// Specifies a color with RGB value (199,21,133)
-    #[from_str = "mediumVioletRed"]
+    #[strum(serialize = "mediumVioletRed")]
     MediumVioletRed,
     /// Specifies a color with RGB value (25,25,112)
-    #[from_str = "midnightBlue"]
+    #[strum(serialize = "midnightBlue")]
     MidnightBlue,
     /// Specifies a color with RGB value (245,255,250)
-    #[from_str = "mintCream"]
+    #[strum(serialize = "mintCream")]
     MintCream,
     /// Specifies a color with RGB value (255,228,225)
-    #[from_str = "mistyRose"]
+    #[strum(serialize = "mistyRose")]
     MistyRose,
     /// Specifies a color with RGB value (255,228,181)
-    #[from_str = "moccasin"]
+    #[strum(serialize = "moccasin")]
     Moccasin,
     /// Specifies a color with RGB value (255,222,173)
-    #[from_str = "navajoWhite"]
+    #[strum(serialize = "navajoWhite")]
     NavajoWhite,
     /// Specifies a color with RGB value (0,0,128)
-    #[from_str = "navy"]
+    #[strum(serialize = "navy")]
     Navy,
     /// Specifies a color with RGB value (253,245,230)
-    #[from_str = "oldLace"]
+    #[strum(serialize = "oldLace")]
     OldLace,
     /// Specifies a color with RGB value (128,128,0)
-    #[from_str = "olive"]
+    #[strum(serialize = "olive")]
     Olive,
     /// Specifies a color with RGB value (107,142,35)
-    #[from_str = "oliveDrab"]
+    #[strum(serialize = "oliveDrab")]
     OliveDrab,
     /// Specifies a color with RGB value (255,165,0)
-    #[from_str = "orange"]
+    #[strum(serialize = "orange")]
     Orange,
     /// Specifies a color with RGB value (255,69,0)
-    #[from_str = "orangeRed"]
+    #[strum(serialize = "orangeRed")]
     OrangeRed,
     /// Specifies a color with RGB value (218,112,214)
-    #[from_str = "orchid"]
+    #[strum(serialize = "orchid")]
     Orchid,
     /// Specifies a color with RGB value (238,232,170)
-    #[from_str = "paleGoldenrod"]
+    #[strum(serialize = "paleGoldenrod")]
     PaleGoldenrod,
     /// Specifies a color with RGB value (152,251,152)
-    #[from_str = "paleGreen"]
+    #[strum(serialize = "paleGreen")]
     PaleGreen,
     /// Specifies a color with RGB value (175,238,238)
-    #[from_str = "paleTurquoise"]
+    #[strum(serialize = "paleTurquoise")]
     PaleTurquoise,
     /// Specifies a color with RGB value (219,112,147)
-    #[from_str = "paleVioletRed"]
+    #[strum(serialize = "paleVioletRed")]
     PaleVioletRed,
     /// Specifies a color with RGB value (255,239,213)
-    #[from_str = "papayaWhip"]
+    #[strum(serialize = "papayaWhip")]
     PapayaWhip,
     /// Specifies a color with RGB value (255,218,185)
-    #[from_str = "peachPuff"]
+    #[strum(serialize = "peachPuff")]
     PeachPuff,
     /// Specifies a color with RGB value (205,133,63)
-    #[from_str = "peru"]
+    #[strum(serialize = "peru")]
     Peru,
     /// Specifies a color with RGB value (255,192,203)
-    #[from_str = "pink"]
+    #[strum(serialize = "pink")]
     Pink,
     /// Specifies a color with RGB value (221,160,221)
-    #[from_str = "plum"]
+    #[strum(serialize = "plum")]
     Plum,
     /// Specifies a color with RGB value (176,224,230)
-    #[from_str = "powderBlue"]
+    #[strum(serialize = "powderBlue")]
     PowderBlue,
     /// Specifies a color with RGB value (128,0,128)
-    #[from_str = "purple"]
+    #[strum(serialize = "purple")]
     Purple,
     /// Specifies a color with RGB value (255,0,0)
-    #[from_str = "red"]
+    #[strum(serialize = "red")]
     Red,
     /// Specifies a color with RGB value (188,143,143)
-    #[from_str = "rosyBrown"]
+    #[strum(serialize = "rosyBrown")]
     RosyBrown,
     /// Specifies a color with RGB value (65,105,225)
-    #[from_str = "royalBlue"]
+    #[strum(serialize = "royalBlue")]
     RoyalBlue,
     /// Specifies a color with RGB value (139,69,19)
-    #[from_str = "saddleBrown"]
+    #[strum(serialize = "saddleBrown")]
     SaddleBrown,
     /// Specifies a color with RGB value (250,128,114)
-    #[from_str = "salmon"]
+    #[strum(serialize = "salmon")]
     Salmon,
     /// Specifies a color with RGB value (244,164,96)
-    #[from_str = "sandyBrown"]
+    #[strum(serialize = "sandyBrown")]
     SandyBrown,
     /// Specifies a color with RGB value (46,139,87)
-    #[from_str = "seaGreen"]
+    #[strum(serialize = "seaGreen")]
     SeaGreen,
     /// Specifies a color with RGB value (255,245,238)
-    #[from_str = "seaShell"]
+    #[strum(serialize = "seaShell")]
     SeaShell,
     /// Specifies a color with RGB value (160,82,45)
-    #[from_str = "sienna"]
+    #[strum(serialize = "sienna")]
     Sienna,
     /// Specifies a color with RGB value (192,192,192)
-    #[from_str = "silver"]
+    #[strum(serialize = "silver")]
     Silver,
     /// Specifies a color with RGB value (135,206,235)
-    #[from_str = "skyBlue"]
+    #[strum(serialize = "skyBlue")]
     SkyBlue,
     /// Specifies a color with RGB value (106,90,205)
-    #[from_str = "slateBlue"]
+    #[strum(serialize = "slateBlue")]
     SlateBlue,
     /// Specifies a color with RGB value (112,128,144)
-    #[from_str = "slateGray"]
+    #[strum(serialize = "slateGray")]
     SlateGray,
     /// Specifies a color with RGB value (112,128,144)
-    #[from_str = "slateGrey"]
+    #[strum(serialize = "slateGrey")]
     SlateGrey,
     /// Specifies a color with RGB value (255,250,250)
-    #[from_str = "snow"]
+    #[strum(serialize = "snow")]
     Snow,
     /// Specifies a color with RGB value (0,255,127)
-    #[from_str = "springGreen"]
+    #[strum(serialize = "springGreen")]
     SpringGreen,
     /// Specifies a color with RGB value (70,130,180)
-    #[from_str = "steelBlue"]
+    #[strum(serialize = "steelBlue")]
     SteelBlue,
     /// Specifies a color with RGB value (210,180,140)
-    #[from_str = "tan"]
+    #[strum(serialize = "tan")]
     Tan,
     /// Specifies a color with RGB value (0,128,128)
-    #[from_str = "teal"]
+    #[strum(serialize = "teal")]
     Teal,
     /// Specifies a color with RGB value (216,191,216)
-    #[from_str = "thistle"]
+    #[strum(serialize = "thistle")]
     Thistle,
     /// Specifies a color with RGB value (255,99,71)
-    #[from_str = "tomato"]
+    #[strum(serialize = "tomato")]
     Tomato,
     /// Specifies a color with RGB value (64,224,208)
-    #[from_str = "turquoise"]
+    #[strum(serialize = "turquoise")]
     Turquoise,
     /// Specifies a color with RGB value (238,130,238)
-    #[from_str = "violet"]
+    #[strum(serialize = "violet")]
     Violet,
     /// Specifies a color with RGB value (245,222,179)
-    #[from_str = "wheat"]
+    #[strum(serialize = "wheat")]
     Wheat,
     /// Specifies a color with RGB value (255,255,255)
-    #[from_str = "white"]
+    #[strum(serialize = "white")]
     White,
     /// Specifies a color with RGB value (245,245,245)
-    #[from_str = "whiteSmoke"]
+    #[strum(serialize = "whiteSmoke")]
     WhiteSmoke,
     /// Specifies a color with RGB value (255,255,0)
-    #[from_str = "yellow"]
+    #[strum(serialize = "yellow")]
     Yellow,
     /// Specifies a color with RGB value (154,205,50)
-    #[from_str = "yellowGreen"]
+    #[strum(serialize = "yellowGreen")]
     YellowGreen,
 }
 
 /// This simple type represents a scheme color value.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum SchemeColorVal {
-    #[from_str = "bg1"]
+    #[strum(serialize = "bg1")]
     Background1,
-    #[from_str = "tx1"]
+    #[strum(serialize = "tx1")]
     Text1,
-    #[from_str = "bg2"]
+    #[strum(serialize = "bg2")]
     Background2,
-    #[from_str = "tx2"]
+    #[strum(serialize = "tx2")]
     Text2,
-    #[from_str = "accent1"]
+    #[strum(serialize = "accent1")]
     Accent1,
-    #[from_str = "accent2"]
+    #[strum(serialize = "accent2")]
     Accent2,
-    #[from_str = "accent3"]
+    #[strum(serialize = "accent3")]
     Accent3,
-    #[from_str = "accent4"]
+    #[strum(serialize = "accent4")]
     Accent4,
-    #[from_str = "accent5"]
+    #[strum(serialize = "accent5")]
     Accent5,
-    #[from_str = "hlink"]
+    #[strum(serialize = "hlink")]
     Hypelinglink,
-    #[from_str = "folHlink"]
+    #[strum(serialize = "folHlink")]
     FollowedHyperlink,
     /// A color used in theme definitions which means to use the color of the style.
-    #[from_str = "phClr"]
+    #[strum(serialize = "phClr")]
     PlaceholderColor,
-    #[from_str = "dk1"]
+    #[strum(serialize = "dk1")]
     Dark1,
-    #[from_str = "lt1"]
+    #[strum(serialize = "lt1")]
     Light1,
-    #[from_str = "dk2"]
+    #[strum(serialize = "dk2")]
     Dark2,
-    #[from_str = "lt2"]
+    #[strum(serialize = "lt2")]
     Light2,
 }
 
 /// A reference to a color in the color scheme.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum ColorSchemeIndex {
-    #[from_str = "dk1"]
+    #[strum(serialize = "dk1")]
     Dark1,
-    #[from_str = "lt1"]
+    #[strum(serialize = "lt1")]
     Light1,
-    #[from_str = "dk2"]
+    #[strum(serialize = "dk2")]
     Dark2,
-    #[from_str = "lt2"]
+    #[strum(serialize = "lt2")]
     Light2,
-    #[from_str = "accent1"]
+    #[strum(serialize = "accent1")]
     Accent1,
-    #[from_str = "accent2"]
+    #[strum(serialize = "accent2")]
     Accent2,
-    #[from_str = "accent3"]
+    #[strum(serialize = "accent3")]
     Accent3,
-    #[from_str = "accent4"]
+    #[strum(serialize = "accent4")]
     Accent4,
-    #[from_str = "accent5"]
+    #[strum(serialize = "accent5")]
     Accent5,
-    #[from_str = "accent6"]
+    #[strum(serialize = "accent6")]
     Accent6,
-    #[from_str = "hlink"]
+    #[strum(serialize = "hlink")]
     Hyperlink,
-    #[from_str = "folHlink"]
+    #[strum(serialize = "folHlink")]
     FollowedHyperlink,
 }
 
 /// This simple type specifies the text alignment types
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum TextAlignType {
     /// Align text to the left margin.
-    #[from_str = "l"]
+    #[strum(serialize = "l")]
     Left,
     /// Align text in the center.
-    #[from_str = "ctr"]
+    #[strum(serialize = "ctr")]
     Center,
     /// Align text to the right margin.
-    #[from_str = "r"]
+    #[strum(serialize = "r")]
     Right,
     /// Align text so that it is justified across the whole line. It is smart in the sense that it does not justify
     /// sentences which are short.
-    #[from_str = "just"]
+    #[strum(serialize = "just")]
     Justified,
     /// Aligns the text with an adjusted kashida length for Arabic text.
-    #[from_str = "justLow"]
+    #[strum(serialize = "justLow")]
     JustifiedLow,
     /// Distributes the text words across an entire text line.
-    #[from_str = "dist"]
+    #[strum(serialize = "dist")]
     Distributed,
     /// Distributes Thai text specially, because each character is treated as a word.
-    #[from_str = "thaiDist"]
+    #[strum(serialize = "thaiDist")]
     ThaiDistributed,
 }
 
 /// This simple type specifies the different kinds of font alignment.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum TextFontAlignType {
     /// When the text flow is horizontal or simple vertical same as fontBaseline but for other vertical modes
     /// same as fontCenter.
-    #[from_str = "auto"]
+    #[strum(serialize = "auto")]
     Auto,
     /// The letters are anchored to the top baseline of a single line.
-    #[from_str = "t"]
+    #[strum(serialize = "t")]
     Top,
     /// The letters are anchored between the two baselines of a single line.
-    #[from_str = "ctr"]
+    #[strum(serialize = "ctr")]
     Center,
     /// The letters are anchored to the bottom baseline of a single line.
-    #[from_str = "base"]
+    #[strum(serialize = "base")]
     Baseline,
     /// The letters are anchored to the very bottom of a single line. This is different than the bottom baseline because
     /// of letters such as "g," "q," "y," etc.
-    #[from_str = "b"]
+    #[strum(serialize = "b")]
     Bottom,
 }
 
 /// This simple type specifies a list of automatic numbering schemes.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum TextAutonumberScheme {
     /// (a), (b), (c), …
-    #[from_str = "alphaLcParenBoth"]
+    #[strum(serialize = "alphaLcParenBoth")]
     AlphaLcParenBoth,
     /// (A), (B), (C), …
-    #[from_str = "alphaUcParenBoth"]
+    #[strum(serialize = "alphaUcParenBoth")]
     AlphaUcParenBoth,
     /// a), b), c), …
-    #[from_str = "alphaLcParenR"]
+    #[strum(serialize = "alphaLcParenR")]
     AlphaLcParenR,
     /// A), B), C), …
-    #[from_str = "alphaUcParenR"]
+    #[strum(serialize = "alphaUcParenR")]
     AlphaUcParenR,
     /// a., b., c., …
-    #[from_str = "alphaLcPeriod"]
+    #[strum(serialize = "alphaLcPeriod")]
     AlphaLcPeriod,
     /// A., B., C., …
-    #[from_str = "alphaUcPeriod"]
+    #[strum(serialize = "alphaUcPeriod")]
     AlphaUcPeriod,
     /// (1), (2), (3), …
-    #[from_str = "arabicParenBoth"]
+    #[strum(serialize = "arabicParenBoth")]
     ArabicParenBoth,
     /// 1), 2), 3), …
-    #[from_str = "arabicParenR"]
+    #[strum(serialize = "arabicParenR")]
     ArabicParenR,
     /// 1., 2., 3., …
-    #[from_str = "arabicPeriod"]
+    #[strum(serialize = "arabicPeriod")]
     ArabicPeriod,
     /// 1, 2, 3, …
-    #[from_str = "arabicPlain"]
+    #[strum(serialize = "arabicPlain")]
     ArabicPlain,
     /// (i), (ii), (iii), …
-    #[from_str = "romanLcParenBoth"]
+    #[strum(serialize = "romanLcParenBoth")]
     RomanLcParenBoth,
     /// (I), (II), (III), …
-    #[from_str = "romanUcParenBoth"]
+    #[strum(serialize = "romanUcParenBoth")]
     RomanUcParenBoth,
     /// i), ii), iii), …
-    #[from_str = "romanLcParenR"]
+    #[strum(serialize = "romanLcParenR")]
     RomanLcParenR,
     /// I), II), III), …
-    #[from_str = "romanUcParenR"]
+    #[strum(serialize = "romanUcParenR")]
     RomanUcParenR,
     /// i., ii., iii., …
-    #[from_str = "romanLcPeriod"]
+    #[strum(serialize = "romanLcPeriod")]
     RomanLcPeriod,
     /// I., II., III., …
-    #[from_str = "romanUcPeriod"]
+    #[strum(serialize = "romanUcPeriod")]
     RomanUcPeriod,
     /// Dbl-byte circle numbers (1-10 circle[0x2460-], 11-arabic numbers)
-    #[from_str = "circleNumDbPlain"]
+    #[strum(serialize = "circleNumDbPlain")]
     CircleNumDbPlain,
     /// Wingdings black circle numbers
-    #[from_str = "circleNumWdBlackPlain"]
+    #[strum(serialize = "circleNumWdBlackPlain")]
     CircleNumWdBlackPlain,
     /// Wingdings white circle numbers (0-10 circle[0x0080-], 11- arabic numbers)
-    #[from_str = "circleNumWdWhitePlain"]
+    #[strum(serialize = "circleNumWdWhitePlain")]
     CircleNumWdWhitePlain,
     /// Dbl-byte Arabic numbers w/ double-byte period
-    #[from_str = "arabicDbPeriod"]
+    #[strum(serialize = "arabicDbPeriod")]
     ArabicDbPeriod,
     /// Dbl-byte Arabic numbers
-    #[from_str = "arabicDbPlain"]
+    #[strum(serialize = "arabicDbPlain")]
     ArabicDbPlain,
     /// EA: Simplified Chinese w/ single-byte period
-    #[from_str = "ea1ChsPeriod"]
+    #[strum(serialize = "ea1ChsPeriod")]
     Ea1ChsPeriod,
     /// EA: Simplified Chinese (TypeA 1-99, TypeC 100-)
-    #[from_str = "ea1ChsPlain"]
+    #[strum(serialize = "ea1ChsPlain")]
     Ea1ChsPlain,
     /// EA: Traditional Chinese w/ single-byte period
-    #[from_str = "ea1ChtPeriod"]
+    #[strum(serialize = "ea1ChtPeriod")]
     Ea1ChtPeriod,
     /// EA: Traditional Chinese (TypeA 1-19, TypeC 20-)
-    #[from_str = "ea1ChtPlain"]
+    #[strum(serialize = "ea1ChtPlain")]
     Ea1ChtPlain,
     /// EA: Japanese w/ double-byte period
-    #[from_str = "ea1JpnChsDbPeriod"]
+    #[strum(serialize = "ea1JpnChsDbPeriod")]
     Ea1JpnChsDbPeriod,
     /// EA: Japanese/Korean (TypeC 1-)
-    #[from_str = "ea1JpnKorPlain"]
+    #[strum(serialize = "ea1JpnKorPlain")]
     Ea1JpnKorPlain,
     /// EA: Japanese/Korean w/ single-byte period
-    #[from_str = "ea1JpnKorPeriod"]
+    #[strum(serialize = "ea1JpnKorPeriod")]
     Ea1JpnKorPeriod,
     /// Bidi Arabic 1 (AraAlpha) with ANSI minus symbol
-    #[from_str = "arabic1Minus"]
+    #[strum(serialize = "arabic1Minus")]
     Arabic1Minus,
     /// Bidi Arabic 2 (AraAbjad) with ANSI minus symbol
-    #[from_str = "arabic2Minus"]
+    #[strum(serialize = "arabic2Minus")]
     Arabic2Minus,
     /// Bidi Hebrew 2 with ANSI minus symbol
-    #[from_str = "hebrew2Minus"]
+    #[strum(serialize = "hebrew2Minus")]
     Hebrew2Minus,
     /// Thai alphabet period
-    #[from_str = "thaiAlphaPeriod"]
+    #[strum(serialize = "thaiAlphaPeriod")]
     ThaiAlphaPeriod,
     /// Thai alphabet parentheses - right
-    #[from_str = "thaiAlphaParenR"]
+    #[strum(serialize = "thaiAlphaParenR")]
     ThaiAlphaParenR,
     /// Thai alphabet parentheses - both
-    #[from_str = "thaiAlphaParenBoth"]
+    #[strum(serialize = "thaiAlphaParenBoth")]
     ThaiAlphaParenBoth,
     /// Thai numerical period
-    #[from_str = "thaiNumPeriod"]
+    #[strum(serialize = "thaiNumPeriod")]
     ThaiNumPeriod,
     /// Thai numerical parentheses - right
-    #[from_str = "thaiNumParenR"]
+    #[strum(serialize = "thaiNumParenR")]
     ThaiNumParenR,
     /// Thai numerical period
-    #[from_str = "thaiNumParenBoth"]
+    #[strum(serialize = "thaiNumParenBoth")]
     ThaiNumParenBoth,
     /// Hindi alphabet period - consonants
-    #[from_str = "hindiAlphaPeriod"]
+    #[strum(serialize = "hindiAlphaPeriod")]
     HindiAlphaPeriod,
     /// Hindi numerical period
-    #[from_str = "hindiNumPeriod"]
+    #[strum(serialize = "hindiNumPeriod")]
     HindiNumPeriod,
     /// Hindi numerical parentheses - right
-    #[from_str = "hindiNumParenR"]
+    #[strum(serialize = "hindiNumParenR")]
     HindiNumParenR,
     /// Hindi alphabet period - consonants
-    #[from_str = "hindiAlpha1Period"]
+    #[strum(serialize = "hindiAlpha1Period")]
     HindiAlpha1Period,
 }
 
 /// This simple type describes the shape of path to follow for a path gradient shade.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum PathShadeType {
     /// Gradient follows the shape
-    #[from_str = "shape"]
+    #[strum(serialize = "shape")]
     Shape,
     /// Gradient follows a circular path
-    #[from_str = "circle"]
+    #[strum(serialize = "circle")]
     Circle,
     /// Gradient follows a rectangular pat
-    #[from_str = "rect"]
+    #[strum(serialize = "rect")]
     Rect,
 }
 
@@ -2083,237 +2081,237 @@ pub enum PathShadeType {
 ///
 /// These presets correspond to members of the HatchStyle enumeration in the Microsoft .NET Framework.
 /// A reference for this type can be found at http://msdn2.microsoft.com/enus/library/system.drawing.drawing2d.hatchstyle.aspx
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum PresetPatternVal {
-    #[from_str = "pct5"]
+    #[strum(serialize = "pct5")]
     Percent5,
-    #[from_str = "pct10"]
+    #[strum(serialize = "pct10")]
     Percent10,
-    #[from_str = "pct20"]
+    #[strum(serialize = "pct20")]
     Percent20,
-    #[from_str = "pct25"]
+    #[strum(serialize = "pct25")]
     Percent25,
-    #[from_str = "pct30"]
+    #[strum(serialize = "pct30")]
     Percent30,
-    #[from_str = "pct40"]
+    #[strum(serialize = "pct40")]
     Percent40,
-    #[from_str = "pct50"]
+    #[strum(serialize = "pct50")]
     Percent50,
-    #[from_str = "pct60"]
+    #[strum(serialize = "pct60")]
     Percent60,
-    #[from_str = "pct70"]
+    #[strum(serialize = "pct70")]
     Percent70,
-    #[from_str = "pct75"]
+    #[strum(serialize = "pct75")]
     Percent75,
-    #[from_str = "pct80"]
+    #[strum(serialize = "pct80")]
     Percent80,
-    #[from_str = "pct90"]
+    #[strum(serialize = "pct90")]
     Percent90,
-    #[from_str = "horz"]
+    #[strum(serialize = "horz")]
     Horizontal,
-    #[from_str = "vert"]
+    #[strum(serialize = "vert")]
     Vertical,
-    #[from_str = "ltHorz"]
+    #[strum(serialize = "ltHorz")]
     LightHorizontal,
-    #[from_str = "ltVert"]
+    #[strum(serialize = "ltVert")]
     LightVertical,
-    #[from_str = "dkHorz"]
+    #[strum(serialize = "dkHorz")]
     DarkHorizontal,
-    #[from_str = "dkVert"]
+    #[strum(serialize = "dkVert")]
     DarkVertical,
-    #[from_str = "narHorz"]
+    #[strum(serialize = "narHorz")]
     NarrowHorizontal,
-    #[from_str = "narVert"]
+    #[strum(serialize = "narVert")]
     NarrowVertical,
-    #[from_str = "dashHorz"]
+    #[strum(serialize = "dashHorz")]
     DashedHorizontal,
-    #[from_str = "dashVert"]
+    #[strum(serialize = "dashVert")]
     DashedVertical,
-    #[from_str = "cross"]
+    #[strum(serialize = "cross")]
     Cross,
-    #[from_str = "dnDiag"]
+    #[strum(serialize = "dnDiag")]
     DownwardDiagonal,
-    #[from_str = "upDiag"]
+    #[strum(serialize = "upDiag")]
     UpwardDiagonal,
-    #[from_str = "ltDnDiag"]
+    #[strum(serialize = "ltDnDiag")]
     LightDownwardDiagonal,
-    #[from_str = "ltUpDiag"]
+    #[strum(serialize = "ltUpDiag")]
     LightUpwardDiagonal,
-    #[from_str = "dkDnDiag"]
+    #[strum(serialize = "dkDnDiag")]
     DarkDownwardDiagonal,
-    #[from_str = "dkUpDiag"]
+    #[strum(serialize = "dkUpDiag")]
     DarkUpwardDiagonal,
-    #[from_str = "wdDnDiag"]
+    #[strum(serialize = "wdDnDiag")]
     WideDownwardDiagonal,
-    #[from_str = "wdUpDiag"]
+    #[strum(serialize = "wdUpDiag")]
     WideUpwardDiagonal,
-    #[from_str = "dashDnDiag"]
+    #[strum(serialize = "dashDnDiag")]
     DashedDownwardDiagonal,
-    #[from_str = "dashUpDiag"]
+    #[strum(serialize = "dashUpDiag")]
     DashedUpwardDiagonal,
-    #[from_str = "diagCross"]
+    #[strum(serialize = "diagCross")]
     DiagonalCross,
-    #[from_str = "smCheck"]
+    #[strum(serialize = "smCheck")]
     SmallCheckerBoard,
-    #[from_str = "lgCheck"]
+    #[strum(serialize = "lgCheck")]
     LargeCheckerBoard,
-    #[from_str = "smGrid"]
+    #[strum(serialize = "smGrid")]
     SmallGrid,
-    #[from_str = "lgGrid"]
+    #[strum(serialize = "lgGrid")]
     LargeGrid,
-    #[from_str = "dotGrid"]
+    #[strum(serialize = "dotGrid")]
     DottedGrid,
-    #[from_str = "smConfetti"]
+    #[strum(serialize = "smConfetti")]
     SmallConfetti,
-    #[from_str = "lgConfetti"]
+    #[strum(serialize = "lgConfetti")]
     LargeConfetti,
-    #[from_str = "horzBrick"]
+    #[strum(serialize = "horzBrick")]
     HorizontalBrick,
-    #[from_str = "diagBrick"]
+    #[strum(serialize = "diagBrick")]
     DiagonalBrick,
-    #[from_str = "solidDmnd"]
+    #[strum(serialize = "solidDmnd")]
     SolidDiamond,
-    #[from_str = "openDmnd"]
+    #[strum(serialize = "openDmnd")]
     OpenDiamond,
-    #[from_str = "dotDmnd"]
+    #[strum(serialize = "dotDmnd")]
     DottedDiamond,
-    #[from_str = "plaid"]
+    #[strum(serialize = "plaid")]
     Plaid,
-    #[from_str = "sphere"]
+    #[strum(serialize = "sphere")]
     Sphere,
-    #[from_str = "weave"]
+    #[strum(serialize = "weave")]
     Weave,
-    #[from_str = "divot"]
+    #[strum(serialize = "divot")]
     Divot,
-    #[from_str = "shingle"]
+    #[strum(serialize = "shingle")]
     Shingle,
-    #[from_str = "wave"]
+    #[strum(serialize = "wave")]
     Wave,
-    #[from_str = "trellis"]
+    #[strum(serialize = "trellis")]
     Trellis,
-    #[from_str = "zigzag"]
+    #[strum(serialize = "zigzag")]
     ZigZag,
 }
 
 /// This simple type describes how to render effects one on top of another.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum BlendMode {
-    #[from_str = "over"]
+    #[strum(serialize = "over")]
     Overlay,
-    #[from_str = "mult"]
+    #[strum(serialize = "mult")]
     Multiply,
-    #[from_str = "screen"]
+    #[strum(serialize = "screen")]
     Screen,
-    #[from_str = "lighten"]
+    #[strum(serialize = "lighten")]
     Lighten,
-    #[from_str = "darken"]
+    #[strum(serialize = "darken")]
     Darken,
 }
 
 /// This simple type specifies the text tab alignment types.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum TextTabAlignType {
     /// The text at this tab stop is left aligned.
-    #[from_str = "l"]
+    #[strum(serialize = "l")]
     Left,
     /// The text at this tab stop is center aligned.
-    #[from_str = "ctr"]
+    #[strum(serialize = "ctr")]
     Center,
     /// The text at this tab stop is right aligned.
-    #[from_str = "r"]
+    #[strum(serialize = "r")]
     Right,
     /// At this tab stop, the decimals are lined up. From a user's point of view, the text here behaves as right
     /// aligned until the decimal, and then as left aligned after the decimal.
-    #[from_str = "dec"]
+    #[strum(serialize = "dec")]
     Decimal,
 }
 
 /// This simple type specifies the text underline types that is used.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum TextUnderlineType {
     /// The reason we cannot implicitly have noUnderline be the scenario where underline is not specified is
     /// because not being specified implies deriving from a particular style and the user might want to override
     /// that and make some text not be underlined even though the style says otherwise.
-    #[from_str = "none"]
+    #[strum(serialize = "none")]
     None,
     /// Underline just the words and not the spaces between them.
-    #[from_str = "words"]
+    #[strum(serialize = "words")]
     Words,
     /// Underline the text with a single line of normal thickness.
-    #[from_str = "sng"]
+    #[strum(serialize = "sng")]
     Single,
     /// Underline the text with two lines of normal thickness.
-    #[from_str = "dbl"]
+    #[strum(serialize = "dbl")]
     Double,
     /// Underline the text with a single, thick line.
-    #[from_str = "heavy"]
+    #[strum(serialize = "heavy")]
     Heavy,
     /// Underline the text with a single, dotted line of normal thickness.
-    #[from_str = "dotted"]
+    #[strum(serialize = "dotted")]
     Dotted,
     /// Underline the text with a single, thick, dotted line.
-    #[from_str = "dottedHeavy"]
+    #[strum(serialize = "dottedHeavy")]
     DottedHeavy,
     /// Underline the text with a single, dashed line of normal thickness.
-    #[from_str = "dash"]
+    #[strum(serialize = "dash")]
     Dash,
     /// Underline the text with a single, dashed, thick line.
-    #[from_str = "dashHeavy"]
+    #[strum(serialize = "dashHeavy")]
     DashHeavy,
     /// Underline the text with a single line consisting of long dashes of normal thickness.
-    #[from_str = "dashLong"]
+    #[strum(serialize = "dashLong")]
     DashLong,
     /// Underline the text with a single line consisting of long, thick dashes.
-    #[from_str = "dashLongHeavy"]
+    #[strum(serialize = "dashLongHeavy")]
     DashLongHeavy,
     /// Underline the text with a single line of normal thickness consisting of repeating dots and dashes.
-    #[from_str = "dotDash"]
+    #[strum(serialize = "dotDash")]
     DotDash,
     /// Underline the text with a single, thick line consisting of repeating dots and dashes.
-    #[from_str = "dotDashHeavy"]
+    #[strum(serialize = "dotDashHeavy")]
     DotDashHeavy,
     /// Underline the text with a single line of normal thickness consisting of repeating two dots and dashes.
-    #[from_str = "dotDotDash"]
+    #[strum(serialize = "dotDotDash")]
     DotDotDash,
     /// Underline the text with a single, thick line consisting of repeating two dots and dashes.
-    #[from_str = "dotDotDashHeavy"]
+    #[strum(serialize = "dotDotDashHeavy")]
     DotDotDashHeavy,
     /// Underline the text with a single wavy line of normal thickness.
-    #[from_str = "wavy"]
+    #[strum(serialize = "wavy")]
     Wavy,
     /// Underline the text with a single, thick wavy line.
-    #[from_str = "wavyHeavy"]
+    #[strum(serialize = "wavyHeavy")]
     WavyHeavy,
     /// Underline just the words and not the spaces between them.
-    #[from_str = "wavyDbl"]
+    #[strum(serialize = "wavyDbl")]
     WavyDouble,
 }
 
 /// This simple type specifies the strike type.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum TextStrikeType {
-    #[from_str = "noStrike"]
+    #[strum(serialize = "noStrike")]
     NoStrike,
-    #[from_str = "sngStrike"]
+    #[strum(serialize = "sngStrike")]
     SingleStrike,
-    #[from_str = "dblStrike"]
+    #[strum(serialize = "dblStrike")]
     DoubleStrike,
 }
 
 /// This simple type specifies the cap types of the text.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum TextCapsType {
     /// The reason we cannot implicitly have noCaps be the scenario where capitalization is not specified is
     /// because not being specified implies deriving from a particular style and the user might want to override
     /// that and make some text not have a capitalization scheme even though the style says otherwise.
-    #[from_str = "none"]
+    #[strum(serialize = "none")]
     None,
     /// Apply small caps to the text. All letters are converted to lower case.
-    #[from_str = "small"]
+    #[strum(serialize = "small")]
     Small,
     /// Apply all caps on the text. All lower case letters are converted to upper case even though they are stored
     /// differently in the backing store.
-    #[from_str = "all"]
+    #[strum(serialize = "all")]
     All,
 }
 
@@ -2323,311 +2321,311 @@ pub enum TextCapsType {
 /// DrawingML code that would be used to construct this shape were it a custom geometry. Within the construction
 /// code for each of these preset text shapes there are predefined guides that the generating application shall
 /// maintain for calculation purposes at all times. See [ShapeType](enum.ShapeType.html) to see the necessary guide values.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum TextShapeType {
-    #[from_str = "textNoShape"]
+    #[strum(serialize = "textNoShape")]
     NoShape,
-    #[from_str = "textPlain"]
+    #[strum(serialize = "textPlain")]
     Plain,
-    #[from_str = "textStop"]
+    #[strum(serialize = "textStop")]
     Stop,
-    #[from_str = "textTriangle"]
+    #[strum(serialize = "textTriangle")]
     Triangle,
-    #[from_str = "textTriangleInverted"]
+    #[strum(serialize = "textTriangleInverted")]
     TriangleInverted,
-    #[from_str = "textChevron"]
+    #[strum(serialize = "textChevron")]
     Chevron,
-    #[from_str = "textChevronInverted"]
+    #[strum(serialize = "textChevronInverted")]
     ChevronInverted,
-    #[from_str = "textRingInside"]
+    #[strum(serialize = "textRingInside")]
     RingInside,
-    #[from_str = "textRingOutside"]
+    #[strum(serialize = "textRingOutside")]
     RingOutside,
-    #[from_str = "textArchUp"]
+    #[strum(serialize = "textArchUp")]
     ArchUp,
-    #[from_str = "textArchDown"]
+    #[strum(serialize = "textArchDown")]
     ArchDown,
-    #[from_str = "textCircle"]
+    #[strum(serialize = "textCircle")]
     Circle,
-    #[from_str = "textButton"]
+    #[strum(serialize = "textButton")]
     Button,
-    #[from_str = "textArchUpPour"]
+    #[strum(serialize = "textArchUpPour")]
     ArchUpPour,
-    #[from_str = "textArchDownPour"]
+    #[strum(serialize = "textArchDownPour")]
     ArchDownPour,
-    #[from_str = "textCirclePour"]
+    #[strum(serialize = "textCirclePour")]
     CirclePour,
-    #[from_str = "textButtonPour"]
+    #[strum(serialize = "textButtonPour")]
     ButtonPour,
-    #[from_str = "textCurveUp"]
+    #[strum(serialize = "textCurveUp")]
     CurveUp,
-    #[from_str = "textCurveDown"]
+    #[strum(serialize = "textCurveDown")]
     CurveDown,
-    #[from_str = "textCanUp"]
+    #[strum(serialize = "textCanUp")]
     CanUp,
-    #[from_str = "textCanDown"]
+    #[strum(serialize = "textCanDown")]
     CanDown,
-    #[from_str = "textWave1"]
+    #[strum(serialize = "textWave1")]
     Wave1,
-    #[from_str = "textWave2"]
+    #[strum(serialize = "textWave2")]
     Wave2,
-    #[from_str = "textWave4"]
+    #[strum(serialize = "textWave4")]
     Wave4,
-    #[from_str = "textDoubleWave1"]
+    #[strum(serialize = "textDoubleWave1")]
     DoubleWave1,
-    #[from_str = "textInflate"]
+    #[strum(serialize = "textInflate")]
     Inflate,
-    #[from_str = "textDeflate"]
+    #[strum(serialize = "textDeflate")]
     Deflate,
-    #[from_str = "textInflateBottom"]
+    #[strum(serialize = "textInflateBottom")]
     InflateBottom,
-    #[from_str = "textDeflateBottom"]
+    #[strum(serialize = "textDeflateBottom")]
     DeflateBottom,
-    #[from_str = "textInflateTop"]
+    #[strum(serialize = "textInflateTop")]
     InflateTop,
-    #[from_str = "textDeflateTop"]
+    #[strum(serialize = "textDeflateTop")]
     DeflateTop,
-    #[from_str = "textDeflateInflate"]
+    #[strum(serialize = "textDeflateInflate")]
     DeflateInflate,
-    #[from_str = "textDeflateInflateDeflate"]
+    #[strum(serialize = "textDeflateInflateDeflate")]
     DeflateInflateDeflate,
-    #[from_str = "textFadeLeft"]
+    #[strum(serialize = "textFadeLeft")]
     FadeLeft,
-    #[from_str = "textFadeUp"]
+    #[strum(serialize = "textFadeUp")]
     FadeUp,
-    #[from_str = "textFadeRight"]
+    #[strum(serialize = "textFadeRight")]
     FadeRight,
-    #[from_str = "textFadeDown"]
+    #[strum(serialize = "textFadeDown")]
     FadeDown,
-    #[from_str = "textSlantUp"]
+    #[strum(serialize = "textSlantUp")]
     SlantUp,
-    #[from_str = "textSlantDown"]
+    #[strum(serialize = "textSlantDown")]
     SlantDown,
-    #[from_str = "textCascadeUp"]
+    #[strum(serialize = "textCascadeUp")]
     CascadeUp,
-    #[from_str = "textCascadeDown"]
+    #[strum(serialize = "textCascadeDown")]
     CascadeDown,
 }
 
 /// This simple type specifies the text vertical overflow.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum TextVertOverflowType {
     /// Overflow the text and pay no attention to top and bottom barriers.
-    #[from_str = "overflow"]
+    #[strum(serialize = "overflow")]
     Overflow,
     /// Pay attention to top and bottom barriers. Use an ellipsis to denote that there is text which is not visible.
-    #[from_str = "ellipsis"]
+    #[strum(serialize = "ellipsis")]
     Ellipsis,
     /// Pay attention to top and bottom barriers. Provide no indication that there is text which is not visible.
-    #[from_str = "clip"]
+    #[strum(serialize = "clip")]
     Clip,
 }
 
 /// This simple type specifies the text horizontal overflow types
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum TextHorizontalOverflowType {
     /// When a big character does not fit into a line, allow a horizontal overflow.
-    #[from_str = "overflow"]
+    #[strum(serialize = "overflow")]
     Overflow,
     /// When a big character does not fit into a line, clip it at the proper horizontal overflow.
-    #[from_str = "clip"]
+    #[strum(serialize = "clip")]
     Clip,
 }
 
 /// If there is vertical text, determines what kind of vertical text is going to be used.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum TextVerticalType {
     /// Horizontal text. This should be default.
-    #[from_str = "horz"]
+    #[strum(serialize = "horz")]
     Horizontal,
     /// Determines if all of the text is vertical orientation (each line is 90 degrees rotated clockwise, so it goes
     /// from top to bottom; each next line is to the left from the previous one).
-    #[from_str = "vert"]
+    #[strum(serialize = "vert")]
     Vertical,
     /// Determines if all of the text is vertical orientation (each line is 270 degrees rotated clockwise, so it goes
     /// from bottom to top; each next line is to the right from the previous one).
-    #[from_str = "vert270"]
+    #[strum(serialize = "vert270")]
     Vertical270,
     /// Determines if all of the text is vertical ("one letter on top of another").
-    #[from_str = "wordArtVert"]
+    #[strum(serialize = "wordArtVert")]
     WordArtVertical,
     /// A special version of vertical text, where some fonts are displayed as if rotated by 90 degrees while some fonts
     /// (mostly East Asian) are displayed vertical.
-    #[from_str = "eaVert"]
+    #[strum(serialize = "eaVert")]
     EastAsianVertical,
     /// A special version of vertical text, where some fonts are displayed as if rotated by 90 degrees while some fonts
     /// (mostly East Asian) are displayed vertical. The difference between this and the eastAsianVertical is
     /// the text flows top down then LEFT RIGHT, instead of RIGHT LEFT
-    #[from_str = "mongolianVert"]
+    #[strum(serialize = "mongolianVert")]
     MongolianVertical,
     /// Specifies that vertical WordArt should be shown from right to left rather than left to right.
-    #[from_str = "wordArtVertRtl"]
+    #[strum(serialize = "wordArtVertRtl")]
     WordArtVerticalRtl,
 }
 
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum TextWrappingType {
     /// No wrapping occurs on this text body. Words spill out without paying attention to the bounding rectangle
     /// boundaries.
-    #[from_str = "none"]
+    #[strum(serialize = "none")]
     None,
     /// Determines whether we wrap words within the bounding rectangle.
-    #[from_str = "square"]
+    #[strum(serialize = "square")]
     Square,
 }
 
 /// This simple type specifies a list of available anchoring types for text.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum TextAnchoringType {
     /// Anchor the text at the top of the bounding rectangle.
-    #[from_str = "t"]
+    #[strum(serialize = "t")]
     Top,
     /// Anchor the text at the middle of the bounding rectangle.
-    #[from_str = "ctr"]
+    #[strum(serialize = "ctr")]
     Center,
     /// Anchor the text at the bottom of the bounding rectangle.
-    #[from_str = "b"]
+    #[strum(serialize = "b")]
     Bottom,
     /// Anchor the text so that it is justified vertically. When text is horizontal, this spaces out the actual lines of
     /// text and is almost always identical in behavior to 'distrib' (special case: if only 1 line, then anchored at
     /// top). When text is vertical, then it justifies the letters vertically. This is different than anchorDistributed,
     /// because in some cases such as very little text in a line, it does not justify.
-    #[from_str = "just"]
+    #[strum(serialize = "just")]
     Justified,
     /// Anchor the text so that it is distributed vertically.
     /// When text is horizontal, this spaces out the actual lines of text and is almost always identical in behavior to
     /// anchorJustified (special case: if only 1 line, then anchored in middle). When text is vertical, then it
     /// distributes the letters vertically. This is different than anchorJustified, because it always forces
     /// distribution of the words, even if there are only one or two words in a line.
-    #[from_str = "dist"]
+    #[strum(serialize = "dist")]
     Distributed,
 }
 
 /// This simple type specifies how an object should be rendered when specified to be in black and white mode.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum BlackWhiteMode {
     /// Object rendered with normal coloring
-    #[from_str = "clr"]
+    #[strum(serialize = "clr")]
     Color,
     /// Object rendered with automatic coloring
-    #[from_str = "auto"]
+    #[strum(serialize = "auto")]
     Auto,
     /// Object rendered with gray coloring
-    #[from_str = "gray"]
+    #[strum(serialize = "gray")]
     Gray,
     /// Object rendered with light gray coloring
-    #[from_str = "ltGray"]
+    #[strum(serialize = "ltGray")]
     LightGray,
     /// Object rendered with inverse gray coloring
-    #[from_str = "invGray"]
+    #[strum(serialize = "invGray")]
     InverseGray,
     /// Object rendered within gray and white coloring
-    #[from_str = "grayWhite"]
+    #[strum(serialize = "grayWhite")]
     GrayWhite,
     /// Object rendered with black and gray coloring
-    #[from_str = "blackGray"]
+    #[strum(serialize = "blackGray")]
     BlackGray,
     /// Object rendered within black and white coloring
-    #[from_str = "blackWhite"]
+    #[strum(serialize = "blackWhite")]
     BlackWhite,
     /// Object rendered with black-only coloring
-    #[from_str = "black"]
+    #[strum(serialize = "black")]
     Black,
     /// Object rendered within white coloirng
-    #[from_str = "white"]
+    #[strum(serialize = "white")]
     White,
     /// Object rendered with hidden coloring
-    #[from_str = "hidden"]
+    #[strum(serialize = "hidden")]
     Hidden,
 }
 
 /// This simple type specifies the ways that an animation can be built, or animated.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum AnimationBuildType {
-    #[from_str = "allAtOnce"]
+    #[strum(serialize = "allAtOnce")]
     AllAtOnce,
 }
 
 /// This simple type specifies the build options available only for animating a diagram. These options specify the
 /// manner in which the objects within the chart should be grouped and animated.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum AnimationDgmOnlyBuildType {
     /// Animate the diagram by elements. For a tree diagram the animation occurs by branch within the diagram tree.
-    #[from_str = "one"]
+    #[strum(serialize = "one")]
     One,
     /// Animate the diagram by the elements within a level, animating them one level element at a time.
-    #[from_str = "lvlOne"]
+    #[strum(serialize = "lvlOne")]
     LvlOne,
     /// Animate the diagram one level at a time, animating the whole level as one object
-    #[from_str = "lvlAtOnce"]
+    #[strum(serialize = "lvlAtOnce")]
     LvlAtOnce,
 }
 
 /// This simple type specifies the ways that a diagram animation can be built. That is, it specifies the way in which
 /// the objects within the diagram graphical object should be animated.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum AnimationDgmBuildType {
-    #[from_str = "allAtOnce"]
+    #[strum(serialize = "allAtOnce")]
     AllAtOnce,
-    #[from_str = "one"]
+    #[strum(serialize = "one")]
     One,
-    #[from_str = "lvlOne"]
+    #[strum(serialize = "lvlOne")]
     LvlOne,
-    #[from_str = "lvlAtOnce"]
+    #[strum(serialize = "lvlAtOnce")]
     LvlAtOnce,
 }
 
 /// This simple type specifies the build options available only for animating a chart. These options specify the
 /// manner in which the objects within the chart should be grouped and animated.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum AnimationChartOnlyBuildType {
     /// Animate by each series
-    #[from_str = "series"]
+    #[strum(serialize = "series")]
     Series,
     /// Animate by each category
-    #[from_str = "category"]
+    #[strum(serialize = "category")]
     Category,
     /// Animate by each element within the series
-    #[from_str = "seriesElement"]
+    #[strum(serialize = "seriesElement")]
     SeriesElement,
     /// Animate by each element within the category
-    #[from_str = "categoryElement"]
+    #[strum(serialize = "categoryElement")]
     CategoryElement,
 }
 
 /// This simple type specifies the ways that a chart animation can be built. That is, it specifies the way in which the
 /// objects within the chart should be animated.
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum AnimationChartBuildType {
-    #[from_str = "allAtOnce"]
+    #[strum(serialize = "allAtOnce")]
     AllAtOnce,
-    #[from_str = "series"]
+    #[strum(serialize = "series")]
     Series,
-    #[from_str = "category"]
+    #[strum(serialize = "category")]
     Category,
-    #[from_str = "seriesElement"]
+    #[strum(serialize = "seriesElement")]
     SeriesElement,
-    #[from_str = "categoryElement"]
+    #[strum(serialize = "categoryElement")]
     CategoryElement,
 }
 
 /// This type specifies the amount of compression that has been used for a particular binary large image or picture
 /// (blip).
-#[derive(Debug, Clone, Copy, FromStr)]
+#[derive(Debug, Clone, Copy, EnumString)]
 pub enum BlipCompression {
     /// Compression size suitable for inclusion with email
-    #[from_str = "email"]
+    #[strum(serialize = "email")]
     Email,
     /// Compression size suitable for viewing on screen
-    #[from_str = "screen"]
+    #[strum(serialize = "screen")]
     Screen,
     /// Compression size suitable for printing
-    #[from_str = "print"]
+    #[strum(serialize = "print")]
     Print,
     /// Compression size suitable for high quality printing
-    #[from_str = "hqprint"]
+    #[strum(serialize = "hqprint")]
     HqPrint,
     /// No compression was used
-    #[from_str = "none"]
+    #[strum(serialize = "none")]
     None,
 }
