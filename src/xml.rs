@@ -31,8 +31,11 @@ impl XmlNode {
         }
     }
 
-    pub fn from_str(xml_string: &str) -> Result<Self, InvalidXmlError> {
-        let mut xml_reader = Reader::from_str(xml_string);
+    pub fn from_str<T>(xml_string: T) -> Result<Self, InvalidXmlError>
+    where
+        T: AsRef<str>,
+    {
+        let mut xml_reader = Reader::from_str(xml_string.as_ref());
         let mut buffer = Vec::new();
         loop {
             match xml_reader.read_event(&mut buffer) {
