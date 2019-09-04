@@ -3,6 +3,7 @@
 pub mod drawingml;
 pub mod error;
 pub mod relationship;
+pub mod sharedtypes;
 pub mod xml;
 
 extern crate strum;
