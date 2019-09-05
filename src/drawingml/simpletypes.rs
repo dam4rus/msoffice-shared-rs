@@ -1,4 +1,4 @@
-use crate::error::AdjustParseError;
+use crate::error::{AdjustParseError, ParseHexColorRGBError, StringLengthMismatch};
 use std::str::FromStr;
 
 /// This simple type specifies that its values shall be a 128-bit globally unique identifier (GUID) value.
@@ -39,7 +39,21 @@ pub type FixedPercentage = f32;
 /// Blue:  209
 ///
 /// The resulting RRGGBB value would be 7A17D1, as each color is transformed into its hexadecimal equivalent.
-pub type HexColorRGB = String;
+pub type HexColorRGB = [u8; 3];
+
+pub fn parse_hex_color_rgb(s: &str) -> Result<HexColorRGB, ParseHexColorRGBError> {
+    match s.len() {
+        6 => Ok([
+            u8::from_str_radix(&s[0..2], 16)?,
+            u8::from_str_radix(&s[2..4], 16)?,
+            u8::from_str_radix(&s[4..6], 16)?,
+        ]),
+        len @ _ => Err(ParseHexColorRGBError::InvalidLength(StringLengthMismatch {
+            required: 6,
+            provided: len,
+        })),
+    }
+}
 
 /// This simple type represents a one dimensional position or length as either:
 ///

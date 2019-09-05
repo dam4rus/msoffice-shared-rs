@@ -1,8 +1,8 @@
 use super::{
     sharedstylesheet::ColorMapping,
     simpletypes::{
-        Angle, FixedPercentage, HexColorRGB, Percentage, PositiveFixedAngle, PositiveFixedPercentage,
-        PositivePercentage, PresetColorVal, SchemeColorVal, SystemColorVal,
+        parse_hex_color_rgb, Angle, FixedPercentage, HexColorRGB, Percentage, PositiveFixedAngle,
+        PositiveFixedPercentage, PositivePercentage, PresetColorVal, SchemeColorVal, SystemColorVal,
     },
 };
 use crate::error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError};
@@ -742,8 +742,8 @@ impl SystemColor {
 
         for (attr, value) in &xml_node.attributes {
             match attr.as_str() {
-                "val" => opt_val = Some(value.parse::<SystemColorVal>()?),
-                "lastClr" => last_color = Some(value.clone()),
+                "val" => opt_val = Some(value.parse()?),
+                "lastClr" => last_color = Some(parse_hex_color_rgb(value)?),
                 _ => (),
             }
         }

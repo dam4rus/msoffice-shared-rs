@@ -1,5 +1,8 @@
-use std::error::Error;
-use std::fmt::{Display, Formatter, Result};
+use std::{
+    error::Error,
+    fmt::{Display, Formatter, Result},
+    num::ParseIntError,
+};
 
 /// An error indicating that an xml element doesn't have an attribute that's marked as required in the schema
 #[derive(Debug, Clone, PartialEq)]
@@ -294,8 +297,8 @@ impl Error for ParseEnumError {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
 /// Error indicating that parsing an AdjCoordinate or AdjAngle has failed
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct AdjustParseError {}
 
 impl Display for AdjustParseError {
@@ -309,3 +312,51 @@ impl Error for AdjustParseError {
         "Adjust parse error"
     }
 }
+
+/// Error indicating that parsing a str as HexColorRGB has failed
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ParseHexColorRGBError {
+    Parse(ParseIntError),
+    InvalidLength(StringLengthMismatch),
+}
+
+impl Display for ParseHexColorRGBError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match *self {
+            ParseHexColorRGBError::Parse(ref err) => err.fmt(f),
+            ParseHexColorRGBError::InvalidLength(ref mismatch) => write!(
+                f,
+                "length of string should be {} but {} is provided",
+                mismatch.required, mismatch.provided
+            ),
+        }
+    }
+}
+
+impl From<ParseIntError> for ParseHexColorRGBError {
+    fn from(v: ParseIntError) -> Self {
+        ParseHexColorRGBError::Parse(v)
+    }
+}
+
+impl Error for ParseHexColorRGBError {}
+
+/// Struct used to describe invalid length errors
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct StringLengthMismatch {
+    pub required: usize,
+    pub provided: usize,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum PatternRestrictionError {
+    NoMatch,
+}
+
+impl Display for PatternRestrictionError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "string doesn't match pattern")
+    }
+}
+
+impl Error for PatternRestrictionError {}
