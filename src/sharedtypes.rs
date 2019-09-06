@@ -2,15 +2,53 @@ use super::error::PatternRestrictionError;
 use regex::Regex;
 use std::{marker::PhantomData, str::FromStr};
 
+pub type OnOff = bool;
+pub type Lang = String;
+
+#[derive(Debug, Clone, PartialEq, EnumString)]
+pub enum CalendarType {
+    #[strum(serialize = "gregorian")]
+    Gregorian,
+    #[strum(serialize = "gregorianUs")]
+    GregorianUs,
+    #[strum(serialize = "gregorianMeFrench")]
+    GregorianMeFrench,
+    #[strum(serialize = "gregorianArabic")]
+    GregorianArabic,
+    #[strum(serialize = "hijri")]
+    Hijri,
+    #[strum(serialize = "hebrew")]
+    Hebrew,
+    #[strum(serialize = "taiwan")]
+    Taiwan,
+    #[strum(serialize = "japan")]
+    Japan,
+    #[strum(serialize = "thai")]
+    Thai,
+    #[strum(serialize = "korea")]
+    Korea,
+    #[strum(serialize = "saka")]
+    Saka,
+    #[strum(serialize = "gregorianXlitEnglish")]
+    GregorianXlitEnglish,
+    #[strum(serialize = "gregorianXlitFrench")]
+    GregorianXlitFrench,
+    #[strum(serialize = "none")]
+    None,
+}
+
+/// Trait indicating that a data type is restricted by a string pattern. A pattern is basically a regular expression.
 pub trait PatternRestricted {
     fn restriction_pattern() -> &'static str;
 }
+
+/// Empty struct used to tag a data type implying that the stored value is signed.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Signed;
+
+/// Empty struct used to tag a data type implying that the stored value is unsigned.
 #[derive(Debug, Clone, PartialEq)]
 pub struct Unsigned;
-
-pub type OnOff = bool;
 
 #[derive(Debug, Clone, PartialEq, EnumString)]
 pub enum UniversalMeasureUnit {
@@ -34,8 +72,6 @@ pub struct UniversalMeasure<T = Signed> {
     pub unit: UniversalMeasureUnit,
     pub _phantom: PhantomData<T>,
 }
-
-pub type PositiveUniversalMeasure = UniversalMeasure<Unsigned>;
 
 impl<T> UniversalMeasure<T> {
     pub fn new(value: f64, unit: UniversalMeasureUnit) -> Self {
@@ -77,6 +113,8 @@ where
     }
 }
 
+pub type PositiveUniversalMeasure = UniversalMeasure<Unsigned>;
+
 #[cfg(test)]
 #[test]
 pub fn test_universal_measure_from_str() {
@@ -92,4 +130,43 @@ pub fn test_universal_measure_from_str() {
         "-123in".parse::<UniversalMeasure>().unwrap(),
         UniversalMeasure::new(-123.0, UniversalMeasureUnit::Inch),
     );
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum TwipsMeasure {
+    Decimal(u64),
+    UniversalMeasure(PositiveUniversalMeasure),
+}
+
+impl FromStr for TwipsMeasure {
+    // TODO custom error type
+    type Err = Box<dyn std::error::Error>;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if let Ok(value) = s.parse::<u64>() {
+            Ok(TwipsMeasure::Decimal(value))
+        } else {
+            Ok(TwipsMeasure::UniversalMeasure(s.parse()?))
+        }
+    }
+}
+
+#[cfg(test)]
+#[test]
+pub fn test_twips_measure_from_str() {
+    assert_eq!("123".parse::<TwipsMeasure>().unwrap(), TwipsMeasure::Decimal(123));
+    assert_eq!(
+        "123.456mm".parse::<TwipsMeasure>().unwrap(),
+        TwipsMeasure::UniversalMeasure(PositiveUniversalMeasure::new(123.456, UniversalMeasureUnit::Millimeter)),
+    );
+}
+
+#[derive(Debug, Clone, PartialEq, EnumString)]
+pub enum VerticalAlignRun {
+    #[strum(serialize = "baseline")]
+    Baseline,
+    #[strum(serialize = "superscript")]
+    Superscript,
+    #[strum(serialize = "subscript")]
+    Subscript,
 }
