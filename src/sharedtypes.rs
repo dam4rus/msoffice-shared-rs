@@ -115,23 +115,6 @@ where
 
 pub type PositiveUniversalMeasure = UniversalMeasure<Unsigned>;
 
-#[cfg(test)]
-#[test]
-pub fn test_universal_measure_from_str() {
-    assert_eq!(
-        "123.4567mm".parse::<UniversalMeasure>().unwrap(),
-        UniversalMeasure::new(123.4567, UniversalMeasureUnit::Millimeter),
-    );
-    assert_eq!(
-        "123cm".parse::<UniversalMeasure>().unwrap(),
-        UniversalMeasure::new(123.0, UniversalMeasureUnit::Centimeter),
-    );
-    assert_eq!(
-        "-123in".parse::<UniversalMeasure>().unwrap(),
-        UniversalMeasure::new(-123.0, UniversalMeasureUnit::Inch),
-    );
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum TwipsMeasure {
     Decimal(u64),
@@ -151,16 +134,6 @@ impl FromStr for TwipsMeasure {
     }
 }
 
-#[cfg(test)]
-#[test]
-pub fn test_twips_measure_from_str() {
-    assert_eq!("123".parse::<TwipsMeasure>().unwrap(), TwipsMeasure::Decimal(123));
-    assert_eq!(
-        "123.456mm".parse::<TwipsMeasure>().unwrap(),
-        TwipsMeasure::UniversalMeasure(PositiveUniversalMeasure::new(123.456, UniversalMeasureUnit::Millimeter)),
-    );
-}
-
 #[derive(Debug, Clone, PartialEq, EnumString)]
 pub enum VerticalAlignRun {
     #[strum(serialize = "baseline")]
@@ -169,4 +142,34 @@ pub enum VerticalAlignRun {
     Superscript,
     #[strum(serialize = "subscript")]
     Subscript,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    pub fn test_universal_measure_from_str() {
+        assert_eq!(
+            "123.4567mm".parse::<UniversalMeasure>().unwrap(),
+            UniversalMeasure::new(123.4567, UniversalMeasureUnit::Millimeter),
+        );
+        assert_eq!(
+            "123cm".parse::<UniversalMeasure>().unwrap(),
+            UniversalMeasure::new(123.0, UniversalMeasureUnit::Centimeter),
+        );
+        assert_eq!(
+            "-123in".parse::<UniversalMeasure>().unwrap(),
+            UniversalMeasure::new(-123.0, UniversalMeasureUnit::Inch),
+        );
+    }
+
+    #[test]
+    pub fn test_twips_measure_from_str() {
+        assert_eq!("123".parse::<TwipsMeasure>().unwrap(), TwipsMeasure::Decimal(123));
+        assert_eq!(
+            "123.456mm".parse::<TwipsMeasure>().unwrap(),
+            TwipsMeasure::UniversalMeasure(PositiveUniversalMeasure::new(123.456, UniversalMeasureUnit::Millimeter)),
+        );
+    }
 }
