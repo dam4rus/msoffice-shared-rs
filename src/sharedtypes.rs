@@ -4,6 +4,7 @@ use std::{marker::PhantomData, str::FromStr};
 
 pub type OnOff = bool;
 pub type Lang = String;
+pub type XmlName = String; // 1 <= length <= 255
 
 #[derive(Debug, Clone, PartialEq, EnumString)]
 pub enum CalendarType {
