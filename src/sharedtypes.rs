@@ -145,6 +145,36 @@ pub enum VerticalAlignRun {
     Subscript,
 }
 
+#[derive(Debug, Clone, PartialEq, EnumString)]
+pub enum XAlign {
+    #[strum(serialize = "left")]
+    Left,
+    #[strum(serialize = "center")]
+    Center,
+    #[strum(serialize = "right")]
+    Right,
+    #[strum(serialize = "inside")]
+    Inside,
+    #[strum(serialize = "outside")]
+    Outside,
+}
+
+#[derive(Debug, Clone, PartialEq, EnumString)]
+pub enum YAlign {
+    #[strum(serialize = "inline")]
+    Inline,
+    #[strum(serialize = "top")]
+    Top,
+    #[strum(serialize = "center")]
+    Center,
+    #[strum(serialize = "bottom")]
+    Bottom,
+    #[strum(serialize = "inside")]
+    Inside,
+    #[strum(serialize = "outside")]
+    Outside,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
