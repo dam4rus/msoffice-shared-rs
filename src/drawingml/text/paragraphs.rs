@@ -12,7 +12,7 @@ use crate::drawingml::{
         TextSpacingPoint, TextStrikeType, TextTabAlignType, TextUnderlineType,
     },
 };
-use crate::error::{Limit, LimitViolationError, MissingAttributeError, MissingChildNodeError, NotGroupMemberError};
+use crate::error::{LimitViolationError, MaxOccurs, MissingAttributeError, MissingChildNodeError, NotGroupMemberError};
 use crate::xml::{parse_xml_bool, XmlNode};
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
@@ -584,8 +584,8 @@ impl TextParagraphProperties {
                             return Err(Box::new(LimitViolationError::new(
                                 xml_node.name.clone(),
                                 "tabLst",
-                                Limit::Value(0),
-                                Limit::Value(32),
+                                0,
+                                MaxOccurs::Value(32),
                                 vec.len() as u32,
                             )));
                         }

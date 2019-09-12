@@ -6,7 +6,7 @@ use crate::drawingml::{
     simpletypes::{FontCollectionIndex, StyleMatrixColumnIndex, TextTypeFace},
 };
 
-use crate::error::{Limit, LimitViolationError, MissingAttributeError, MissingChildNodeError};
+use crate::error::{LimitViolationError, MaxOccurs, MissingAttributeError, MissingChildNodeError};
 use crate::xml::XmlNode;
 use log::trace;
 
@@ -237,8 +237,8 @@ impl StyleMatrix {
             return Err(Box::new(LimitViolationError::new(
                 xml_node.name.clone(),
                 "fillStyleLst",
-                Limit::Value(3),
-                Limit::Unbounded,
+                3,
+                MaxOccurs::Unbounded,
                 fill_style_list.len() as u32,
             )));
         }
@@ -247,8 +247,8 @@ impl StyleMatrix {
             return Err(Box::new(LimitViolationError::new(
                 xml_node.name.clone(),
                 "lnStyleLst",
-                Limit::Value(3),
-                Limit::Unbounded,
+                3,
+                MaxOccurs::Unbounded,
                 line_style_list.len() as u32,
             )));
         }
@@ -257,8 +257,8 @@ impl StyleMatrix {
             return Err(Box::new(LimitViolationError::new(
                 xml_node.name.clone(),
                 "effectStyleLst",
-                Limit::Value(3),
-                Limit::Unbounded,
+                3,
+                MaxOccurs::Unbounded,
                 effect_style_list.len() as u32,
             )));
         }
@@ -267,8 +267,8 @@ impl StyleMatrix {
             return Err(Box::new(LimitViolationError::new(
                 xml_node.name.clone(),
                 "bgFillStyleLst",
-                Limit::Value(3),
-                Limit::Unbounded,
+                3,
+                MaxOccurs::Unbounded,
                 bg_fill_style_list.len() as u32,
             )));
         }

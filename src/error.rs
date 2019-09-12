@@ -1,7 +1,7 @@
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result},
-    num::ParseIntError,
+    num::{ParseFloatError, ParseIntError},
 };
 
 /// An error indicating that an xml element doesn't have an attribute that's marked as required in the schema
@@ -110,16 +110,16 @@ impl Error for NotGroupMemberError {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
-pub enum Limit {
+pub enum MaxOccurs {
     Value(u32),
     Unbounded,
 }
 
-impl Display for Limit {
+impl Display for MaxOccurs {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
         match self {
-            Limit::Value(val) => write!(f, "{}", val),
-            Limit::Unbounded => write!(f, "unbounded"),
+            MaxOccurs::Value(val) => write!(f, "{}", val),
+            MaxOccurs::Unbounded => write!(f, "unbounded"),
         }
     }
 }
@@ -129,8 +129,8 @@ impl Display for Limit {
 pub struct LimitViolationError {
     node_name: String,
     violating_node_name: &'static str,
-    min_occurs: Limit,
-    max_occurs: Limit,
+    min_occurs: u32,
+    max_occurs: MaxOccurs,
     occurs: u32,
 }
 
@@ -138,8 +138,8 @@ impl LimitViolationError {
     pub fn new<T>(
         node_name: T,
         violating_node_name: &'static str,
-        min_occurs: Limit,
-        max_occurs: Limit,
+        min_occurs: u32,
+        max_occurs: MaxOccurs,
         occurs: u32,
     ) -> Self
     where
@@ -178,15 +178,21 @@ pub enum XmlError {
     ChildNode(MissingChildNodeError),
     NotGroupMember(NotGroupMemberError),
     LimitViolation(LimitViolationError),
+    ParseIntError(ParseIntError),
+    ParseFloatError(ParseFloatError),
+    PatternRestrictionError(PatternRestrictionError),
 }
 
 impl Display for XmlError {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        match self {
+        match *self {
             XmlError::Attribute(ref err) => err.fmt(f),
             XmlError::ChildNode(ref err) => err.fmt(f),
             XmlError::NotGroupMember(ref err) => err.fmt(f),
             XmlError::LimitViolation(ref err) => err.fmt(f),
+            XmlError::ParseIntError(ref err) => err.fmt(f),
+            XmlError::ParseFloatError(ref err) => err.fmt(f),
+            XmlError::PatternRestrictionError(ref err) => err.fmt(f),
         }
     }
 }
@@ -218,6 +224,24 @@ impl From<NotGroupMemberError> for XmlError {
 impl From<LimitViolationError> for XmlError {
     fn from(error: LimitViolationError) -> Self {
         XmlError::LimitViolation(error)
+    }
+}
+
+impl From<ParseIntError> for XmlError {
+    fn from(error: ParseIntError) -> Self {
+        XmlError::ParseIntError(error)
+    }
+}
+
+impl From<ParseFloatError> for XmlError {
+    fn from(error: ParseFloatError) -> Self {
+        XmlError::ParseFloatError(error)
+    }
+}
+
+impl From<PatternRestrictionError> for XmlError {
+    fn from(error: PatternRestrictionError) -> Self {
+        XmlError::PatternRestrictionError(error)
     }
 }
 

@@ -7,7 +7,7 @@ use crate::drawingml::{
         RectAlignment, TileFlipMode,
     },
 };
-use crate::error::{Limit, LimitViolationError, MissingAttributeError, MissingChildNodeError, NotGroupMemberError};
+use crate::error::{LimitViolationError, MaxOccurs, MissingAttributeError, MissingChildNodeError, NotGroupMemberError};
 use crate::relationship::RelationshipId;
 use crate::xml::{parse_xml_bool, XmlNode};
 use log::{error, trace};
@@ -1358,8 +1358,8 @@ impl GradientFillProperties {
                             return Err(Box::new(LimitViolationError::new(
                                 xml_node.name.clone(),
                                 "gsLst",
-                                Limit::Value(2),
-                                Limit::Unbounded,
+                                2,
+                                MaxOccurs::Unbounded,
                                 vec.len() as u32,
                             )));
                         }
