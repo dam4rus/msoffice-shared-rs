@@ -5,6 +5,20 @@ use std::{marker::PhantomData, str::FromStr};
 pub type OnOff = bool;
 pub type Lang = String;
 pub type XmlName = String; // 1 <= length <= 255
+pub type PositiveUniversalMeasure = UniversalMeasure<Unsigned>;
+
+/// Trait indicating that a data type is restricted by a string pattern. A pattern is basically a regular expression.
+pub trait PatternRestricted {
+    fn restriction_pattern() -> &'static str;
+}
+
+/// Empty struct used to tag a data type implying that the stored value is signed.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Signed;
+
+/// Empty struct used to tag a data type implying that the stored value is unsigned.
+#[derive(Debug, Clone, PartialEq)]
+pub struct Unsigned;
 
 #[derive(Debug, Clone, PartialEq, EnumString)]
 pub enum CalendarType {
@@ -36,103 +50,6 @@ pub enum CalendarType {
     GregorianXlitFrench,
     #[strum(serialize = "none")]
     None,
-}
-
-/// Trait indicating that a data type is restricted by a string pattern. A pattern is basically a regular expression.
-pub trait PatternRestricted {
-    fn restriction_pattern() -> &'static str;
-}
-
-/// Empty struct used to tag a data type implying that the stored value is signed.
-#[derive(Debug, Clone, PartialEq)]
-pub struct Signed;
-
-/// Empty struct used to tag a data type implying that the stored value is unsigned.
-#[derive(Debug, Clone, PartialEq)]
-pub struct Unsigned;
-
-#[derive(Debug, Clone, PartialEq, EnumString)]
-pub enum UniversalMeasureUnit {
-    #[strum(serialize = "mm")]
-    Millimeter,
-    #[strum(serialize = "cm")]
-    Centimeter,
-    #[strum(serialize = "in")]
-    Inch,
-    #[strum(serialize = "pt")]
-    Point,
-    #[strum(serialize = "pc")]
-    Pica,
-    #[strum(serialize = "pi")]
-    Pitch,
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct UniversalMeasure<T = Signed> {
-    pub value: f64,
-    pub unit: UniversalMeasureUnit,
-    pub _phantom: PhantomData<T>,
-}
-
-impl<T> UniversalMeasure<T> {
-    pub fn new(value: f64, unit: UniversalMeasureUnit) -> Self {
-        Self {
-            value,
-            unit,
-            _phantom: PhantomData,
-        }
-    }
-}
-
-impl PatternRestricted for UniversalMeasure<Signed> {
-    fn restriction_pattern() -> &'static str {
-        r#"^-?[0-9]+(\.[0-9]+)?(mm|cm|in|pt|pc|pi)$"#
-    }
-}
-
-impl PatternRestricted for UniversalMeasure<Unsigned> {
-    fn restriction_pattern() -> &'static str {
-        r#"^[0-9]+(\.[0-9]+)?(mm|cm|in|pt|pc|pi)$"#
-    }
-}
-
-impl<T> FromStr for UniversalMeasure<T>
-where
-    UniversalMeasure<T>: PatternRestricted,
-{
-    type Err = Box<dyn std::error::Error>;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let re = Regex::new(Self::restriction_pattern()).expect("valid regexp should be provided");
-        let captures = re
-            .captures(s)
-            .ok_or_else(|| Box::new(PatternRestrictionError::NoMatch))?;
-        // Group 0 and 2 can't be empty if the match succeeds
-        let unit_slice = captures.get(2).unwrap();
-        let value_slice = &s[captures.get(0).unwrap().start()..unit_slice.start()];
-        Ok(Self::new(value_slice.parse()?, unit_slice.as_str().parse()?))
-    }
-}
-
-pub type PositiveUniversalMeasure = UniversalMeasure<Unsigned>;
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum TwipsMeasure {
-    Decimal(u64),
-    UniversalMeasure(PositiveUniversalMeasure),
-}
-
-impl FromStr for TwipsMeasure {
-    // TODO custom error type
-    type Err = Box<dyn std::error::Error>;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        if let Ok(value) = s.parse::<u64>() {
-            Ok(TwipsMeasure::Decimal(value))
-        } else {
-            Ok(TwipsMeasure::UniversalMeasure(s.parse()?))
-        }
-    }
 }
 
 #[derive(Debug, Clone, PartialEq, EnumString)]
@@ -175,6 +92,110 @@ pub enum YAlign {
     Outside,
 }
 
+#[derive(Debug, Clone, PartialEq, EnumString)]
+pub enum UniversalMeasureUnit {
+    #[strum(serialize = "mm")]
+    Millimeter,
+    #[strum(serialize = "cm")]
+    Centimeter,
+    #[strum(serialize = "in")]
+    Inch,
+    #[strum(serialize = "pt")]
+    Point,
+    #[strum(serialize = "pc")]
+    Pica,
+    #[strum(serialize = "pi")]
+    Pitch,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct UniversalMeasure<T = Signed> {
+    pub value: f64,
+    pub unit: UniversalMeasureUnit,
+    pub _phantom: PhantomData<T>,
+}
+
+impl<T> UniversalMeasure<T> {
+    pub fn new(value: f64, unit: UniversalMeasureUnit) -> Self {
+        Self {
+            value,
+            unit,
+            _phantom: PhantomData,
+        }
+    }
+}
+
+impl PatternRestricted for UniversalMeasure<Signed> {
+    fn restriction_pattern() -> &'static str {
+        r#"^(-?[0-9]+(?:\.[0-9]+)?)(mm|cm|in|pt|pc|pi)$"#
+    }
+}
+
+impl PatternRestricted for UniversalMeasure<Unsigned> {
+    fn restriction_pattern() -> &'static str {
+        r#"^([0-9]+(?:\.[0-9]+)?)(mm|cm|in|pt|pc|pi)$"#
+    }
+}
+
+impl<T> FromStr for UniversalMeasure<T>
+where
+    UniversalMeasure<T>: PatternRestricted,
+{
+    type Err = Box<dyn std::error::Error>;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let re = Regex::new(Self::restriction_pattern()).expect("valid regexp should be provided");
+        let captures = re
+            .captures(s)
+            .ok_or_else(|| Box::new(PatternRestrictionError::NoMatch))?;
+        // Group 1 and 2 can't be empty if the match succeeds
+        let value_slice = captures.get(1).unwrap();
+        let unit_slice = captures.get(2).unwrap();
+        Ok(Self::new(value_slice.as_str().parse()?, unit_slice.as_str().parse()?))
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum TwipsMeasure {
+    Decimal(u64),
+    UniversalMeasure(PositiveUniversalMeasure),
+}
+
+impl FromStr for TwipsMeasure {
+    // TODO custom error type
+    type Err = Box<dyn std::error::Error>;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if let Ok(value) = s.parse::<u64>() {
+            Ok(TwipsMeasure::Decimal(value))
+        } else {
+            Ok(TwipsMeasure::UniversalMeasure(s.parse()?))
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Percentage(pub f64);
+
+impl PatternRestricted for Percentage {
+    fn restriction_pattern() -> &'static str {
+        r#"^(-?[0-9]+(?:\.[0-9]+)?)%$"#
+    }
+}
+
+impl FromStr for Percentage {
+    type Err = Box<dyn std::error::Error>;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let re = Regex::new(Self::restriction_pattern()).expect("valid regexp should be provided");
+        let captures = re
+            .captures(s)
+            .ok_or_else(|| Box::new(PatternRestrictionError::NoMatch))?;
+
+        Ok(Self(captures.get(1).unwrap().as_str().parse()?))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -190,6 +211,10 @@ mod tests {
             UniversalMeasure::new(123.0, UniversalMeasureUnit::Centimeter),
         );
         assert_eq!(
+            "123cm".parse::<PositiveUniversalMeasure>().unwrap(),
+            PositiveUniversalMeasure::new(123.0, UniversalMeasureUnit::Centimeter),
+        );
+        assert_eq!(
             "-123in".parse::<UniversalMeasure>().unwrap(),
             UniversalMeasure::new(-123.0, UniversalMeasureUnit::Inch),
         );
@@ -202,5 +227,13 @@ mod tests {
             "123.456mm".parse::<TwipsMeasure>().unwrap(),
             TwipsMeasure::UniversalMeasure(PositiveUniversalMeasure::new(123.456, UniversalMeasureUnit::Millimeter)),
         );
+    }
+
+    #[test]
+    pub fn test_percentage_from_str() {
+        assert_eq!("100%".parse::<Percentage>().unwrap(), Percentage(100.0));
+        assert_eq!("-100%".parse::<Percentage>().unwrap(), Percentage(-100.0));
+        assert_eq!("123.456%".parse::<Percentage>().unwrap(), Percentage(123.456));
+        assert_eq!("-123.456%".parse::<Percentage>().unwrap(), Percentage(-123.456));
     }
 }
