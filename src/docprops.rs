@@ -1,5 +1,8 @@
 use crate::xml::XmlNode;
 use std::io::{Read, Seek};
+use zip::read::ZipFile;
+
+type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct AppInfo {
@@ -8,25 +11,28 @@ pub struct AppInfo {
 }
 
 impl AppInfo {
-    pub fn from_zip<R>(zipper: &mut zip::ZipArchive<R>) -> Result<Self, Box<dyn (::std::error::Error)>>
+    pub fn from_zip<R>(zipper: &mut zip::ZipArchive<R>) -> Result<Self>
     where
         R: Read + Seek,
     {
         let mut app_xml_file = zipper.by_name("docProps/app.xml")?;
+        Self::from_zip_file(&mut app_xml_file)
+    }
 
+    pub fn from_zip_file(zip_file: &mut ZipFile) -> Result<Self> {
         let mut xml_string = String::new();
-        app_xml_file.read_to_string(&mut xml_string)?;
+        zip_file.read_to_string(&mut xml_string)?;
         let root = XmlNode::from_str(&xml_string)?;
 
-        root.child_nodes.iter().try_fold(Default::default(), |mut instance: Self, child_node| {
+        Ok(root.child_nodes.iter().fold(Default::default(), |mut instance: Self, child_node| {
             match child_node.local_name() {
                 "Application" => instance.app_name = child_node.text.as_ref().cloned(),
                 "AppVersion" => instance.app_version = child_node.text.as_ref().cloned(),
                 _ => (),
             }
 
-            Ok(instance)
-        })
+            instance
+        }))
     }
 }
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -40,13 +46,17 @@ pub struct Core {
 }
 
 impl Core {
-    pub fn from_zip<R>(zipper: &mut zip::ZipArchive<R>) -> Result<Self, Box<dyn (::std::error::Error)>>
+    pub fn from_zip<R>(zipper: &mut zip::ZipArchive<R>) -> Result<Self>
     where
         R: Read + Seek,
     {
         let mut core_xml_file = zipper.by_name("docProps/core.xml")?;
+        Self::from_zip_file(&mut core_xml_file)
+    }
+
+    pub fn from_zip_file(zip_file: &mut ZipFile) -> Result<Self> {
         let mut xml_string = String::new();
-        core_xml_file.read_to_string(&mut xml_string)?;
+        zip_file.read_to_string(&mut xml_string)?;
         let root = XmlNode::from_str(&xml_string)?;
 
         root.child_nodes.iter().try_fold(Default::default(), |mut instance: Self, child_node|{

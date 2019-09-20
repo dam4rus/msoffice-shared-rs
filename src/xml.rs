@@ -1,7 +1,12 @@
 use crate::error::{InvalidXmlError, ParseBoolError};
-use quick_xml::events::{BytesStart, Event};
-use quick_xml::Reader;
-use std::collections::HashMap;
+use quick_xml::{
+    events::{BytesStart, Event},
+    Reader,
+};
+use std::{
+    collections::HashMap,
+    fmt::{Display, Formatter},
+};
 
 /// Represents an implementation independent xml node
 #[derive(Debug, Clone, PartialEq)]
@@ -12,8 +17,8 @@ pub struct XmlNode {
     pub text: Option<String>,
 }
 
-impl ::std::fmt::Display for XmlNode {
-    fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
+impl Display for XmlNode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> ::std::fmt::Result {
         write!(f, "name: {}", self.name)
     }
 }
