@@ -196,6 +196,14 @@ impl FromStr for Percentage {
     }
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, EnumString)]
+pub enum ConformanceClass {
+    #[strum(serialize = "strict")]
+    Strict,
+    #[strum(serialize = "transitional")]
+    Transitional,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

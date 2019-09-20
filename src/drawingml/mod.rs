@@ -9,6 +9,7 @@ pub(crate) mod sharedstylesheet;
 pub(crate) mod simpletypes;
 pub(crate) mod styles;
 pub(crate) mod text;
+pub(crate) mod diagrams;
 
 pub use self::audiovideo::*;
 pub use self::colors::*;
@@ -21,3 +22,4 @@ pub use self::sharedstylesheet::*;
 pub use self::simpletypes::*;
 pub use self::styles::*;
 pub use self::text::*;
+pub use self::diagrams::*;

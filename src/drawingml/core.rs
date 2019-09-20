@@ -428,15 +428,18 @@ pub struct NonVisualDrawingShapeProps {
 
 impl NonVisualDrawingShapeProps {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let is_text_box = match xml_node.attribute("txBox") {
-            Some(attr) => Some(parse_xml_bool(attr)?),
-            None => None,
-        };
+        let is_text_box = xml_node
+            .attributes
+            .get("txBox")
+            .map(|value| parse_xml_bool(value))
+            .transpose()?;
 
-        let shape_locks = match xml_node.child_nodes.get(0) {
-            Some(sp_lock_node) => Some(ShapeLocking::from_xml_element(sp_lock_node)?),
-            None => None,
-        };
+        let shape_locks = xml_node
+            .child_nodes
+            .iter()
+            .find(|child_node| child_node.local_name() == "spLocks")
+            .map(ShapeLocking::from_xml_element)
+            .transpose()?;
 
         Ok(Self {
             is_text_box,

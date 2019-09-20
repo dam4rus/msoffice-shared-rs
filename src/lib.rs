@@ -1,5 +1,6 @@
 #![forbid(unsafe_code)]
 
+pub mod docprops;
 pub mod drawingml;
 pub mod error;
 pub mod relationship;

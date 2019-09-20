@@ -1,7 +1,7 @@
 use std::{
     error::Error,
     fmt::{Display, Formatter, Result},
-    num::{ParseFloatError, ParseIntError},
+    num::ParseIntError,
 };
 
 /// An error indicating that an xml element doesn't have an attribute that's marked as required in the schema
@@ -168,80 +168,6 @@ impl Display for LimitViolationError {
 impl Error for LimitViolationError {
     fn description(&self) -> &str {
         "Occurance limit violation"
-    }
-}
-
-/// Chained error type for all possible xml error
-#[derive(Debug, Clone, PartialEq)]
-pub enum XmlError {
-    Attribute(MissingAttributeError),
-    ChildNode(MissingChildNodeError),
-    NotGroupMember(NotGroupMemberError),
-    LimitViolation(LimitViolationError),
-    ParseIntError(ParseIntError),
-    ParseFloatError(ParseFloatError),
-    PatternRestrictionError(PatternRestrictionError),
-}
-
-impl Display for XmlError {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        match *self {
-            XmlError::Attribute(ref err) => err.fmt(f),
-            XmlError::ChildNode(ref err) => err.fmt(f),
-            XmlError::NotGroupMember(ref err) => err.fmt(f),
-            XmlError::LimitViolation(ref err) => err.fmt(f),
-            XmlError::ParseIntError(ref err) => err.fmt(f),
-            XmlError::ParseFloatError(ref err) => err.fmt(f),
-            XmlError::PatternRestrictionError(ref err) => err.fmt(f),
-        }
-    }
-}
-
-impl Error for XmlError {
-    fn description(&self) -> &str {
-        "Xml element missing required attribute or child node"
-    }
-}
-
-impl From<MissingAttributeError> for XmlError {
-    fn from(error: MissingAttributeError) -> Self {
-        XmlError::Attribute(error)
-    }
-}
-
-impl From<MissingChildNodeError> for XmlError {
-    fn from(error: MissingChildNodeError) -> Self {
-        XmlError::ChildNode(error)
-    }
-}
-
-impl From<NotGroupMemberError> for XmlError {
-    fn from(error: NotGroupMemberError) -> Self {
-        XmlError::NotGroupMember(error)
-    }
-}
-
-impl From<LimitViolationError> for XmlError {
-    fn from(error: LimitViolationError) -> Self {
-        XmlError::LimitViolation(error)
-    }
-}
-
-impl From<ParseIntError> for XmlError {
-    fn from(error: ParseIntError) -> Self {
-        XmlError::ParseIntError(error)
-    }
-}
-
-impl From<ParseFloatError> for XmlError {
-    fn from(error: ParseFloatError) -> Self {
-        XmlError::ParseFloatError(error)
-    }
-}
-
-impl From<PatternRestrictionError> for XmlError {
-    fn from(error: PatternRestrictionError) -> Self {
-        XmlError::PatternRestrictionError(error)
     }
 }
 
