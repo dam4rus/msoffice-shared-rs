@@ -1,4 +1,4 @@
-use super::{FillProperties, EffectProperties, LineProperties};
+use super::{EffectProperties, FillProperties, LineProperties};
 use crate::xml::XmlNode;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
@@ -11,16 +11,19 @@ pub struct BackgroundFormatting {
 
 impl BackgroundFormatting {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        xml_node.child_nodes.iter().try_fold(Default::default(), |mut instance: Self, child_node| {
-            let node_name = child_node.local_name();
-            if FillProperties::is_choice_member(node_name) {
-                instance.fill = Some(FillProperties::from_xml_element(child_node)?);
-            } else if EffectProperties::is_choice_member(node_name) {
-                instance.effect = Some(EffectProperties::from_xml_element(child_node)?);
-            }
+        xml_node
+            .child_nodes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, child_node| {
+                let node_name = child_node.local_name();
+                if FillProperties::is_choice_member(node_name) {
+                    instance.fill = Some(FillProperties::from_xml_element(child_node)?);
+                } else if EffectProperties::is_choice_member(node_name) {
+                    instance.effect = Some(EffectProperties::from_xml_element(child_node)?);
+                }
 
-            Ok(instance)
-        })
+                Ok(instance)
+            })
     }
 }
 
@@ -32,17 +35,20 @@ pub struct WholeE2oFormatting {
 
 impl WholeE2oFormatting {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        xml_node.child_nodes.iter().try_fold(Default::default(), |mut instance: Self, child_node| {
-            match child_node.local_name() {
-                "ln" => instance.line = Some(LineProperties::from_xml_element(child_node)?),
-                node_name if EffectProperties::is_choice_member(node_name) => {
-                    instance.effect = Some(EffectProperties::from_xml_element(child_node)?)
+        xml_node
+            .child_nodes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, child_node| {
+                match child_node.local_name() {
+                    "ln" => instance.line = Some(LineProperties::from_xml_element(child_node)?),
+                    node_name if EffectProperties::is_choice_member(node_name) => {
+                        instance.effect = Some(EffectProperties::from_xml_element(child_node)?)
+                    }
+                    _ => (),
                 }
-                _ => (),
-            }
 
-            Ok(instance)
-        })
+                Ok(instance)
+            })
     }
 }
 

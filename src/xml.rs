@@ -6,7 +6,9 @@ use quick_xml::{
 use std::{
     collections::HashMap,
     fmt::{Display, Formatter},
+    io::Read,
 };
+use zip::read::ZipFile;
 
 /// Represents an implementation independent xml node
 #[derive(Debug, Clone, PartialEq)]
@@ -140,44 +142,54 @@ where
     }
 }
 
+pub fn zip_file_to_xml_node(zip_file: &mut ZipFile) -> Result<XmlNode, Box<dyn std::error::Error>> {
+    let mut xml_string = String::new();
+    zip_file.read_to_string(&mut xml_string)?;
+    XmlNode::from_str(xml_string).map_err(Into::into)
+}
+
 #[cfg(test)]
-#[test]
-fn test_xml_parser() {
-    use std::fs::File;
-    use std::io::Read;
-    use std::path::PathBuf;
+mod tests {
+    use super::XmlNode;
 
-    let test_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
-    let sample_xml_file = test_dir.join("tests/presentation.xml");
-    let mut file = File::open(sample_xml_file).expect("Sample xml file not found");
+    #[test]
+    fn test_xml_parser() {
+        use std::fs::File;
+        use std::io::Read;
+        use std::path::PathBuf;
 
-    let mut file_content = String::new();
-    file.read_to_string(&mut file_content)
-        .expect("Failed to read sample xml file to string");
+        let test_dir = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        let sample_xml_file = test_dir.join("tests/presentation.xml");
+        let mut file = File::open(sample_xml_file).expect("Sample xml file not found");
 
-    let root_node = XmlNode::from_str(file_content.as_str()).expect("Couldn't create XmlNode from string");
-    assert_eq!(root_node.name, "p:presentation");
-    assert_eq!(
-        root_node.attribute("xmlns:a").unwrap(),
-        "http://schemas.openxmlformats.org/drawingml/2006/main"
-    );
+        let mut file_content = String::new();
+        file.read_to_string(&mut file_content)
+            .expect("Failed to read sample xml file to string");
 
-    assert_eq!(root_node.child_nodes[0].name, "p:sldMasterIdLst");
-    assert_eq!(root_node.child_nodes[1].name, "p:sldIdLst");
-    assert_eq!(root_node.child_nodes[2].name, "p:sldSz");
-    assert_eq!(root_node.child_nodes[3].name, "p:notesSz");
-    assert_eq!(root_node.child_nodes[4].name, "p:custDataLst");
-    assert_eq!(root_node.child_nodes[5].name, "p:defaultTextStyle");
-    assert_eq!(root_node.child_nodes[0].child_nodes[0].name, "p:sldMasterId");
+        let root_node = XmlNode::from_str(file_content.as_str()).expect("Couldn't create XmlNode from string");
+        assert_eq!(root_node.name, "p:presentation");
+        assert_eq!(
+            root_node.attribute("xmlns:a").unwrap(),
+            "http://schemas.openxmlformats.org/drawingml/2006/main"
+        );
 
-    let slide_id_0_node = &root_node.child_nodes[1].child_nodes[0];
-    assert_eq!(slide_id_0_node.name, "p:sldId");
-    assert_eq!(slide_id_0_node.attribute("id").unwrap(), "256");
-    assert_eq!(slide_id_0_node.attribute("r:id").unwrap(), "rId2");
+        assert_eq!(root_node.child_nodes[0].name, "p:sldMasterIdLst");
+        assert_eq!(root_node.child_nodes[1].name, "p:sldIdLst");
+        assert_eq!(root_node.child_nodes[2].name, "p:sldSz");
+        assert_eq!(root_node.child_nodes[3].name, "p:notesSz");
+        assert_eq!(root_node.child_nodes[4].name, "p:custDataLst");
+        assert_eq!(root_node.child_nodes[5].name, "p:defaultTextStyle");
+        assert_eq!(root_node.child_nodes[0].child_nodes[0].name, "p:sldMasterId");
 
-    assert_eq!(root_node.child_nodes[1].child_nodes[1].name, "p:sldId");
+        let slide_id_0_node = &root_node.child_nodes[1].child_nodes[0];
+        assert_eq!(slide_id_0_node.name, "p:sldId");
+        assert_eq!(slide_id_0_node.attribute("id").unwrap(), "256");
+        assert_eq!(slide_id_0_node.attribute("r:id").unwrap(), "rId2");
 
-    let lvl1_ppr_defrpr_node = &root_node.child_nodes[5].child_nodes[1].child_nodes[0];
-    assert_eq!(lvl1_ppr_defrpr_node.attribute("sz").unwrap(), "1800");
-    assert_eq!(lvl1_ppr_defrpr_node.attribute("kern").unwrap(), "1200");
+        assert_eq!(root_node.child_nodes[1].child_nodes[1].name, "p:sldId");
+
+        let lvl1_ppr_defrpr_node = &root_node.child_nodes[5].child_nodes[1].child_nodes[0];
+        assert_eq!(lvl1_ppr_defrpr_node.attribute("sz").unwrap(), "1800");
+        assert_eq!(lvl1_ppr_defrpr_node.attribute("kern").unwrap(), "1200");
+    }
 }

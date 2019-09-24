@@ -24,15 +24,18 @@ impl AppInfo {
         zip_file.read_to_string(&mut xml_string)?;
         let root = XmlNode::from_str(&xml_string)?;
 
-        Ok(root.child_nodes.iter().fold(Default::default(), |mut instance: Self, child_node| {
-            match child_node.local_name() {
-                "Application" => instance.app_name = child_node.text.as_ref().cloned(),
-                "AppVersion" => instance.app_version = child_node.text.as_ref().cloned(),
-                _ => (),
-            }
+        Ok(root
+            .child_nodes
+            .iter()
+            .fold(Default::default(), |mut instance: Self, child_node| {
+                match child_node.local_name() {
+                    "Application" => instance.app_name = child_node.text.as_ref().cloned(),
+                    "AppVersion" => instance.app_version = child_node.text.as_ref().cloned(),
+                    _ => (),
+                }
 
-            instance
-        }))
+                instance
+            }))
     }
 }
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -59,18 +62,20 @@ impl Core {
         zip_file.read_to_string(&mut xml_string)?;
         let root = XmlNode::from_str(&xml_string)?;
 
-        root.child_nodes.iter().try_fold(Default::default(), |mut instance: Self, child_node|{
-            match child_node.local_name() {
-                "title" => instance.title = child_node.text.as_ref().cloned(),
-                "creator" => instance.creator = child_node.text.as_ref().cloned(),
-                "lastModifiedBy" => instance.last_modified_by = child_node.text.as_ref().cloned(),
-                "revision" => instance.revision = child_node.text.as_ref().map(|s| s.parse()).transpose()?,
-                "created" => instance.created_time = child_node.text.as_ref().cloned(),
-                "modified" => instance.modified_time = child_node.text.as_ref().cloned(),
-                _ => (),
-            }
+        root.child_nodes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, child_node| {
+                match child_node.local_name() {
+                    "title" => instance.title = child_node.text.as_ref().cloned(),
+                    "creator" => instance.creator = child_node.text.as_ref().cloned(),
+                    "lastModifiedBy" => instance.last_modified_by = child_node.text.as_ref().cloned(),
+                    "revision" => instance.revision = child_node.text.as_ref().map(|s| s.parse()).transpose()?,
+                    "created" => instance.created_time = child_node.text.as_ref().cloned(),
+                    "modified" => instance.modified_time = child_node.text.as_ref().cloned(),
+                    _ => (),
+                }
 
-            Ok(instance)
-        })
+                Ok(instance)
+            })
     }
 }
