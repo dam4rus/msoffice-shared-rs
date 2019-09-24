@@ -127,7 +127,7 @@ pub struct StyleMatrix {
     ///
     /// In this example, we see three lines defined within a line style list. The first line corresponds to the subtle line,
     /// the second to the moderate, and the third corresponds to the intense line defined in the theme.
-    pub line_style_list: Vec<Box<LineProperties>>,
+    pub line_style_list: Vec<LineProperties>,
 
     /// This element defines a set of three effect styles that create the effect style list for a theme. The effect styles are
     /// arranged in order of subtle to moderate to intense.
@@ -216,7 +216,7 @@ impl StyleMatrix {
                 }
                 "lnStyleLst" => {
                     for line_style_node in &child_node.child_nodes {
-                        line_style_list.push(Box::new(LineProperties::from_xml_element(line_style_node)?));
+                        line_style_list.push(LineProperties::from_xml_element(line_style_node)?);
                     }
                 }
                 "effectStyleLst" => {

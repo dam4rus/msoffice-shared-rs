@@ -13,14 +13,14 @@ pub trait PatternRestricted {
 }
 
 /// Empty struct used to tag a data type implying that the stored value is signed.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Signed;
 
 /// Empty struct used to tag a data type implying that the stored value is unsigned.
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Unsigned;
 
-#[derive(Debug, Clone, PartialEq, EnumString)]
+#[derive(Debug, Clone, Copy, PartialEq, EnumString)]
 pub enum CalendarType {
     #[strum(serialize = "gregorian")]
     Gregorian,
@@ -52,7 +52,7 @@ pub enum CalendarType {
     None,
 }
 
-#[derive(Debug, Clone, PartialEq, EnumString)]
+#[derive(Debug, Clone, Copy, PartialEq, EnumString)]
 pub enum VerticalAlignRun {
     #[strum(serialize = "baseline")]
     Baseline,
@@ -62,7 +62,7 @@ pub enum VerticalAlignRun {
     Subscript,
 }
 
-#[derive(Debug, Clone, PartialEq, EnumString)]
+#[derive(Debug, Clone, Copy, PartialEq, EnumString)]
 pub enum XAlign {
     #[strum(serialize = "left")]
     Left,
@@ -76,7 +76,7 @@ pub enum XAlign {
     Outside,
 }
 
-#[derive(Debug, Clone, PartialEq, EnumString)]
+#[derive(Debug, Clone, Copy, PartialEq, EnumString)]
 pub enum YAlign {
     #[strum(serialize = "inline")]
     Inline,
@@ -92,7 +92,7 @@ pub enum YAlign {
     Outside,
 }
 
-#[derive(Debug, Clone, PartialEq, EnumString)]
+#[derive(Debug, Clone, Copy, PartialEq, EnumString)]
 pub enum UniversalMeasureUnit {
     #[strum(serialize = "mm")]
     Millimeter,
@@ -108,7 +108,7 @@ pub enum UniversalMeasureUnit {
     Pitch,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct UniversalMeasure<T = Signed> {
     pub value: f64,
     pub unit: UniversalMeasureUnit,
@@ -155,7 +155,7 @@ where
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum TwipsMeasure {
     Decimal(u64),
     UniversalMeasure(PositiveUniversalMeasure),
@@ -174,7 +174,7 @@ impl FromStr for TwipsMeasure {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Percentage(pub f64);
 
 impl PatternRestricted for Percentage {

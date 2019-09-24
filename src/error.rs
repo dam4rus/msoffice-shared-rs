@@ -172,14 +172,8 @@ impl Error for LimitViolationError {
 }
 
 /// An error indicating that the parsed xml document is invalid
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Default)]
 pub struct InvalidXmlError {}
-
-impl InvalidXmlError {
-    pub fn new() -> Self {
-        Self {}
-    }
-}
 
 impl Display for InvalidXmlError {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {

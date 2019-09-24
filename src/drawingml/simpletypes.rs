@@ -48,7 +48,7 @@ pub fn parse_hex_color_rgb(s: &str) -> Result<HexColorRGB, ParseHexColorRGBError
             u8::from_str_radix(&s[2..4], 16)?,
             u8::from_str_radix(&s[4..6], 16)?,
         ]),
-        len @ _ => Err(ParseHexColorRGBError::InvalidLength(StringLengthMismatch {
+        len => Err(ParseHexColorRGBError::InvalidLength(StringLengthMismatch {
             required: 6,
             provided: len,
         })),

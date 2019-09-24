@@ -428,11 +428,7 @@ pub struct NonVisualDrawingShapeProps {
 
 impl NonVisualDrawingShapeProps {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let is_text_box = xml_node
-            .attributes
-            .get("txBox")
-            .map(|value| parse_xml_bool(value))
-            .transpose()?;
+        let is_text_box = xml_node.attributes.get("txBox").map(parse_xml_bool).transpose()?;
 
         let shape_locks = xml_node
             .child_nodes
@@ -1269,7 +1265,7 @@ pub struct TextBody {
     ///   </a:p>
     /// </p:txBody>
     /// ```
-    pub paragraph_array: Vec<Box<TextParagraph>>,
+    pub paragraph_array: Vec<TextParagraph>,
 }
 
 impl TextBody {
@@ -1282,7 +1278,7 @@ impl TextBody {
             match child_node.local_name() {
                 "bodyPr" => body_properties = Some(Box::new(TextBodyProperties::from_xml_element(child_node)?)),
                 "lstStyle" => list_style = Some(Box::new(TextListStyle::from_xml_element(child_node)?)),
-                "p" => paragraph_array.push(Box::new(TextParagraph::from_xml_element(child_node)?)),
+                "p" => paragraph_array.push(TextParagraph::from_xml_element(child_node)?),
                 _ => (),
             }
         }

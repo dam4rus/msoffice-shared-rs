@@ -47,9 +47,9 @@ impl XmlNode {
         loop {
             match xml_reader.read_event(&mut buffer) {
                 Ok(Event::Start(ref element)) => {
-                    let mut root_node = Self::from_quick_xml_element(element).map_err(|_| InvalidXmlError::new())?;
+                    let mut root_node = Self::from_quick_xml_element(element).map_err(|_| InvalidXmlError {})?;
                     root_node.child_nodes = Self::parse_child_elements(&mut root_node, element, &mut xml_reader)
-                        .map_err(|_| InvalidXmlError::new())?;
+                        .map_err(|_| InvalidXmlError {})?;
                     return Ok(root_node);
                 }
                 Ok(Event::Eof) => break,
@@ -59,7 +59,7 @@ impl XmlNode {
             buffer.clear();
         }
 
-        Err(InvalidXmlError::new())
+        Err(InvalidXmlError {})
     }
 
     pub fn local_name(&self) -> &str {

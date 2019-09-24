@@ -1027,7 +1027,7 @@ pub struct CustomGeometry2D {
     /// generating application should then connect the last point to the first point of the new shape. If a close element
     /// is encountered at the end of the previous creation path then this joining line should not be rendered by the
     /// generating application. The rendering should resume with the first line or curve on the new creation path.
-    pub path_list: Vec<Box<Path2D>>,
+    pub path_list: Vec<Path2D>,
 }
 
 impl CustomGeometry2D {
@@ -1067,7 +1067,7 @@ impl CustomGeometry2D {
                 "rect" => instance.rect = Some(Box::new(GeomRect::from_xml_element(child_node)?)),
                 "pathLst" => {
                     for path_node in &child_node.child_nodes {
-                        instance.path_list.push(Box::new(Path2D::from_xml_element(path_node)?));
+                        instance.path_list.push(Path2D::from_xml_element(path_node)?);
                     }
                 }
                 _ => (),
