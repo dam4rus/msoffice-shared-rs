@@ -1,4 +1,7 @@
-use super::{EffectProperties, FillProperties, LineProperties};
+use super::{
+    shapeprops::{EffectProperties, FillProperties},
+    core::LineProperties,
+};
 use crate::xml::XmlNode;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;

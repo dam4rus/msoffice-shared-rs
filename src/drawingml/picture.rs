@@ -1,4 +1,7 @@
-use super::{BlipFillProperties, NonVisualDrawingProps, NonVisualPictureProperties, ShapeProperties};
+use super::{
+    shapeprops::BlipFillProperties,
+    core::{NonVisualDrawingProps, NonVisualPictureProperties, ShapeProperties},
+};
 use crate::{error::MissingChildNodeError, xml::XmlNode};
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
