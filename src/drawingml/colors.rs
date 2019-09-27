@@ -10,6 +10,7 @@ use crate::xml::XmlNode;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
+#[repr(C)]
 #[derive(Debug, Clone, PartialEq)]
 pub enum ColorTransform {
     /// This element specifies a lighter version of its input color. A 10% tint is 10% of the input color combined with
@@ -844,7 +845,7 @@ pub enum Color {
     ///   <a:srgbClr val="BCBCBC"/>
     /// </a:solidFill>
     /// ```
-    ScRgbColor(Box<ScRgbColor>),
+    ScRgbColor(ScRgbColor),
 
     /// This element specifies a color using the red, green, blue RGB color model. Red, green, and blue is expressed as
     /// sequence of hex digits, RRGGBB. A perceptual gamma of 2.2 is used.
@@ -862,7 +863,7 @@ pub enum Color {
     ///   <a:srgbClr val="BCBCBC"/>
     /// </a:solidFill>
     /// ```
-    SRgbColor(Box<SRgbColor>),
+    SRgbColor(SRgbColor),
 
     /// This element specifies a color using the HSL color model. A perceptual gamma of 2.2 is assumed.
     ///
@@ -879,7 +880,7 @@ pub enum Color {
     ///   <a:hslClr hue="14400000" sat="100000" lum="50000">
     /// </a:solidFill>
     /// ```
-    HslColor(Box<HslColor>),
+    HslColor(HslColor),
 
     /// This element specifies a color bound to predefined operating system elements.
     ///
@@ -891,7 +892,7 @@ pub enum Color {
     ///   <a:sysClr val="windowText"/>
     /// </a:solidFill>
     /// ```
-    SystemColor(Box<SystemColor>),
+    SystemColor(SystemColor),
 
     /// This element specifies a color bound to a user's theme. As with all elements which define a color, it is possible to
     /// apply a list of color transforms to the base color defined.
@@ -901,7 +902,7 @@ pub enum Color {
     /// <a:solidFill>
     ///   <a:schemeClr val="lt1"/>
     /// </a:solidFill>
-    SchemeColor(Box<SchemeColor>),
+    SchemeColor(SchemeColor),
 
     /// This element specifies a color which is bound to one of a predefined collection of colors.
     ///
@@ -911,7 +912,7 @@ pub enum Color {
     /// <a:solidFill>
     ///   <a:prstClr val="black">
     /// </a:solidFill>
-    PresetColor(Box<PresetColor>),
+    PresetColor(PresetColor),
 }
 
 impl Color {
@@ -924,12 +925,12 @@ impl Color {
 
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Color> {
         match xml_node.local_name() {
-            "scrgbClr" => Ok(Color::ScRgbColor(Box::new(ScRgbColor::from_xml_element(xml_node)?))),
-            "srgbClr" => Ok(Color::SRgbColor(Box::new(SRgbColor::from_xml_element(xml_node)?))),
-            "hslClr" => Ok(Color::HslColor(Box::new(HslColor::from_xml_element(xml_node)?))),
-            "sysClr" => Ok(Color::SystemColor(Box::new(SystemColor::from_xml_element(xml_node)?))),
-            "schemeClr" => Ok(Color::SchemeColor(Box::new(SchemeColor::from_xml_element(xml_node)?))),
-            "prstClr" => Ok(Color::PresetColor(Box::new(PresetColor::from_xml_element(xml_node)?))),
+            "scrgbClr" => Ok(Color::ScRgbColor(ScRgbColor::from_xml_element(xml_node)?)),
+            "srgbClr" => Ok(Color::SRgbColor(SRgbColor::from_xml_element(xml_node)?)),
+            "hslClr" => Ok(Color::HslColor(HslColor::from_xml_element(xml_node)?)),
+            "sysClr" => Ok(Color::SystemColor(SystemColor::from_xml_element(xml_node)?)),
+            "schemeClr" => Ok(Color::SchemeColor(SchemeColor::from_xml_element(xml_node)?)),
+            "prstClr" => Ok(Color::PresetColor(PresetColor::from_xml_element(xml_node)?)),
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_ColorChoice").into()),
         }
     }

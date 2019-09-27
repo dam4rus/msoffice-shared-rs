@@ -1157,6 +1157,7 @@ pub enum OnOffStyleType {
 ///
 /// Applications shall use the lastClr attribute to determine the absolute value of the last color used if system colors
 /// are not supported.
+#[repr(C)]
 #[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum SystemColorVal {
     /// Specifies the scroll bar gray area color.
@@ -1256,6 +1257,7 @@ pub enum SystemColorVal {
 }
 
 /// This simple type represents a preset color value.
+#[repr(C)]
 #[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum PresetColorVal {
     /// Specifies a color with RGB value (240,248,255)
@@ -1831,6 +1833,7 @@ pub enum PresetColorVal {
 }
 
 /// This simple type represents a scheme color value.
+#[repr(C)]
 #[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum SchemeColorVal {
     #[strum(serialize = "bg1")]
@@ -1869,6 +1872,7 @@ pub enum SchemeColorVal {
 }
 
 /// A reference to a color in the color scheme.
+#[repr(C)]
 #[derive(Debug, Clone, Copy, EnumString, PartialEq)]
 pub enum ColorSchemeIndex {
     #[strum(serialize = "dk1")]

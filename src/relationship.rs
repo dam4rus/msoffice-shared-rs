@@ -7,6 +7,8 @@ pub type RelationshipId = String;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
+pub const THEME_RELATION_TYPE: &'static str = "http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme";
+
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Relationship {
     pub id: String,
