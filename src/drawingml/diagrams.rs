@@ -1,6 +1,6 @@
 use super::{
-    shapeprops::{EffectProperties, FillProperties},
     core::LineProperties,
+    shapeprops::{EffectProperties, FillProperties},
 };
 use crate::xml::XmlNode;
 

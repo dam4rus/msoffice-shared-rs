@@ -1,6 +1,6 @@
 use super::{
-    shapeprops::BlipFillProperties,
     core::{NonVisualDrawingProps, NonVisualPictureProperties, ShapeProperties},
+    shapeprops::BlipFillProperties,
 };
 use crate::{error::MissingChildNodeError, xml::XmlNode};
 
