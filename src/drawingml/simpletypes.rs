@@ -1854,8 +1854,10 @@ pub enum SchemeColorVal {
     Accent4,
     #[strum(serialize = "accent5")]
     Accent5,
+    #[strum(serialize = "accent6")]
+    Accent6,
     #[strum(serialize = "hlink")]
-    Hypelinglink,
+    Hyperlink,
     #[strum(serialize = "folHlink")]
     FollowedHyperlink,
     /// A color used in theme definitions which means to use the color of the style.
