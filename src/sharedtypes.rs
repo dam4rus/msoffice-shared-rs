@@ -52,6 +52,7 @@ pub enum CalendarType {
     None,
 }
 
+#[repr(C)]
 #[derive(Debug, Clone, Copy, PartialEq, EnumString)]
 pub enum VerticalAlignRun {
     #[strum(serialize = "baseline")]
