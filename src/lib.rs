@@ -7,6 +7,7 @@ pub mod relationship;
 pub mod sharedtypes;
 pub mod xml;
 pub mod xsdtypes;
+pub mod update;
 
 extern crate strum;
 #[macro_use]
