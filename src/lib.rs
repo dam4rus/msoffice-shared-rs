@@ -5,9 +5,9 @@ pub mod drawingml;
 pub mod error;
 pub mod relationship;
 pub mod sharedtypes;
+pub mod update;
 pub mod xml;
 pub mod xsdtypes;
-pub mod update;
 
 extern crate strum;
 #[macro_use]
