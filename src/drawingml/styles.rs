@@ -1,13 +1,15 @@
-use crate::drawingml::text::{bodyformatting::TextBodyProperties, bullet::TextListStyle, runformatting::TextFont};
-use crate::drawingml::{
-    colors::Color,
-    core::{LineProperties, ShapeProperties, ShapeStyle},
-    shapeprops::{EffectProperties, FillProperties},
-    simpletypes::{FontCollectionIndex, StyleMatrixColumnIndex, TextTypeFace},
+use crate::{
+    drawingml::{
+        colors::Color,
+        core::{LineProperties, ShapeProperties, ShapeStyle},
+        shapeprops::{EffectProperties, FillProperties},
+        simpletypes::{FontCollectionIndex, StyleMatrixColumnIndex, TextTypeFace},
+        text::{bodyformatting::TextBodyProperties, bullet::TextListStyle, runformatting::TextFont},
+    },
+    error::{LimitViolationError, MaxOccurs, MissingAttributeError, MissingChildNodeError},
+    xml::XmlNode,
+    xsdtypes::XsdType,
 };
-
-use crate::error::{LimitViolationError, MaxOccurs, MissingAttributeError, MissingChildNodeError};
-use crate::xml::XmlNode;
 use log::trace;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;

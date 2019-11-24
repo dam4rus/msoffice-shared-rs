@@ -4,7 +4,7 @@ use crate::xml::{parse_xml_bool, XmlNode};
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct Point2D {
     /// Specifies a coordinate on the x-axis. The origin point for this coordinate shall be specified
     /// by the parent XML element.
@@ -39,7 +39,7 @@ impl Point2D {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq)]
 pub struct PositiveSize2D {
     /// Specifies the length of the extents rectangle in EMUs. This rectangle shall dictate the size
     /// of the object as displayed (the result of any scaling to the original object).
@@ -73,7 +73,7 @@ impl PositiveSize2D {
     }
 }
 
-#[derive(Default, Debug, Clone, PartialEq)]
+#[derive(Default, Debug, Copy, Clone, PartialEq)]
 pub struct Transform2D {
     /// Specifies the rotation of the Graphic Frame. The units for which this attribute is specified
     /// in reside within the simple type definition referenced below.
@@ -99,30 +99,37 @@ pub struct Transform2D {
 
 impl Transform2D {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut instance: Self = Default::default();
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, (key, value)| {
+                match key.as_str() {
+                    "rot" => instance.rotate_angle = Some(value.parse()?),
+                    "flipH" => instance.flip_horizontal = Some(parse_xml_bool(value)?),
+                    "flipV" => instance.flip_vertical = Some(parse_xml_bool(value)?),
+                    _ => (),
+                }
 
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "rot" => instance.rotate_angle = Some(value.parse()?),
-                "flipH" => instance.flip_horizontal = Some(parse_xml_bool(value)?),
-                "flipV" => instance.flip_vertical = Some(parse_xml_bool(value)?),
-                _ => (),
-            }
-        }
+                Ok(instance)
+            })
+            .and_then(|instance| {
+                xml_node
+                    .child_nodes
+                    .iter()
+                    .try_fold(instance, |mut instance, child_node| {
+                        match child_node.local_name() {
+                            "off" => instance.offset = Some(Point2D::from_xml_element(child_node)?),
+                            "ext" => instance.extents = Some(PositiveSize2D::from_xml_element(child_node)?),
+                            _ => (),
+                        }
 
-        for child_node in &xml_node.child_nodes {
-            match child_node.local_name() {
-                "off" => instance.offset = Some(Point2D::from_xml_element(child_node)?),
-                "ext" => instance.extents = Some(PositiveSize2D::from_xml_element(child_node)?),
-                _ => (),
-            }
-        }
-
-        Ok(instance)
+                        Ok(instance)
+                    })
+            })
     }
 }
 
-#[derive(Default, Debug, Clone, PartialEq)]
+#[derive(Default, Debug, Copy, Clone, PartialEq)]
 pub struct GroupTransform2D {
     /// Rotation. Specifies the clockwise rotation of a group in 1/64000 of a degree.
     ///
@@ -159,27 +166,34 @@ pub struct GroupTransform2D {
 
 impl GroupTransform2D {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut instance: Self = Default::default();
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, (attr, value)| {
+                match attr.as_str() {
+                    "rot" => instance.rotate_angle = Some(value.parse()?),
+                    "flipH" => instance.flip_horizontal = Some(parse_xml_bool(value)?),
+                    "flipV" => instance.flip_vertical = Some(parse_xml_bool(value)?),
+                    _ => (),
+                }
 
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "rot" => instance.rotate_angle = Some(value.parse()?),
-                "flipH" => instance.flip_horizontal = Some(parse_xml_bool(value)?),
-                "flipV" => instance.flip_vertical = Some(parse_xml_bool(value)?),
-                _ => (),
-            }
-        }
+                Ok(instance)
+            })
+            .and_then(|instance| {
+                xml_node
+                    .child_nodes
+                    .iter()
+                    .try_fold(instance, |mut instance, child_node| {
+                        match child_node.local_name() {
+                            "off" => instance.offset = Some(Point2D::from_xml_element(child_node)?),
+                            "ext" => instance.extents = Some(PositiveSize2D::from_xml_element(child_node)?),
+                            "chOff" => instance.child_offset = Some(Point2D::from_xml_element(child_node)?),
+                            "chExt" => instance.child_extents = Some(PositiveSize2D::from_xml_element(child_node)?),
+                            _ => (),
+                        }
 
-        for child_node in &xml_node.child_nodes {
-            match child_node.local_name() {
-                "off" => instance.offset = Some(Point2D::from_xml_element(child_node)?),
-                "ext" => instance.extents = Some(PositiveSize2D::from_xml_element(child_node)?),
-                "chOff" => instance.child_offset = Some(Point2D::from_xml_element(child_node)?),
-                "chExt" => instance.child_extents = Some(PositiveSize2D::from_xml_element(child_node)?),
-                _ => (),
-            }
-        }
-
-        Ok(instance)
+                        Ok(instance)
+                    })
+            })
     }
 }

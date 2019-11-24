@@ -4,11 +4,16 @@ use super::{
         parse_hex_color_rgb, Angle, FixedPercentage, HexColorRGB, Percentage, PositiveFixedAngle,
         PositiveFixedPercentage, PositivePercentage, PresetColorVal, SchemeColorVal, SystemColorVal,
     },
+    util::XmlNodeExt,
 };
-use crate::error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError};
-use crate::xml::XmlNode;
+use crate::{
+    error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError},
+    xml::XmlNode,
+    xsdtypes::{XsdType, XsdChoice},
+};
+use std::error::Error;
 
-pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
+pub type Result<T> = ::std::result::Result<T, Box<dyn Error>>;
 
 #[repr(C)]
 #[derive(Debug, Clone, PartialEq)]
@@ -428,162 +433,95 @@ pub enum ColorTransform {
     InverseGamma,
 }
 
-impl ColorTransform {
-    pub fn is_choice_member(name: &str) -> bool {
-        match name {
-            "tint" | "shade" | "comp" | "inv" | "gray" | "alpha" | "alphaOff" | "alphaMod" | "hue" | "hueOff"
-            | "hueMod" | "sat" | "satOff" | "satMod" | "lum" | "lumOff" | "lumMod" | "red" | "redOff" | "redMod"
-            | "green" | "greenOff" | "greenMod" | "blue" | "blueOff" | "blueMod" | "gamma" | "invGamma" => true,
-            _ => false,
-        }
-    }
-
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<ColorTransform> {
+impl XsdType for ColorTransform {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<ColorTransform> {
         match xml_node.local_name() {
             "tint" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::Tint(value.parse()?))
+                Ok(ColorTransform::Tint(xml_node.parse_val_attribute()?))
             }
             "shade" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::Shade(value.parse()?))
+                Ok(ColorTransform::Shade(xml_node.parse_val_attribute()?))
             }
             "comp" => Ok(ColorTransform::Complement),
             "inv" => Ok(ColorTransform::Inverse),
             "gray" => Ok(ColorTransform::Grayscale),
             "alpha" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::Alpha(value.parse()?))
+                Ok(ColorTransform::Alpha(xml_node.parse_val_attribute()?))
             }
             "alphaOff" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::AlphaOffset(value.parse()?))
+                Ok(ColorTransform::AlphaOffset(xml_node.parse_val_attribute()?))
             }
             "alphaMod" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::AlphaModulate(value.parse()?))
+                Ok(ColorTransform::AlphaModulate(xml_node.parse_val_attribute()?))
             }
             "hue" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::Hue(value.parse()?))
+                Ok(ColorTransform::Hue(xml_node.parse_val_attribute()?))
             }
             "hueOff" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::HueOffset(value.parse()?))
+                Ok(ColorTransform::HueOffset(xml_node.parse_val_attribute()?))
             }
             "hueMod" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::HueModulate(value.parse()?))
+                Ok(ColorTransform::HueModulate(xml_node.parse_val_attribute()?))
             }
             "sat" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::Saturation(value.parse()?))
+                Ok(ColorTransform::Saturation(xml_node.parse_val_attribute()?))
             }
             "satOff" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::SaturationOffset(value.parse()?))
+                Ok(ColorTransform::SaturationOffset(xml_node.parse_val_attribute()?))
             }
             "satMod" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::SaturationModulate(value.parse()?))
+                Ok(ColorTransform::SaturationModulate(xml_node.parse_val_attribute()?))
             }
             "lum" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::Luminance(value.parse()?))
+                Ok(ColorTransform::Luminance(xml_node.parse_val_attribute()?))
             }
             "lumOff" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::LuminanceOffset(value.parse()?))
+                Ok(ColorTransform::LuminanceOffset(xml_node.parse_val_attribute()?))
             }
             "lumMod" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::LuminanceModulate(value.parse()?))
+                Ok(ColorTransform::LuminanceModulate(xml_node.parse_val_attribute()?))
             }
             "red" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::Red(value.parse()?))
+                Ok(ColorTransform::Red(xml_node.parse_val_attribute()?))
             }
             "redOff" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::RedOffset(value.parse()?))
+                Ok(ColorTransform::RedOffset(xml_node.parse_val_attribute()?))
             }
             "redMod" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::RedModulate(value.parse()?))
+                Ok(ColorTransform::RedModulate(xml_node.parse_val_attribute()?))
             }
             "green" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::Green(value.parse()?))
+                Ok(ColorTransform::Green(xml_node.parse_val_attribute()?))
             }
             "greenOff" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::GreenOffset(value.parse()?))
+                Ok(ColorTransform::GreenOffset(xml_node.parse_val_attribute()?))
             }
             "greenMod" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::GreenModulate(value.parse()?))
+                Ok(ColorTransform::GreenModulate(xml_node.parse_val_attribute()?))
             }
             "blue" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::Blue(value.parse()?))
+                Ok(ColorTransform::Blue(xml_node.parse_val_attribute()?))
             }
             "blueOff" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::BlueOffset(value.parse()?))
+                Ok(ColorTransform::BlueOffset(xml_node.parse_val_attribute()?))
             }
             "blueMod" => {
-                let value = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(ColorTransform::BlueModulate(value.parse()?))
+                Ok(ColorTransform::BlueModulate(xml_node.parse_val_attribute()?))
             }
             "gamma" => Ok(ColorTransform::Gamma),
             "invGamma" => Ok(ColorTransform::InverseGamma),
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_ColorTransform").into()),
+        }
+    }
+}
+
+impl XsdChoice for ColorTransform {
+    fn is_choice_member<T: AsRef<str>>(name: T) -> bool {
+        match name.as_ref() {
+            "tint" | "shade" | "comp" | "inv" | "gray" | "alpha" | "alphaOff" | "alphaMod" | "hue" | "hueOff"
+            | "hueMod" | "sat" | "satOff" | "satMod" | "lum" | "lumOff" | "lumMod" | "red" | "redOff" | "redMod"
+            | "green" | "greenOff" | "greenMod" | "blue" | "blueOff" | "blueMod" | "gamma" | "invGamma" => true,
+            _ => false,
         }
     }
 }
@@ -622,13 +560,11 @@ impl ScRgbColor {
         let g = opt_g.ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "g"))?;
         let b = opt_b.ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "b"))?;
 
-        let mut color_transforms = Vec::new();
-
-        for child_node in &xml_node.child_nodes {
-            if ColorTransform::is_choice_member(child_node.local_name()) {
-                color_transforms.push(ColorTransform::from_xml_element(child_node)?);
-            }
-        }
+        let color_transforms = xml_node
+            .child_nodes
+            .iter()
+            .filter_map(ColorTransform::try_from_xml_element)
+            .collect::<Result<Vec<_>>>()?;
 
         Ok(Self {
             r,
@@ -649,18 +585,17 @@ pub struct SRgbColor {
 
 impl SRgbColor {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<SRgbColor> {
-        let val_attr = xml_node
-            .attribute("val")
-            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-        let value = u32::from_str_radix(val_attr, 16)?;
+        let value = xml_node
+            .attributes
+            .get("val")
+            .ok_or_else(|| Box::<dyn Error>::from(MissingAttributeError::new(xml_node.name.clone(), "val")))
+            .and_then(|value| u32::from_str_radix(value, 16).map_err(Box::from))?;
 
-        let mut color_transforms = Vec::new();
-
-        for child_node in &xml_node.child_nodes {
-            if ColorTransform::is_choice_member(child_node.local_name()) {
-                color_transforms.push(ColorTransform::from_xml_element(child_node)?);
-            }
-        }
+        let color_transforms = xml_node
+            .child_nodes
+            .iter()
+            .filter_map(ColorTransform::try_from_xml_element)
+            .collect::<Result<Vec<_>>>()?;
 
         Ok(Self {
             value,
@@ -707,13 +642,11 @@ impl HslColor {
         let saturation = opt_s.ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "sat"))?;
         let luminance = opt_l.ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "lum"))?;
 
-        let mut color_transforms = Vec::new();
-
-        for child_node in &xml_node.child_nodes {
-            if ColorTransform::is_choice_member(child_node.local_name()) {
-                color_transforms.push(ColorTransform::from_xml_element(child_node)?);
-            }
-        }
+        let color_transforms = xml_node
+            .child_nodes
+            .iter()
+            .filter_map(ColorTransform::try_from_xml_element)
+            .collect::<Result<Vec<_>>>()?;
 
         Ok(Self {
             hue,
@@ -751,13 +684,11 @@ impl SystemColor {
 
         let value = opt_val.ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
 
-        let mut color_transforms = Vec::new();
-
-        for child_node in &xml_node.child_nodes {
-            if ColorTransform::is_choice_member(child_node.local_name()) {
-                color_transforms.push(ColorTransform::from_xml_element(child_node)?);
-            }
-        }
+        let color_transforms = xml_node
+            .child_nodes
+            .iter()
+            .filter_map(ColorTransform::try_from_xml_element)
+            .collect::<Result<Vec<_>>>()?;
 
         Ok(Self {
             value,
@@ -777,18 +708,13 @@ pub struct PresetColor {
 
 impl PresetColor {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<PresetColor> {
-        let attr_val = xml_node
-            .attribute("val")
-            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-        let value = attr_val.parse()?;
+        let value = xml_node.parse_val_attribute()?;
 
-        let mut color_transforms = Vec::new();
-
-        for child_node in &xml_node.child_nodes {
-            if ColorTransform::is_choice_member(child_node.local_name()) {
-                color_transforms.push(ColorTransform::from_xml_element(child_node)?);
-            }
-        }
+        let color_transforms = xml_node
+            .child_nodes
+            .iter()
+            .filter_map(ColorTransform::try_from_xml_element)
+            .collect::<Result<Vec<_>>>()?;
 
         Ok(Self {
             value,
@@ -812,13 +738,11 @@ impl SchemeColor {
             .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
         let value = attr_val.parse::<SchemeColorVal>()?;
 
-        let mut color_transforms = Vec::new();
-
-        for child_node in &xml_node.child_nodes {
-            if ColorTransform::is_choice_member(child_node.local_name()) {
-                color_transforms.push(ColorTransform::from_xml_element(child_node)?);
-            }
-        }
+        let color_transforms = xml_node
+            .child_nodes
+            .iter()
+            .filter_map(ColorTransform::try_from_xml_element)
+            .collect::<Result<Vec<_>>>()?;
 
         Ok(Self {
             value,
@@ -915,15 +839,8 @@ pub enum Color {
     PresetColor(PresetColor),
 }
 
-impl Color {
-    pub fn is_choice_member(name: &str) -> bool {
-        match name {
-            "scrgbClr" | "srgbClr" | "hslClr" | "sysClr" | "schemeClr" | "prstClr" => true,
-            _ => false,
-        }
-    }
-
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Color> {
+impl XsdType for Color {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<Color> {
         match xml_node.local_name() {
             "scrgbClr" => Ok(Color::ScRgbColor(ScRgbColor::from_xml_element(xml_node)?)),
             "srgbClr" => Ok(Color::SRgbColor(SRgbColor::from_xml_element(xml_node)?)),
@@ -932,6 +849,15 @@ impl Color {
             "schemeClr" => Ok(Color::SchemeColor(SchemeColor::from_xml_element(xml_node)?)),
             "prstClr" => Ok(Color::PresetColor(PresetColor::from_xml_element(xml_node)?)),
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_ColorChoice").into()),
+        }
+    }
+}
+
+impl XsdChoice for Color {
+    fn is_choice_member<T: AsRef<str>>(name: T) -> bool {
+        match name.as_ref() {
+            "scrgbClr" | "srgbClr" | "hslClr" | "sysClr" | "schemeClr" | "prstClr" => true,
+            _ => false,
         }
     }
 }
@@ -950,11 +876,13 @@ pub struct CustomColor {
 impl CustomColor {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         let name = xml_node.attribute("name").cloned();
-        let color_node = xml_node
+        let color = xml_node
             .child_nodes
-            .get(0)
-            .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "EG_ColorChoice"))?;
-        let color = Color::from_xml_element(color_node)?;
+            .iter()
+            .find(|child_node| Color::is_choice_member(child_node.local_name()))
+            .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "EG_ColorChoice"))
+            .map_err(Box::<dyn Error>::from)
+            .and_then(Color::from_xml_element)?;
 
         Ok(Self { name, color })
     }
@@ -980,15 +908,8 @@ pub enum ColorMappingOverride {
     Override(Box<ColorMapping>),
 }
 
-impl ColorMappingOverride {
-    pub fn is_choice_member(name: &str) -> bool {
-        match name {
-            "masterClrMapping" | "overrideClrMapping" => true,
-            _ => false,
-        }
-    }
-
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+impl XsdType for ColorMappingOverride {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         match xml_node.local_name() {
             "masterClrMapping" => Ok(ColorMappingOverride::UseMaster),
             "overrideClrMapping" => Ok(ColorMappingOverride::Override(Box::new(
@@ -997,4 +918,14 @@ impl ColorMappingOverride {
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "CT_ColorMappingOverride").into()),
         }
     }
+}
+
+impl XsdChoice for ColorMappingOverride {
+    fn is_choice_member<T: AsRef<str>>(name: T) -> bool {
+        match name.as_ref() {
+            "masterClrMapping" | "overrideClrMapping" => true,
+            _ => false,
+        }
+    }
+
 }

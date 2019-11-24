@@ -1,6 +1,9 @@
-use crate::error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError};
-use crate::relationship::RelationshipId;
-use crate::xml::XmlNode;
+use crate::{
+    error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError},
+    relationship::RelationshipId,
+    xml::XmlNode,
+    xsdtypes::{XsdType, XsdChoice},
+};
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
@@ -147,10 +150,11 @@ pub struct QuickTimeFile {
 
 impl QuickTimeFile {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let link_attr = xml_node
-            .attribute("r:link")
-            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "r:link"))?;
-        let link = link_attr.clone();
+        let link = xml_node
+            .attributes
+            .get("r:link")
+            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "r:link"))?
+            .clone();
 
         Ok(Self { link })
     }
@@ -216,7 +220,6 @@ impl EmbeddedWAVAudioFile {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         let mut embed_rel_id = None;
         let mut name = None;
-        //let mut built_in = None;
 
         for (attr, value) in &xml_node.attributes {
             match attr.as_str() {
@@ -389,18 +392,8 @@ pub enum Media {
     QuickTimeFile(QuickTimeFile),
 }
 
-impl Media {
-    pub fn is_choice_member<T>(name: T) -> bool
-    where
-        T: AsRef<str>,
-    {
-        match name.as_ref() {
-            "audioCd" | "wavAudioFile" | "audioFile" | "videoFile" | "quickTimeFile" => true,
-            _ => false,
-        }
-    }
-
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+impl XsdType for Media {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         match xml_node.local_name() {
             "audioCd" => Ok(Media::AudioCd(AudioCD::from_xml_element(xml_node)?)),
             "wavAudioFile" => Ok(Media::WavAudioFile(EmbeddedWAVAudioFile::from_xml_element(xml_node)?)),
@@ -408,6 +401,18 @@ impl Media {
             "videoFile" => Ok(Media::VideoFile(VideoFile::from_xml_element(xml_node)?)),
             "quickTimeFile" => Ok(Media::QuickTimeFile(QuickTimeFile::from_xml_element(xml_node)?)),
             _ => Err(Box::new(NotGroupMemberError::new(xml_node.name.clone(), "EG_Media"))),
+        }
+    }
+}
+
+impl XsdChoice for Media {
+    fn is_choice_member<T>(name: T) -> bool
+    where
+        T: AsRef<str>,
+    {
+        match name.as_ref() {
+            "audioCd" | "wavAudioFile" | "audioFile" | "videoFile" | "quickTimeFile" => true,
+            _ => false,
         }
     }
 }

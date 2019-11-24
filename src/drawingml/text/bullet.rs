@@ -1,11 +1,14 @@
 use super::{paragraphs::TextParagraphProperties, runformatting::TextFont};
-use crate::drawingml::{
-    colors::Color,
-    shapeprops::Blip,
-    simpletypes::{TextAutonumberScheme, TextBulletSizePercent, TextBulletStartAtNum, TextFontSize},
+use crate::{
+    drawingml::{
+        colors::Color,
+        shapeprops::Blip,
+        simpletypes::{TextAutonumberScheme, TextBulletSizePercent, TextBulletStartAtNum, TextFontSize},
+    },
+    error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError},
+    xml::XmlNode,
+    xsdtypes::XsdType,
 };
-use crate::error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError};
-use crate::xml::XmlNode;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 

@@ -1,15 +1,18 @@
-use crate::drawingml::{
-    colors::Color,
-    simpletypes::{
-        BlendMode, BlipCompression, Coordinate, EffectContainerType, FixedAngle, FixedPercentage, LineEndLength,
-        LineEndType, LineEndWidth, PathShadeType, Percentage, PositiveCoordinate, PositiveFixedAngle,
-        PositiveFixedPercentage, PositivePercentage, PresetLineDashVal, PresetPatternVal, PresetShadowVal,
-        RectAlignment, TileFlipMode,
+use crate::{
+    drawingml::{
+        colors::Color,
+        simpletypes::{
+            BlendMode, BlipCompression, Coordinate, EffectContainerType, FixedAngle, FixedPercentage, LineEndLength,
+            LineEndType, LineEndWidth, PathShadeType, Percentage, PositiveCoordinate, PositiveFixedAngle,
+            PositiveFixedPercentage, PositivePercentage, PresetLineDashVal, PresetPatternVal, PresetShadowVal,
+            RectAlignment, TileFlipMode,
+        },
     },
+    error::{LimitViolationError, MaxOccurs, MissingAttributeError, MissingChildNodeError, NotGroupMemberError},
+    relationship::RelationshipId,
+    xml::{parse_xml_bool, XmlNode},
+    xsdtypes::{XsdType, XsdChoice},
 };
-use crate::error::{LimitViolationError, MaxOccurs, MissingAttributeError, MissingChildNodeError, NotGroupMemberError};
-use crate::relationship::RelationshipId;
-use crate::xml::{parse_xml_bool, XmlNode};
 use log::{error, trace};
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;

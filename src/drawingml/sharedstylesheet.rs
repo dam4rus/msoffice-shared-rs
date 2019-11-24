@@ -1,10 +1,13 @@
-use crate::drawingml::{
-    colors::{Color, CustomColor},
-    simpletypes::ColorSchemeIndex,
-    styles::{DefaultShapeDefinition, FontScheme, StyleMatrix},
+use crate::{
+    drawingml::{
+        colors::{Color, CustomColor},
+        simpletypes::ColorSchemeIndex,
+        styles::{DefaultShapeDefinition, FontScheme, StyleMatrix},
+    },
+    error::{MissingAttributeError, MissingChildNodeError},
+    xml::XmlNode,
+    xsdtypes::XsdType,
 };
-use crate::error::{MissingAttributeError, MissingChildNodeError};
-use crate::xml::XmlNode;
 use log::trace;
 use std::io::Read;
 use zip::read::ZipFile;

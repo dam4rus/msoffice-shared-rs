@@ -12,11 +12,15 @@ use super::{
     styles::{FontReference, StyleMatrixReference},
     text::{bodyformatting::TextBodyProperties, bullet::TextListStyle, paragraphs::TextParagraph},
 };
-use crate::error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError};
-use crate::relationship::RelationshipId;
-use crate::xml::{parse_xml_bool, XmlNode};
+use crate::{
+    error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError},
+    relationship::RelationshipId,
+    xml::{parse_xml_bool, XmlNode},
+    xsdtypes::{XsdType, XsdChoice},
+};
+use std::error::Error;
 
-pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
+pub type Result<T> = ::std::result::Result<T, Box<dyn Error>>;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum AnimationGraphicalObjectBuildProperties {
@@ -55,18 +59,8 @@ pub enum AnimationGraphicalObjectBuildProperties {
     BuildChart(AnimationChartBuildProperties),
 }
 
-impl AnimationGraphicalObjectBuildProperties {
-    pub fn is_choice_member<T>(name: T) -> bool
-    where
-        T: AsRef<str>,
-    {
-        match name.as_ref() {
-            "bldDgm" | "bldChart" => true,
-            _ => false,
-        }
-    }
-
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+impl XsdType for AnimationGraphicalObjectBuildProperties {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         match xml_node.local_name() {
             "bldDgm" => Ok(AnimationGraphicalObjectBuildProperties::BuildDiagram(
                 AnimationDgmBuildProperties::from_xml_element(xml_node)?,
@@ -78,6 +72,18 @@ impl AnimationGraphicalObjectBuildProperties {
                 xml_node.name.clone(),
                 "CT_AnimationGraphicalObjectBuildProperties",
             ))),
+        }
+    }
+}
+
+impl XsdChoice for AnimationGraphicalObjectBuildProperties {
+    fn is_choice_member<T>(name: T) -> bool
+    where
+        T: AsRef<str>,
+    {
+        match name.as_ref() {
+            "bldDgm" | "bldChart" => true,
+            _ => false,
         }
     }
 }
@@ -99,17 +105,18 @@ pub struct AnimationDgmBuildProperties {
 
 impl AnimationDgmBuildProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut instance: Self = Default::default();
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, (attr, value)| {
+                match attr.as_str() {
+                    "bld" => instance.build_type = Some(value.parse()?),
+                    "rev" => instance.reverse = Some(parse_xml_bool(value)?),
+                    _ => (),
+                }
 
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "bld" => instance.build_type = Some(value.parse()?),
-                "rev" => instance.reverse = Some(parse_xml_bool(value)?),
-                _ => (),
-            }
-        }
-
-        Ok(instance)
+                Ok(instance)
+            })
     }
 }
 
@@ -133,17 +140,18 @@ pub struct AnimationChartBuildProperties {
 
 impl AnimationChartBuildProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut instance: Self = Default::default();
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, (attr, value)| {
+                match attr.as_str() {
+                    "bld" => instance.build_type = Some(value.parse()?),
+                    "animBg" => instance.animate_bg = Some(parse_xml_bool(value)?),
+                    _ => (),
+                }
 
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "bld" => instance.build_type = Some(value.parse()?),
-                "animBg" => instance.animate_bg = Some(parse_xml_bool(value)?),
-                _ => (),
-            }
-        }
-
-        Ok(instance)
+                Ok(instance)
+            })
     }
 }
 
@@ -158,18 +166,8 @@ pub enum AnimationElementChoice {
     Chart(AnimationChartElement),
 }
 
-impl AnimationElementChoice {
-    pub fn is_choice_member<T>(name: T) -> bool
-    where
-        T: AsRef<str>,
-    {
-        match name.as_ref() {
-            "dgm" | "chart" => true,
-            _ => false,
-        }
-    }
-
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+impl XsdType for AnimationElementChoice {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         match xml_node.local_name() {
             "dgm" => Ok(AnimationElementChoice::Diagram(AnimationDgmElement::from_xml_element(
                 xml_node,
@@ -181,6 +179,18 @@ impl AnimationElementChoice {
                 xml_node.name.clone(),
                 "CT_AnimationElementChoice",
             ))),
+        }
+    }
+}
+
+impl XsdChoice for AnimationElementChoice {
+    fn is_choice_member<T>(name: T) -> bool
+    where
+        T: AsRef<str>,
+    {
+        match name.as_ref() {
+            "dgm" | "chart" => true,
+            _ => false,
         }
     }
 }
@@ -202,17 +212,18 @@ pub struct AnimationDgmElement {
 
 impl AnimationDgmElement {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut instance: Self = Default::default();
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, (attr, value)| {
+                match attr.as_str() {
+                    "id" => instance.id = Some(value.clone()),
+                    "bldStep" => instance.build_step = Some(value.parse()?),
+                    _ => (),
+                }
 
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "id" => instance.id = Some(value.clone()),
-                "bldStep" => instance.build_step = Some(value.parse()?),
-                _ => (),
-            }
-        }
-
-        Ok(instance)
+                Ok(instance)
+            })
     }
 }
 
@@ -277,18 +288,19 @@ pub struct NonVisualConnectorProperties {
 
 impl NonVisualConnectorProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut instance: Self = Default::default();
+        xml_node
+            .child_nodes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, child_node| {
+                match child_node.local_name() {
+                    "cxnSpLocks" => instance.connector_locks = Some(ConnectorLocking::from_xml_element(child_node)?),
+                    "stCxn" => instance.start_connection = Some(Connection::from_xml_element(child_node)?),
+                    "endCxn" => instance.end_connection = Some(Connection::from_xml_element(child_node)?),
+                    _ => (),
+                }
 
-        for child_node in &xml_node.child_nodes {
-            match child_node.local_name() {
-                "cxnSpLocks" => instance.connector_locks = Some(ConnectorLocking::from_xml_element(child_node)?),
-                "stCxn" => instance.start_connection = Some(Connection::from_xml_element(child_node)?),
-                "endCxn" => instance.end_connection = Some(Connection::from_xml_element(child_node)?),
-                _ => (),
-            }
-        }
-
-        Ok(instance)
+                Ok(instance)
+            })
     }
 }
 
@@ -301,16 +313,12 @@ pub struct NonVisualGraphicFrameProperties {
 
 impl NonVisualGraphicFrameProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let graphic_frame_locks = match xml_node.child_nodes.get(0) {
-            Some(node) => {
-                if node.local_name() == "graphicFrameLocks" {
-                    Some(GraphicalObjectFrameLocking::from_xml_element(node)?)
-                } else {
-                    None
-                }
-            }
-            None => None,
-        };
+        let graphic_frame_locks = xml_node
+            .child_nodes
+            .iter()
+            .find(|child_node| child_node.local_name() == "graphicFrameLocks")
+            .map(GraphicalObjectFrameLocking::from_xml_element)
+            .transpose()?;
 
         Ok(Self { graphic_frame_locks })
     }
@@ -323,12 +331,7 @@ pub struct ContentPartLocking {
 
 impl ContentPartLocking {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut locking: Locking = Default::default();
-
-        for (attr, value) in &xml_node.attributes {
-            locking.try_attribute_parse(attr, value)?;
-        }
-
+        let locking = Locking::from_xml_element(xml_node)?;
         Ok(Self { locking })
     }
 }
@@ -341,19 +344,20 @@ pub struct NonVisualContentPartProperties {
 
 impl NonVisualContentPartProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut instance: Self = Default::default();
-        instance.is_comment = match xml_node.attribute("isComment") {
-            Some(attr) => Some(parse_xml_bool(attr)?),
-            None => None,
-        };
+        let is_comment = xml_node
+            .attributes
+            .get("isComment")
+            .map(|value| parse_xml_bool(value))
+            .transpose()?;
 
-        for child_node in &xml_node.child_nodes {
-            if child_node.local_name() == "cpLocks" {
-                instance.locking = Some(ContentPartLocking::from_xml_element(child_node)?);
-            }
-        }
+        let locking = xml_node
+            .child_nodes
+            .iter()
+            .find(|child_node| child_node.local_name() == "cpLocks")
+            .map(ContentPartLocking::from_xml_element)
+            .transpose()?;
 
-        Ok(instance)
+        Ok(Self { locking, is_comment })
     }
 }
 
@@ -660,8 +664,15 @@ pub struct Locking {
 }
 
 impl Locking {
-    pub fn try_attribute_parse(&mut self, attr: &str, value: &str) -> Result<()> {
-        match attr {
+    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Default::default(), Self::try_update_from_xml_attribute)
+    }
+
+    pub fn try_update_from_xml_attribute(mut self, (attr, value): (&String, &String)) -> Result<Self> {
+        match attr.as_ref() {
             "noGrp" => self.no_grouping = Some(parse_xml_bool(value)?),
             "noSelect" => self.no_select = Some(parse_xml_bool(value)?),
             "noRot" => self.no_rotate = Some(parse_xml_bool(value)?),
@@ -675,11 +686,11 @@ impl Locking {
             _ => (),
         }
 
-        Ok(())
+        Ok(self)
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct ShapeLocking {
     pub locking: Locking,
 
@@ -693,18 +704,17 @@ pub struct ShapeLocking {
 
 impl ShapeLocking {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut locking: Locking = Default::default();
-        let mut no_text_edit = None;
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, (attr, value)| {
+                match attr.as_ref() {
+                    "noTextEdit" => instance.no_text_edit = Some(parse_xml_bool(value)?),
+                    _ => instance.locking = instance.locking.try_update_from_xml_attribute((attr, value))?,
+                }
 
-        for (attr, value) in &xml_node.attributes {
-            if attr.as_str() == "noTextEdit" {
-                no_text_edit = Some(parse_xml_bool(value)?);
-            } else {
-                locking.try_attribute_parse(attr, value)?;
-            }
-        }
-
-        Ok(Self { locking, no_text_edit })
+                Ok(instance)
+            })
     }
 }
 
@@ -852,24 +862,19 @@ impl GraphicalObjectFrameLocking {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct ConnectorLocking {
     pub locking: Locking,
 }
 
 impl ConnectorLocking {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut locking: Locking = Default::default();
-
-        for (attr, value) in &xml_node.attributes {
-            locking.try_attribute_parse(attr, value)?;
-        }
-
+        let locking = Locking::from_xml_element(xml_node)?;
         Ok(Self { locking })
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Default, Debug, Clone, PartialEq)]
 pub struct PictureLocking {
     pub locking: Locking,
 
@@ -882,17 +887,17 @@ pub struct PictureLocking {
 
 impl PictureLocking {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut locking: Locking = Default::default();
-        let mut no_crop = None;
-        for (attr, value) in &xml_node.attributes {
-            if attr.as_str() == "noCrop" {
-                no_crop = Some(parse_xml_bool(value)?);
-            } else {
-                locking.try_attribute_parse(attr, value)?;
-            }
-        }
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, (attr, value)| {
+                match attr.as_ref() {
+                    "noCrop" => instance.no_crop = Some(parse_xml_bool(value)?),
+                    _ => instance.locking = instance.locking.try_update_from_xml_attribute((attr, value))?,
+                }
 
-        Ok(Self { locking, no_crop })
+                Ok(instance)
+            })
     }
 }
 
