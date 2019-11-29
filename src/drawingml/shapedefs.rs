@@ -1,11 +1,15 @@
-use crate::drawingml::simpletypes::{
-    AdjAngle, AdjCoordinate, GeomGuideFormula, GeomGuideName, PathFillMode, PositiveCoordinate, ShapeType,
-    TextShapeType,
+use crate::{
+    drawingml::simpletypes::{
+        AdjAngle, AdjCoordinate, GeomGuideFormula, GeomGuideName, PathFillMode, PositiveCoordinate, ShapeType,
+        TextShapeType,
+    },
+    error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError},
+    xml::{parse_xml_bool, XmlNode},
+    xsdtypes::{XsdType, XsdChoice},
 };
-use crate::error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError};
-use crate::xml::{parse_xml_bool, XmlNode};
+use std::error::Error;
 
-pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
+pub type Result<T> = ::std::result::Result<T, Box<dyn Error>>;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct GeomRect {
@@ -118,11 +122,12 @@ impl PolarAdjustHandle {
             }
         }
 
-        let pos_node = xml_node
+        let position = xml_node
             .child_nodes
-            .get(0)
-            .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "pos"))?;
-        let position = AdjPoint2D::from_xml_element(pos_node)?;
+            .iter()
+            .find(|child_node| child_node.local_name() == "pos")
+            .ok_or_else(|| Box::<dyn Error>::from(MissingChildNodeError::new(xml_node.name.clone(), "pos")))
+            .and_then(AdjPoint2D::from_xml_element)?;
 
         Ok(Self {
             guide_reference_radial,
@@ -237,11 +242,12 @@ impl XYAdjustHandle {
             }
         }
 
-        let pos_node = xml_node
+        let position = xml_node
             .child_nodes
-            .get(0)
-            .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "pos"))?;
-        let position = AdjPoint2D::from_xml_element(pos_node)?;
+            .iter()
+            .find(|child_node| child_node.local_name() == "pos")
+            .ok_or_else(|| Box::<dyn Error>::from(MissingChildNodeError::new(xml_node.name.clone(), "pos")))
+            .and_then(AdjPoint2D::from_xml_element)?;
 
         Ok(Self {
             guide_reference_x,
@@ -270,21 +276,23 @@ pub enum AdjustHandle {
     Polar(Box<PolarAdjustHandle>),
 }
 
-impl AdjustHandle {
-    pub fn is_choice_member(name: &str) -> bool {
-        match name {
-            "ahXY" | "ahPolar" => true,
-            _ => false,
-        }
-    }
-
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+impl XsdType for AdjustHandle {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         match xml_node.local_name() {
             "ahXY" => Ok(AdjustHandle::XY(Box::new(XYAdjustHandle::from_xml_element(xml_node)?))),
             "ahPolar" => Ok(AdjustHandle::Polar(Box::new(PolarAdjustHandle::from_xml_element(
                 xml_node,
             )?))),
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "AdjustHandle").into()),
+        }
+    }
+}
+
+impl XsdChoice for AdjustHandle {
+    fn is_choice_member<T: AsRef<str>>(name: T) -> bool {
+        match name.as_ref() {
+            "ahXY" | "ahPolar" => true,
+            _ => false,
         }
     }
 }
@@ -510,26 +518,30 @@ pub struct Path2D {
 
 impl Path2D {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut instance: Self = Default::default();
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, (attr, value)| {
+                match attr.as_ref() {
+                    "w" => instance.width = Some(value.parse()?),
+                    "h" => instance.height = Some(value.parse()?),
+                    "fill" => instance.fill_mode = Some(value.parse()?),
+                    "stroke" => instance.stroke = Some(parse_xml_bool(value)?),
+                    "extrusionOk" => instance.extrusion_ok = Some(parse_xml_bool(value)?),
+                    _ => (),
+                }
 
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "w" => instance.width = Some(value.parse()?),
-                "h" => instance.height = Some(value.parse()?),
-                "fill" => instance.fill_mode = Some(value.parse()?),
-                "stroke" => instance.stroke = Some(parse_xml_bool(value)?),
-                "extrusionOk" => instance.extrusion_ok = Some(parse_xml_bool(value)?),
-                _ => (),
-            }
-        }
-
-        for child_node in &xml_node.child_nodes {
-            if Path2DCommand::is_choice_member(child_node.local_name()) {
-                instance.commands.push(Path2DCommand::from_xml_element(child_node)?);
-            }
-        }
-
-        Ok(instance)
+                Ok(instance)
+            })
+            .and_then(|mut instance| {
+                instance.commands = xml_node
+                    .child_nodes
+                    .iter()
+                    .filter_map(Path2DCommand::try_from_xml_element)
+                    .collect::<Result<Vec<_>>>()?;
+                
+                Ok(instance)
+            })
     }
 }
 
@@ -843,72 +855,50 @@ pub enum Path2DCommand {
     CubicBezTo(AdjPoint2D, AdjPoint2D, AdjPoint2D),
 }
 
-impl Path2DCommand {
-    pub fn is_choice_member<T>(name: T) -> bool
-    where
-        T: AsRef<str>,
-    {
-        match name.as_ref() {
-            "close" | "moveTo" | "lnTo" | "arcTo" | "quadBezTo" | "cubicBezTo" => true,
-            _ => false,
-        }
-    }
+impl XsdType for Path2DCommand {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+        let get_point_at = |index| {
+            xml_node
+                .child_nodes
+                .get(index)
+                .ok_or_else(|| Box::<dyn Error>::from(MissingChildNodeError::new(xml_node.name.clone(), "pt")))
+                .and_then(AdjPoint2D::from_xml_element)
+        };
 
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         match xml_node.local_name() {
             "close" => Ok(Path2DCommand::Close),
-            "moveTo" => {
-                let pt_node = xml_node
-                    .child_nodes
-                    .get(0)
-                    .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "pt"))?;
-                Ok(Path2DCommand::MoveTo(AdjPoint2D::from_xml_element(pt_node)?))
-            }
-            "lnTo" => {
-                let pt_node = xml_node
-                    .child_nodes
-                    .get(0)
-                    .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "pt"))?;
-                Ok(Path2DCommand::LineTo(AdjPoint2D::from_xml_element(pt_node)?))
-            }
+            "moveTo" => Ok(Path2DCommand::LineTo(get_point_at(0)?)),
+            "lnTo" => Ok(Path2DCommand::LineTo(get_point_at(0)?)),
             "arcTo" => Ok(Path2DCommand::ArcTo(Path2DArcTo::from_xml_element(xml_node)?)),
             "quadBezTo" => {
-                let pt1_node = xml_node
-                    .child_nodes
-                    .get(0)
-                    .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "pt"))?;
-                let pt2_node = xml_node
-                    .child_nodes
-                    .get(1)
-                    .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "pt"))?;
                 Ok(Path2DCommand::QuadBezierTo(
-                    AdjPoint2D::from_xml_element(pt1_node)?,
-                    AdjPoint2D::from_xml_element(pt2_node)?,
+                    get_point_at(0)?,
+                    get_point_at(1)?,
                 ))
             }
             "cubicBezTo" => {
-                let pt1_node = xml_node
-                    .child_nodes
-                    .get(0)
-                    .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "pt"))?;
-                let pt2_node = xml_node
-                    .child_nodes
-                    .get(1)
-                    .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "pt"))?;
-                let pt3_node = xml_node
-                    .child_nodes
-                    .get(2)
-                    .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "pt"))?;
                 Ok(Path2DCommand::CubicBezTo(
-                    AdjPoint2D::from_xml_element(pt1_node)?,
-                    AdjPoint2D::from_xml_element(pt2_node)?,
-                    AdjPoint2D::from_xml_element(pt3_node)?,
+                    get_point_at(0)?,
+                    get_point_at(1)?,
+                    get_point_at(2)?,
                 ))
             }
             _ => Err(Box::new(NotGroupMemberError::new(
                 xml_node.name.clone(),
                 "EG_Path2DCommand",
             ))),
+        }
+    }
+}
+
+impl XsdChoice for Path2DCommand {
+    fn is_choice_member<T>(name: T) -> bool
+    where
+        T: AsRef<str>,
+    {
+        match name.as_ref() {
+            "close" | "moveTo" | "lnTo" | "arcTo" | "quadBezTo" | "cubicBezTo" => true,
+            _ => false,
         }
     }
 }

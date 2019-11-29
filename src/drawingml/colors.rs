@@ -880,8 +880,7 @@ impl CustomColor {
             .child_nodes
             .iter()
             .find(|child_node| Color::is_choice_member(child_node.local_name()))
-            .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "EG_ColorChoice"))
-            .map_err(Box::<dyn Error>::from)
+            .ok_or_else(|| Box::<dyn Error>::from(MissingChildNodeError::new(xml_node.name.clone(), "EG_ColorChoice")))
             .and_then(Color::from_xml_element)?;
 
         Ok(Self { name, color })

@@ -946,11 +946,12 @@ pub struct GraphicalObject {
 
 impl GraphicalObject {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let graphic_data_node = xml_node
+        let graphic_data = xml_node
             .child_nodes
-            .get(0)
-            .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "graphicData"))?;
-        let graphic_data = GraphicalObjectData::from_xml_element(graphic_data_node)?;
+            .iter()
+            .find(|child_node| child_node.local_name() == "graphicData")
+            .ok_or_else(|| Box::<dyn Error>::from(MissingChildNodeError::new(xml_node.name.clone(), "graphicData")))
+            .and_then(GraphicalObjectData::from_xml_element)?;
 
         Ok(Self { graphic_data })
     }
@@ -968,10 +969,11 @@ pub struct GraphicalObjectData {
 
 impl GraphicalObjectData {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let uri_attr = xml_node
-            .attribute("uri")
-            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "uri"))?;
-        let uri = uri_attr.clone();
+        let uri = xml_node
+            .attributes
+            .get("uri")
+            .ok_or_else(|| Box::<dyn Error>::from(MissingAttributeError::new(xml_node.name.clone(), "uri")))?
+            .clone();
 
         Ok(Self { uri })
     }
@@ -1007,32 +1009,29 @@ pub struct GroupShapeProperties {
 
 impl GroupShapeProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let black_and_white_mode = match xml_node.attribute("bwMode") {
-            Some(attr) => Some(attr.parse()?),
-            None => None,
-        };
+        let black_and_white_mode = xml_node
+            .attributes
+            .get("bwMode")
+            .map(|value| value.parse())
+            .transpose()?;
 
-        let mut transform = None;
-        let mut fill_properties = None;
-        let mut effect_properties = None;
+        xml_node
+            .child_nodes
+            .iter()
+            .try_fold(Self{ black_and_white_mode, ..Default::default() }, |mut instance, child_node| {
+                match child_node.local_name() {
+                    "xfrm" => instance.transform = Some(Box::new(GroupTransform2D::from_xml_element(child_node)?)),
+                    child_name if FillProperties::is_choice_member(child_name) => {
+                        instance.fill_properties = Some(FillProperties::from_xml_element(child_node)?)
+                    }
+                    child_name if EffectProperties::is_choice_member(child_name) => {
+                        instance.effect_properties = Some(EffectProperties::from_xml_element(child_node)?)
+                    }
+                    _ => (),
+                }
 
-        for child_node in &xml_node.child_nodes {
-            let child_local_name = child_node.local_name();
-            if child_local_name == "xfrm" {
-                transform = Some(Box::new(GroupTransform2D::from_xml_element(child_node)?));
-            } else if FillProperties::is_choice_member(child_local_name) {
-                fill_properties = Some(FillProperties::from_xml_element(child_node)?);
-            } else if EffectProperties::is_choice_member(child_local_name) {
-                effect_properties = Some(EffectProperties::from_xml_element(child_node)?);
-            }
-        }
-
-        Ok(Self {
-            black_and_white_mode,
-            transform,
-            fill_properties,
-            effect_properties,
-        })
+                Ok(instance)
+            })
     }
 }
 
@@ -1077,35 +1076,43 @@ pub struct LineProperties {
 
 impl LineProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<LineProperties> {
-        let mut instance: Self = Default::default();
-
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "w" => instance.width = Some(value.parse()?),
-                "cap" => instance.cap = Some(value.parse()?),
-                "cmpd" => instance.compound = Some(value.parse()?),
-                "algn" => instance.pen_alignment = Some(value.parse()?),
-                _ => (),
-            }
-        }
-
-        for child_node in &xml_node.child_nodes {
-            if LineFillProperties::is_choice_member(child_node.local_name()) {
-                instance.fill_properties = Some(LineFillProperties::from_xml_element(child_node)?);
-            } else if LineDashProperties::is_choice_member(child_node.local_name()) {
-                instance.dash_properties = Some(LineDashProperties::from_xml_element(child_node)?);
-            } else if LineJoinProperties::is_choice_member(child_node.local_name()) {
-                instance.join_properties = Some(LineJoinProperties::from_xml_element(child_node)?);
-            } else {
-                match child_node.local_name() {
-                    "headEnd" => instance.head_end = Some(LineEndProperties::from_xml_element(child_node)?),
-                    "tailEnd" => instance.tail_end = Some(LineEndProperties::from_xml_element(child_node)?),
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, (attr, value)| {
+                match attr.as_ref() {
+                    "w" => instance.width = Some(value.parse()?),
+                    "cap" => instance.cap = Some(value.parse()?),
+                    "cmpd" => instance.compound = Some(value.parse()?),
+                    "algn" => instance.pen_alignment = Some(value.parse()?),
                     _ => (),
                 }
-            }
-        }
 
-        Ok(instance)
+                Ok(instance)
+            })
+            .and_then(|instance| {
+                xml_node
+                    .child_nodes
+                    .iter()
+                    .try_fold(instance, |mut instance, child_node| {
+                        match child_node.local_name() {
+                            "headEnd" => instance.head_end = Some(LineEndProperties::from_xml_element(child_node)?),
+                            "tailEnd" => instance.tail_end = Some(LineEndProperties::from_xml_element(child_node)?),
+                            child_name if LineFillProperties::is_choice_member(child_name) => {
+                                instance.fill_properties = Some(LineFillProperties::from_xml_element(child_node)?)
+                            }
+                            child_name if LineDashProperties::is_choice_member(child_name) => {
+                                instance.dash_properties = Some(LineDashProperties::from_xml_element(child_node)?)
+                            }
+                            child_name if LineJoinProperties::is_choice_member(child_name) => {
+                                instance.join_properties = Some(LineJoinProperties::from_xml_element(child_node)?)
+                            }
+                            _ => (),
+                        }
+
+                        Ok(instance)
+                    })
+            })
     }
 }
 
@@ -1145,31 +1152,33 @@ pub struct ShapeProperties {
 
 impl ShapeProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut instance: Self = Default::default();
+        let black_and_white_mode = xml_node
+            .attributes
+            .get("bwMode")
+            .map(|value| value.parse())
+            .transpose()?;
 
-        instance.black_and_white_mode = match xml_node.attribute("bwMode") {
-            Some(value) => Some(value.parse()?),
-            None => None,
-        };
-
-        for child_node in &xml_node.child_nodes {
-            let child_local_name = child_node.local_name();
-            if Geometry::is_choice_member(child_local_name) {
-                instance.geometry = Some(Geometry::from_xml_element(child_node)?);
-            } else if FillProperties::is_choice_member(child_local_name) {
-                instance.fill_properties = Some(FillProperties::from_xml_element(child_node)?);
-            } else if EffectProperties::is_choice_member(child_local_name) {
-                instance.effect_properties = Some(EffectProperties::from_xml_element(child_node)?);
-            } else {
-                match child_local_name {
+        xml_node
+            .child_nodes
+            .iter()
+            .try_fold(Self{ black_and_white_mode, ..Default::default() }, |mut instance, child_node| {
+                match child_node.local_name() {
                     "xfrm" => instance.transform = Some(Box::new(Transform2D::from_xml_element(child_node)?)),
                     "ln" => instance.line_properties = Some(Box::new(LineProperties::from_xml_element(child_node)?)),
+                    child_name if Geometry::is_choice_member(child_name) => {
+                        instance.geometry = Some(Geometry::from_xml_element(child_node)?)
+                    }
+                    child_name if FillProperties::is_choice_member(child_name) => {
+                        instance.fill_properties = Some(FillProperties::from_xml_element(child_node)?)
+                    }
+                    child_name if EffectProperties::is_choice_member(child_name) => {
+                        instance.effect_properties = Some(EffectProperties::from_xml_element(child_node)?)
+                    }
                     _ => (),
                 }
-            }
-        }
 
-        Ok(instance)
+                Ok(instance)
+            })
     }
 }
 
@@ -1349,27 +1358,30 @@ pub struct Hyperlink {
 
 impl Hyperlink {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut instance: Self = Default::default();
+        let sound = xml_node
+            .child_nodes
+            .iter()
+            .find(|child_node| child_node.local_name() == "snd")
+            .map(EmbeddedWAVAudioFile::from_xml_element)
+            .transpose()?;
 
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "r:id" => instance.relationship_id = Some(value.clone()),
-                "invalidUrl" => instance.invalid_url = Some(value.clone()),
-                "action" => instance.action = Some(value.clone()),
-                "tgtFrame" => instance.target_frame = Some(value.clone()),
-                "tooltip" => instance.tooltip = Some(value.clone()),
-                "history" => instance.history = Some(parse_xml_bool(value)?),
-                "highlightClick" => instance.highlight_click = Some(parse_xml_bool(value)?),
-                "endSnd" => instance.end_sound = Some(parse_xml_bool(value)?),
-                _ => (),
-            }
-        }
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Self{ sound, ..Default::default() }, |mut instance, (attr, value)| {
+                match attr.as_str() {
+                    "r:id" => instance.relationship_id = Some(value.clone()),
+                    "invalidUrl" => instance.invalid_url = Some(value.clone()),
+                    "action" => instance.action = Some(value.clone()),
+                    "tgtFrame" => instance.target_frame = Some(value.clone()),
+                    "tooltip" => instance.tooltip = Some(value.clone()),
+                    "history" => instance.history = Some(parse_xml_bool(value)?),
+                    "highlightClick" => instance.highlight_click = Some(parse_xml_bool(value)?),
+                    "endSnd" => instance.end_sound = Some(parse_xml_bool(value)?),
+                    _ => (),
+                }
 
-        instance.sound = match xml_node.child_nodes.get(0) {
-            Some(node) => Some(EmbeddedWAVAudioFile::from_xml_element(node)?),
-            None => None,
-        };
-
-        Ok(instance)
+                Ok(instance)
+            })
     }
 }
