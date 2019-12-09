@@ -15,7 +15,7 @@ use crate::{
     },
     error::{LimitViolationError, MaxOccurs, MissingAttributeError, MissingChildNodeError, NotGroupMemberError},
     xml::{parse_xml_bool, XmlNode},
-    xsdtypes::XsdType,
+    xsdtypes::{XsdType, XsdChoice},
 };
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;

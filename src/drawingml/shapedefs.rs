@@ -903,6 +903,22 @@ impl XsdChoice for Path2DCommand {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct GeomGuideList(pub Vec<GeomGuide>);
+
+impl GeomGuideList {
+    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+        Ok(Self(
+            xml_node
+                .child_nodes
+                .iter()
+                .filter(|child_node| child_node.local_name() == "gd")
+                .map(GeomGuide::from_xml_element)
+                .collect::<Result<Vec<_>>>()?
+        ))
+    }
+}
+
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct CustomGeometry2D {
     /// This element specifies the adjust values that are applied to the specified shape. An adjust value is simply a guide
@@ -940,7 +956,7 @@ pub struct CustomGeometry2D {
     ///   </a:pathLst>
     /// </a:custGeom>
     /// ```
-    pub adjust_value_list: Option<Vec<GeomGuide>>,
+    pub adjust_value_list: Option<GeomGuideList>,
 
     /// This element specifies all the guides that are used for this shape. A guide is specified by the gd element and
     /// defines a calculated value that can be used for the construction of the corresponding shape.
@@ -949,7 +965,7 @@ pub struct CustomGeometry2D {
     ///
     /// Guides that have a literal value formula specified via fmla="val x" above should only be used within the
     /// adjust_value_list as an adjust value for the shape. This however is not strictly enforced.
-    pub guide_list: Option<Vec<GeomGuide>>,
+    pub guide_list: Option<GeomGuideList>,
 
     /// This element specifies the adjust handles that are applied to a custom geometry. These adjust handles specify
     /// points within the geometric shape that can be used to perform certain transform operations on the shape.
@@ -1022,49 +1038,44 @@ pub struct CustomGeometry2D {
 
 impl CustomGeometry2D {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut instance: Self = Default::default();
+        xml_node
+            .child_nodes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, child_node| {
+                match child_node.local_name() {
+                    "avLst" => instance.adjust_value_list = Some(GeomGuideList::from_xml_element(child_node)?),
+                    "gdLst" => instance.guide_list = Some(GeomGuideList::from_xml_element(child_node)?),
+                    "ahLst" => {
+                        instance.adjust_handle_list = Some(child_node
+                            .child_nodes
+                            .iter()
+                            .filter_map(AdjustHandle::try_from_xml_element)
+                            .collect::<Result<Vec<_>>>()?
+                        )
+                    }
+                    "cxnLst" => {
+                        instance.connection_site_list = Some(child_node
+                            .child_nodes
+                            .iter()
+                            .filter(|cxn_node| cxn_node.local_name() == "cxn")
+                            .map(ConnectionSite::from_xml_element)
+                            .collect::<Result<Vec<_>>>()?
+                        )
+                    }
+                    "rect" => instance.rect = Some(Box::new(GeomRect::from_xml_element(child_node)?)),
+                    "pathLst" => {
+                        instance.path_list = child_node
+                            .child_nodes
+                            .iter()
+                            .filter(|path_node| path_node.local_name() == "path")
+                            .map(Path2D::from_xml_element)
+                            .collect::<Result<Vec<_>>>()?
+                    }
+                    _ => (),
+                }
 
-        for child_node in &xml_node.child_nodes {
-            match child_node.local_name() {
-                "avLst" => {
-                    let mut vec = Vec::new();
-                    for av_node in &child_node.child_nodes {
-                        vec.push(GeomGuide::from_xml_element(av_node)?);
-                    }
-                    instance.adjust_value_list = Some(vec);
-                }
-                "gdLst" => {
-                    let mut vec = Vec::new();
-                    for gd_node in &child_node.child_nodes {
-                        vec.push(GeomGuide::from_xml_element(gd_node)?);
-                    }
-                    instance.guide_list = Some(vec);
-                }
-                "ahLst" => {
-                    let mut vec = Vec::new();
-                    for ah_node in &child_node.child_nodes {
-                        vec.push(AdjustHandle::from_xml_element(ah_node)?);
-                    }
-                    instance.adjust_handle_list = Some(vec);
-                }
-                "cxnLst" => {
-                    let mut vec = Vec::new();
-                    for cxn_node in &child_node.child_nodes {
-                        vec.push(ConnectionSite::from_xml_element(cxn_node)?);
-                    }
-                    instance.connection_site_list = Some(vec);
-                }
-                "rect" => instance.rect = Some(Box::new(GeomRect::from_xml_element(child_node)?)),
-                "pathLst" => {
-                    for path_node in &child_node.child_nodes {
-                        instance.path_list.push(Path2D::from_xml_element(path_node)?);
-                    }
-                }
-                _ => (),
-            }
-        }
-
-        Ok(instance)
+                Ok(instance)
+            })
     }
 }
 
@@ -1097,25 +1108,24 @@ pub struct PresetGeometry2D {
     /// In the above example a preset geometry has been used to define a shape. The shape
     /// utilized here is the sun shape.
     pub preset: ShapeType,
-    pub adjust_value_list: Vec<GeomGuide>,
+    pub adjust_value_list: Option<GeomGuideList>,
 }
 
 impl PresetGeometry2D {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let preset_attr = xml_node
-            .attribute("prst")
-            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "prst"))?;
-        let preset = preset_attr.parse()?;
-        let mut adjust_value_list = Vec::new();
+        let preset = xml_node
+            .attributes
+            .get("prst")
+            .ok_or_else(|| Box::<dyn Error>::from(MissingAttributeError::new(xml_node.name.clone(), "prst")))
+            .and_then(|value| value.parse().map_err(Into::into))?;
 
-        for child_node in &xml_node.child_nodes {
-            if child_node.local_name() == "avLst" {
-                for av_node in &child_node.child_nodes {
-                    adjust_value_list.push(GeomGuide::from_xml_element(av_node)?);
-                }
-            }
-        }
-
+        let adjust_value_list = xml_node
+            .child_nodes
+            .iter()
+            .find(|child_node| child_node.local_name() == "avLst")
+            .map(GeomGuideList::from_xml_element)
+            .transpose()?;
+        
         Ok(Self {
             preset,
             adjust_value_list,
@@ -1188,15 +1198,8 @@ pub enum Geometry {
     Preset(Box<PresetGeometry2D>),
 }
 
-impl Geometry {
-    pub fn is_choice_member(name: &str) -> bool {
-        match name {
-            "custGeom" | "prstGeom" => true,
-            _ => false,
-        }
-    }
-
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+impl XsdType for Geometry {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         match xml_node.local_name() {
             "custGeom" => Ok(Geometry::Custom(Box::new(CustomGeometry2D::from_xml_element(
                 xml_node,
@@ -1205,6 +1208,15 @@ impl Geometry {
                 xml_node,
             )?))),
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_Geometry").into()),
+        }
+    }
+}
+
+impl XsdChoice for Geometry {
+    fn is_choice_member<T: AsRef<str>>(name: T) -> bool {
+        match name.as_ref() {
+            "custGeom" | "prstGeom" => true,
+            _ => false,
         }
     }
 }
@@ -1240,22 +1252,23 @@ pub struct PresetTextShape {
     pub preset: TextShapeType,
 
     /// The list of adjust values used to represent this preset text shape.
-    pub adjust_value_list: Vec<GeomGuide>,
+    pub adjust_value_list: Option<GeomGuideList>,
 }
 
 impl PresetTextShape {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let preset_attr = xml_node
-            .attribute("prst")
-            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "prst"))?;
-        let preset = preset_attr.parse()?;
+        let preset = xml_node
+            .attributes
+            .get("prst")
+            .ok_or_else(|| Box::<dyn Error>::from(MissingAttributeError::new(xml_node.name.clone(), "prst")))
+            .and_then(|value| value.parse().map_err(Into::into))?;
 
-        let mut adjust_value_list = Vec::new();
-        if let Some(node) = xml_node.child_nodes.get(0) {
-            for av_node in &node.child_nodes {
-                adjust_value_list.push(GeomGuide::from_xml_element(av_node)?);
-            }
-        }
+        let adjust_value_list = xml_node
+            .child_nodes
+            .iter()
+            .find(|child_node| child_node.local_name() == "avLst")
+            .map(GeomGuideList::from_xml_element)
+            .transpose()?;
 
         Ok(Self {
             preset,
@@ -1327,16 +1340,17 @@ pub struct ConnectionSite {
 
 impl ConnectionSite {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let angle_attr = xml_node
+        let angle = xml_node
             .attribute("ang")
-            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "ang"))?;
-        let angle = angle_attr.parse()?;
+            .ok_or_else(|| Box::<dyn Error>::from(MissingAttributeError::new(xml_node.name.clone(), "ang")))
+            .and_then(|value| value.parse().map_err(Into::into))?;
 
-        let pos_node = xml_node
+        let position = xml_node
             .child_nodes
-            .get(0)
-            .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "pos"))?;
-        let position = AdjPoint2D::from_xml_element(pos_node)?;
+            .iter()
+            .find(|child_node| child_node.local_name() == "pos")
+            .ok_or_else(|| Box::<dyn Error>::from(MissingChildNodeError::new(xml_node.name.clone(), "pos")))
+            .and_then(AdjPoint2D::from_xml_element)?;
 
         Ok(Self { angle, position })
     }

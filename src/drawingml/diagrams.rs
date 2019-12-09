@@ -2,7 +2,10 @@ use super::{
     core::LineProperties,
     shapeprops::{EffectProperties, FillProperties},
 };
-use crate::xml::XmlNode;
+use crate::{
+    xml::XmlNode,
+    xsdtypes::{XsdType, XsdChoice},
+};
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
 

@@ -8,7 +8,7 @@ use crate::{
     },
     error::{LimitViolationError, MaxOccurs, MissingAttributeError, MissingChildNodeError},
     xml::XmlNode,
-    xsdtypes::XsdType,
+    xsdtypes::{XsdType, XsdChoice},
 };
 use log::trace;
 

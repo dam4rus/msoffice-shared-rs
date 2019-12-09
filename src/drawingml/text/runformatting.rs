@@ -1,11 +1,14 @@
 use super::paragraphs::{TextCharacterProperties, TextField, TextLineBreak};
-use crate::drawingml::{
-    core::LineProperties,
-    shapeprops::FillProperties,
-    simpletypes::{Panose, TextTypeFace},
+use crate::{
+    drawingml::{
+        core::LineProperties,
+        shapeprops::FillProperties,
+        simpletypes::{Panose, TextTypeFace},
+    },
+    error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError},
+    xml::XmlNode,
+    xsdtypes::XsdType,
 };
-use crate::error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError};
-use crate::xml::XmlNode;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
