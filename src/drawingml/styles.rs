@@ -8,7 +8,7 @@ use crate::{
     },
     error::{LimitViolationError, MaxOccurs, MissingAttributeError, MissingChildNodeError},
     xml::XmlNode,
-    xsdtypes::{XsdType, XsdChoice},
+    xsdtypes::{XsdChoice, XsdType},
 };
 use log::trace;
 use std::error::Error;
@@ -211,7 +211,7 @@ impl StyleMatrix {
         let mut effect_style_list = None;
         let mut bg_fill_style_list = None;
 
-         for child_node in &xml_node.child_nodes {
+        for child_node in &xml_node.child_nodes {
             match child_node.local_name() {
                 "fillStyleLst" => {
                     let vec = child_node
@@ -302,10 +302,10 @@ impl StyleMatrix {
         let fill_style_list =
             fill_style_list.ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "fillStyleLst"))?;
 
-        let line_style_list = 
+        let line_style_list =
             line_style_list.ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "lnStyleLst"))?;
-        
-        let effect_style_list = 
+
+        let effect_style_list =
             effect_style_list.ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "effectStyleLst"))?;
 
         let bg_fill_style_list =

@@ -1,9 +1,6 @@
 use crate::error::MissingAttributeError;
 use crate::xml::XmlNode;
-use std::{
-    io::Read,
-    str::FromStr,
-};
+use std::{io::Read, str::FromStr};
 use zip::read::ZipFile;
 
 pub type RelationshipId = String;

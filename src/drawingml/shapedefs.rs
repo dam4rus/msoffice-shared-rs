@@ -5,7 +5,7 @@ use crate::{
     },
     error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError},
     xml::{parse_xml_bool, XmlNode},
-    xsdtypes::{XsdType, XsdChoice},
+    xsdtypes::{XsdChoice, XsdType},
 };
 use std::error::Error;
 
@@ -539,7 +539,7 @@ impl Path2D {
                     .iter()
                     .filter_map(Path2DCommand::try_from_xml_element)
                     .collect::<Result<Vec<_>>>()?;
-                
+
                 Ok(instance)
             })
     }
@@ -870,19 +870,12 @@ impl XsdType for Path2DCommand {
             "moveTo" => Ok(Path2DCommand::LineTo(get_point_at(0)?)),
             "lnTo" => Ok(Path2DCommand::LineTo(get_point_at(0)?)),
             "arcTo" => Ok(Path2DCommand::ArcTo(Path2DArcTo::from_xml_element(xml_node)?)),
-            "quadBezTo" => {
-                Ok(Path2DCommand::QuadBezierTo(
-                    get_point_at(0)?,
-                    get_point_at(1)?,
-                ))
-            }
-            "cubicBezTo" => {
-                Ok(Path2DCommand::CubicBezTo(
-                    get_point_at(0)?,
-                    get_point_at(1)?,
-                    get_point_at(2)?,
-                ))
-            }
+            "quadBezTo" => Ok(Path2DCommand::QuadBezierTo(get_point_at(0)?, get_point_at(1)?)),
+            "cubicBezTo" => Ok(Path2DCommand::CubicBezTo(
+                get_point_at(0)?,
+                get_point_at(1)?,
+                get_point_at(2)?,
+            )),
             _ => Err(Box::new(NotGroupMemberError::new(
                 xml_node.name.clone(),
                 "EG_Path2DCommand",
@@ -914,7 +907,7 @@ impl GeomGuideList {
                 .iter()
                 .filter(|child_node| child_node.local_name() == "gd")
                 .map(GeomGuide::from_xml_element)
-                .collect::<Result<Vec<_>>>()?
+                .collect::<Result<Vec<_>>>()?,
         ))
     }
 }
@@ -1046,20 +1039,22 @@ impl CustomGeometry2D {
                     "avLst" => instance.adjust_value_list = Some(GeomGuideList::from_xml_element(child_node)?),
                     "gdLst" => instance.guide_list = Some(GeomGuideList::from_xml_element(child_node)?),
                     "ahLst" => {
-                        instance.adjust_handle_list = Some(child_node
-                            .child_nodes
-                            .iter()
-                            .filter_map(AdjustHandle::try_from_xml_element)
-                            .collect::<Result<Vec<_>>>()?
+                        instance.adjust_handle_list = Some(
+                            child_node
+                                .child_nodes
+                                .iter()
+                                .filter_map(AdjustHandle::try_from_xml_element)
+                                .collect::<Result<Vec<_>>>()?,
                         )
                     }
                     "cxnLst" => {
-                        instance.connection_site_list = Some(child_node
-                            .child_nodes
-                            .iter()
-                            .filter(|cxn_node| cxn_node.local_name() == "cxn")
-                            .map(ConnectionSite::from_xml_element)
-                            .collect::<Result<Vec<_>>>()?
+                        instance.connection_site_list = Some(
+                            child_node
+                                .child_nodes
+                                .iter()
+                                .filter(|cxn_node| cxn_node.local_name() == "cxn")
+                                .map(ConnectionSite::from_xml_element)
+                                .collect::<Result<Vec<_>>>()?,
                         )
                     }
                     "rect" => instance.rect = Some(Box::new(GeomRect::from_xml_element(child_node)?)),
@@ -1125,7 +1120,7 @@ impl PresetGeometry2D {
             .find(|child_node| child_node.local_name() == "avLst")
             .map(GeomGuideList::from_xml_element)
             .transpose()?;
-        
+
         Ok(Self {
             preset,
             adjust_value_list,

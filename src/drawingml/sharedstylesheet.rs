@@ -10,8 +10,8 @@ use crate::{
 };
 use log::trace;
 use std::io::Read;
-use zip::read::ZipFile;
 use std::str::FromStr;
+use zip::read::ZipFile;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
@@ -476,7 +476,8 @@ impl ObjectStyleDefaults {
             .try_fold(Default::default(), |mut instance: Self, child_node| {
                 match child_node.local_name() {
                     "spDef" => {
-                        instance.shape_definition = Some(Box::new(DefaultShapeDefinition::from_xml_element(child_node)?))
+                        instance.shape_definition =
+                            Some(Box::new(DefaultShapeDefinition::from_xml_element(child_node)?))
                     }
                     "lnDef" => {
                         instance.line_definition = Some(Box::new(DefaultShapeDefinition::from_xml_element(child_node)?))
@@ -608,10 +609,7 @@ impl OfficeStyleSheet {
 
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         trace!("parsing OfficeStyleSheet '{}'", xml_node.name);
-        let name = xml_node
-            .attributes
-            .get("name")
-            .cloned();
+        let name = xml_node.attributes.get("name").cloned();
 
         let mut theme_elements = None;
         let mut object_defaults = None;
@@ -623,21 +621,23 @@ impl OfficeStyleSheet {
                 "themeElements" => theme_elements = Some(Box::new(BaseStyles::from_xml_element(child_node)?)),
                 "objectDefaults" => object_defaults = Some(ObjectStyleDefaults::from_xml_element(child_node)?),
                 "extraClrSchemeLst" => {
-                    extra_color_scheme_list = Some(child_node
-                        .child_nodes
-                        .iter()
-                        .filter(|child_node| child_node.local_name() == "extraClrScheme")
-                        .map(ColorSchemeAndMapping::from_xml_element)
-                        .collect::<Result<Vec<_>>>()?
+                    extra_color_scheme_list = Some(
+                        child_node
+                            .child_nodes
+                            .iter()
+                            .filter(|child_node| child_node.local_name() == "extraClrScheme")
+                            .map(ColorSchemeAndMapping::from_xml_element)
+                            .collect::<Result<Vec<_>>>()?,
                     );
                 }
                 "custClrLst" => {
-                    custom_color_list = Some(child_node
-                        .child_nodes
-                        .iter()
-                        .filter(|child_node| child_node.local_name() == "custClr")
-                        .map(CustomColor::from_xml_element)
-                        .collect::<Result<Vec<_>>>()?
+                    custom_color_list = Some(
+                        child_node
+                            .child_nodes
+                            .iter()
+                            .filter(|child_node| child_node.local_name() == "custClr")
+                            .map(CustomColor::from_xml_element)
+                            .collect::<Result<Vec<_>>>()?,
                     )
                 }
                 _ => (),

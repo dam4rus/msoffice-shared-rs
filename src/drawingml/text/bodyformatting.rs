@@ -8,7 +8,7 @@ use crate::{
     },
     error::NotGroupMemberError,
     xml::{parse_xml_bool, XmlNode},
-    xsdtypes::{XsdType, XsdChoice},
+    xsdtypes::{XsdChoice, XsdType},
 };
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
@@ -408,7 +408,10 @@ impl TextBodyProperties {
                     .iter()
                     .try_fold(instance, |mut instance, child_node| {
                         match child_node.local_name() {
-                            "prstTxWarp" => instance.preset_text_warp = Some(Box::new(PresetTextShape::from_xml_element(child_node)?)),
+                            "prstTxWarp" => {
+                                instance.preset_text_warp =
+                                    Some(Box::new(PresetTextShape::from_xml_element(child_node)?))
+                            }
                             local_name if TextAutoFit::is_choice_member(local_name) => {
                                 instance.auto_fit_type = Some(TextAutoFit::from_xml_element(child_node)?);
                             }

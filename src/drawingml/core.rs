@@ -16,7 +16,7 @@ use crate::{
     error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError},
     relationship::RelationshipId,
     xml::{parse_xml_bool, XmlNode},
-    xsdtypes::{XsdType, XsdChoice},
+    xsdtypes::{XsdChoice, XsdType},
 };
 use std::error::Error;
 
@@ -344,11 +344,7 @@ pub struct NonVisualContentPartProperties {
 
 impl NonVisualContentPartProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let is_comment = xml_node
-            .attributes
-            .get("isComment")
-            .map(parse_xml_bool)
-            .transpose()?;
+        let is_comment = xml_node.attributes.get("isComment").map(parse_xml_bool).transpose()?;
 
         let locking = xml_node
             .child_nodes
@@ -1015,10 +1011,12 @@ impl GroupShapeProperties {
             .map(|value| value.parse())
             .transpose()?;
 
-        xml_node
-            .child_nodes
-            .iter()
-            .try_fold(Self{ black_and_white_mode, ..Default::default() }, |mut instance, child_node| {
+        xml_node.child_nodes.iter().try_fold(
+            Self {
+                black_and_white_mode,
+                ..Default::default()
+            },
+            |mut instance, child_node| {
                 match child_node.local_name() {
                     "xfrm" => instance.transform = Some(Box::new(GroupTransform2D::from_xml_element(child_node)?)),
                     child_name if FillProperties::is_choice_member(child_name) => {
@@ -1031,7 +1029,8 @@ impl GroupShapeProperties {
                 }
 
                 Ok(instance)
-            })
+            },
+        )
     }
 }
 
@@ -1158,10 +1157,12 @@ impl ShapeProperties {
             .map(|value| value.parse())
             .transpose()?;
 
-        xml_node
-            .child_nodes
-            .iter()
-            .try_fold(Self{ black_and_white_mode, ..Default::default() }, |mut instance, child_node| {
+        xml_node.child_nodes.iter().try_fold(
+            Self {
+                black_and_white_mode,
+                ..Default::default()
+            },
+            |mut instance, child_node| {
                 match child_node.local_name() {
                     "xfrm" => instance.transform = Some(Box::new(Transform2D::from_xml_element(child_node)?)),
                     "ln" => instance.line_properties = Some(Box::new(LineProperties::from_xml_element(child_node)?)),
@@ -1178,7 +1179,8 @@ impl ShapeProperties {
                 }
 
                 Ok(instance)
-            })
+            },
+        )
     }
 }
 
@@ -1365,10 +1367,12 @@ impl Hyperlink {
             .map(EmbeddedWAVAudioFile::from_xml_element)
             .transpose()?;
 
-        xml_node
-            .attributes
-            .iter()
-            .try_fold(Self{ sound, ..Default::default() }, |mut instance, (attr, value)| {
+        xml_node.attributes.iter().try_fold(
+            Self {
+                sound,
+                ..Default::default()
+            },
+            |mut instance, (attr, value)| {
                 match attr.as_str() {
                     "r:id" => instance.relationship_id = Some(value.clone()),
                     "invalidUrl" => instance.invalid_url = Some(value.clone()),
@@ -1382,6 +1386,7 @@ impl Hyperlink {
                 }
 
                 Ok(instance)
-            })
+            },
+        )
     }
 }

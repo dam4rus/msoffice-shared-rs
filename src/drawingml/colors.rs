@@ -9,7 +9,7 @@ use super::{
 use crate::{
     error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError},
     xml::XmlNode,
-    xsdtypes::{XsdType, XsdChoice},
+    xsdtypes::{XsdChoice, XsdType},
 };
 use std::error::Error;
 
@@ -436,78 +436,32 @@ pub enum ColorTransform {
 impl XsdType for ColorTransform {
     fn from_xml_element(xml_node: &XmlNode) -> Result<ColorTransform> {
         match xml_node.local_name() {
-            "tint" => {
-                Ok(ColorTransform::Tint(xml_node.parse_val_attribute()?))
-            }
-            "shade" => {
-                Ok(ColorTransform::Shade(xml_node.parse_val_attribute()?))
-            }
+            "tint" => Ok(ColorTransform::Tint(xml_node.parse_val_attribute()?)),
+            "shade" => Ok(ColorTransform::Shade(xml_node.parse_val_attribute()?)),
             "comp" => Ok(ColorTransform::Complement),
             "inv" => Ok(ColorTransform::Inverse),
             "gray" => Ok(ColorTransform::Grayscale),
-            "alpha" => {
-                Ok(ColorTransform::Alpha(xml_node.parse_val_attribute()?))
-            }
-            "alphaOff" => {
-                Ok(ColorTransform::AlphaOffset(xml_node.parse_val_attribute()?))
-            }
-            "alphaMod" => {
-                Ok(ColorTransform::AlphaModulate(xml_node.parse_val_attribute()?))
-            }
-            "hue" => {
-                Ok(ColorTransform::Hue(xml_node.parse_val_attribute()?))
-            }
-            "hueOff" => {
-                Ok(ColorTransform::HueOffset(xml_node.parse_val_attribute()?))
-            }
-            "hueMod" => {
-                Ok(ColorTransform::HueModulate(xml_node.parse_val_attribute()?))
-            }
-            "sat" => {
-                Ok(ColorTransform::Saturation(xml_node.parse_val_attribute()?))
-            }
-            "satOff" => {
-                Ok(ColorTransform::SaturationOffset(xml_node.parse_val_attribute()?))
-            }
-            "satMod" => {
-                Ok(ColorTransform::SaturationModulate(xml_node.parse_val_attribute()?))
-            }
-            "lum" => {
-                Ok(ColorTransform::Luminance(xml_node.parse_val_attribute()?))
-            }
-            "lumOff" => {
-                Ok(ColorTransform::LuminanceOffset(xml_node.parse_val_attribute()?))
-            }
-            "lumMod" => {
-                Ok(ColorTransform::LuminanceModulate(xml_node.parse_val_attribute()?))
-            }
-            "red" => {
-                Ok(ColorTransform::Red(xml_node.parse_val_attribute()?))
-            }
-            "redOff" => {
-                Ok(ColorTransform::RedOffset(xml_node.parse_val_attribute()?))
-            }
-            "redMod" => {
-                Ok(ColorTransform::RedModulate(xml_node.parse_val_attribute()?))
-            }
-            "green" => {
-                Ok(ColorTransform::Green(xml_node.parse_val_attribute()?))
-            }
-            "greenOff" => {
-                Ok(ColorTransform::GreenOffset(xml_node.parse_val_attribute()?))
-            }
-            "greenMod" => {
-                Ok(ColorTransform::GreenModulate(xml_node.parse_val_attribute()?))
-            }
-            "blue" => {
-                Ok(ColorTransform::Blue(xml_node.parse_val_attribute()?))
-            }
-            "blueOff" => {
-                Ok(ColorTransform::BlueOffset(xml_node.parse_val_attribute()?))
-            }
-            "blueMod" => {
-                Ok(ColorTransform::BlueModulate(xml_node.parse_val_attribute()?))
-            }
+            "alpha" => Ok(ColorTransform::Alpha(xml_node.parse_val_attribute()?)),
+            "alphaOff" => Ok(ColorTransform::AlphaOffset(xml_node.parse_val_attribute()?)),
+            "alphaMod" => Ok(ColorTransform::AlphaModulate(xml_node.parse_val_attribute()?)),
+            "hue" => Ok(ColorTransform::Hue(xml_node.parse_val_attribute()?)),
+            "hueOff" => Ok(ColorTransform::HueOffset(xml_node.parse_val_attribute()?)),
+            "hueMod" => Ok(ColorTransform::HueModulate(xml_node.parse_val_attribute()?)),
+            "sat" => Ok(ColorTransform::Saturation(xml_node.parse_val_attribute()?)),
+            "satOff" => Ok(ColorTransform::SaturationOffset(xml_node.parse_val_attribute()?)),
+            "satMod" => Ok(ColorTransform::SaturationModulate(xml_node.parse_val_attribute()?)),
+            "lum" => Ok(ColorTransform::Luminance(xml_node.parse_val_attribute()?)),
+            "lumOff" => Ok(ColorTransform::LuminanceOffset(xml_node.parse_val_attribute()?)),
+            "lumMod" => Ok(ColorTransform::LuminanceModulate(xml_node.parse_val_attribute()?)),
+            "red" => Ok(ColorTransform::Red(xml_node.parse_val_attribute()?)),
+            "redOff" => Ok(ColorTransform::RedOffset(xml_node.parse_val_attribute()?)),
+            "redMod" => Ok(ColorTransform::RedModulate(xml_node.parse_val_attribute()?)),
+            "green" => Ok(ColorTransform::Green(xml_node.parse_val_attribute()?)),
+            "greenOff" => Ok(ColorTransform::GreenOffset(xml_node.parse_val_attribute()?)),
+            "greenMod" => Ok(ColorTransform::GreenModulate(xml_node.parse_val_attribute()?)),
+            "blue" => Ok(ColorTransform::Blue(xml_node.parse_val_attribute()?)),
+            "blueOff" => Ok(ColorTransform::BlueOffset(xml_node.parse_val_attribute()?)),
+            "blueMod" => Ok(ColorTransform::BlueModulate(xml_node.parse_val_attribute()?)),
             "gamma" => Ok(ColorTransform::Gamma),
             "invGamma" => Ok(ColorTransform::InverseGamma),
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_ColorTransform").into()),
@@ -926,5 +880,4 @@ impl XsdChoice for ColorMappingOverride {
             _ => false,
         }
     }
-
 }

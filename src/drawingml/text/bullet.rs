@@ -7,7 +7,7 @@ use crate::{
     },
     error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError},
     xml::XmlNode,
-    xsdtypes::{XsdType, XsdChoice},
+    xsdtypes::{XsdChoice, XsdType},
 };
 use std::error::Error;
 
@@ -182,7 +182,7 @@ impl XsdType for TextBulletSize {
                     .get("val")
                     .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?
                     .parse()?;
-                    
+
                 Ok(TextBulletSize::Percent(val))
             }
             "buSzPts" => {
@@ -461,9 +461,11 @@ impl XsdType for TextBullet {
                     .child_nodes
                     .iter()
                     .find(|child_node| child_node.local_name() == "blip")
-                    .ok_or_else(|| Box::<dyn Error>::from(MissingChildNodeError::new(xml_node.name.clone(), "EG_TextBullet")))
+                    .ok_or_else(|| {
+                        Box::<dyn Error>::from(MissingChildNodeError::new(xml_node.name.clone(), "EG_TextBullet"))
+                    })
                     .and_then(Blip::from_xml_element)?;
-                
+
                 Ok(TextBullet::Picture(Box::new(blip)))
             }
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_TextBullet").into()),

@@ -3,7 +3,7 @@ use super::{
     runformatting::{TextFont, TextRun, TextUnderlineFill, TextUnderlineLine},
 };
 use crate::{
-        drawingml::{
+    drawingml::{
         colors::Color,
         core::{Hyperlink, LineProperties},
         shapeprops::{EffectProperties, FillProperties},
@@ -15,7 +15,7 @@ use crate::{
     },
     error::{LimitViolationError, MaxOccurs, MissingAttributeError, MissingChildNodeError, NotGroupMemberError},
     xml::{parse_xml_bool, XmlNode},
-    xsdtypes::{XsdType, XsdChoice},
+    xsdtypes::{XsdChoice, XsdType},
 };
 use std::error::Error;
 
@@ -557,30 +557,39 @@ impl TextParagraphProperties {
                     .try_fold(instance, |mut instance, child_node| {
                         match child_node.local_name() {
                             "lnSpc" => {
-                                instance.line_spacing = Some(child_node
-                                    .child_nodes
-                                    .iter()
-                                    .find_map(TextSpacing::try_from_xml_element)
-                                    .transpose()?
-                                    .ok_or_else(|| MissingChildNodeError::new(child_node.name.clone(), "EG_TextSpacing"))?
+                                instance.line_spacing = Some(
+                                    child_node
+                                        .child_nodes
+                                        .iter()
+                                        .find_map(TextSpacing::try_from_xml_element)
+                                        .transpose()?
+                                        .ok_or_else(|| {
+                                            MissingChildNodeError::new(child_node.name.clone(), "EG_TextSpacing")
+                                        })?,
                                 );
                             }
                             "spcBef" => {
-                                instance.space_before = Some(child_node
-                                    .child_nodes
-                                    .iter()
-                                    .find_map(TextSpacing::try_from_xml_element)
-                                    .transpose()?
-                                    .ok_or_else(|| MissingChildNodeError::new(child_node.name.clone(), "EG_TextSpacing"))?
+                                instance.space_before = Some(
+                                    child_node
+                                        .child_nodes
+                                        .iter()
+                                        .find_map(TextSpacing::try_from_xml_element)
+                                        .transpose()?
+                                        .ok_or_else(|| {
+                                            MissingChildNodeError::new(child_node.name.clone(), "EG_TextSpacing")
+                                        })?,
                                 );
                             }
                             "spcAft" => {
-                                instance.space_after = Some(child_node
-                                    .child_nodes
-                                    .iter()
-                                    .find_map(TextSpacing::try_from_xml_element)
-                                    .transpose()?
-                                    .ok_or_else(|| MissingChildNodeError::new(child_node.name.clone(), "EG_TextSpacing"))?
+                                instance.space_after = Some(
+                                    child_node
+                                        .child_nodes
+                                        .iter()
+                                        .find_map(TextSpacing::try_from_xml_element)
+                                        .transpose()?
+                                        .ok_or_else(|| {
+                                            MissingChildNodeError::new(child_node.name.clone(), "EG_TextSpacing")
+                                        })?,
                                 );
                             }
                             "tabLst" => {
@@ -1087,7 +1096,9 @@ impl TextCharacterProperties {
                     .iter()
                     .try_fold(instance, |mut instance, child_node| {
                         match child_node.local_name() {
-                            "ln" => instance.line_properties = Some(Box::new(LineProperties::from_xml_element(child_node)?)),
+                            "ln" => {
+                                instance.line_properties = Some(Box::new(LineProperties::from_xml_element(child_node)?))
+                            }
                             "highlight" => {
                                 let color = child_node
                                     .child_nodes
@@ -1102,16 +1113,14 @@ impl TextCharacterProperties {
                             "ea" => instance.east_asian_font = Some(TextFont::from_xml_element(child_node)?),
                             "cs" => instance.complex_script_font = Some(TextFont::from_xml_element(child_node)?),
                             "sym" => instance.symbol_font = Some(TextFont::from_xml_element(child_node)?),
-                            "hlinkClick" => instance.hyperlink_click = Some(Box::new(Hyperlink::from_xml_element(child_node)?)),
+                            "hlinkClick" => {
+                                instance.hyperlink_click = Some(Box::new(Hyperlink::from_xml_element(child_node)?))
+                            }
                             "hlinkMouseOver" => {
                                 instance.hyperlink_mouse_over = Some(Box::new(Hyperlink::from_xml_element(child_node)?))
                             }
                             "rtl" => {
-                                instance.rtl = child_node
-                                    .text
-                                    .as_ref()
-                                    .map(parse_xml_bool)
-                                    .transpose()?;
+                                instance.rtl = child_node.text.as_ref().map(parse_xml_bool).transpose()?;
                             }
                             local_name if FillProperties::is_choice_member(local_name) => {
                                 instance.fill_properties = Some(FillProperties::from_xml_element(child_node)?);

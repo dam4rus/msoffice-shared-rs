@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     xml::XmlNode,
-    xsdtypes::{XsdType, XsdChoice},
+    xsdtypes::{XsdChoice, XsdType},
 };
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;

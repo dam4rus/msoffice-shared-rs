@@ -7,7 +7,7 @@ use crate::{
     },
     error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError},
     xml::XmlNode,
-    xsdtypes::{XsdType, XsdChoice},
+    xsdtypes::{XsdChoice, XsdType},
 };
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
@@ -354,7 +354,9 @@ impl XsdType for TextUnderlineLine {
     fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         match xml_node.local_name() {
             "uLnTx" => Ok(TextUnderlineLine::FollowText),
-            "uLn" => Ok(TextUnderlineLine::Line(Box::new(LineProperties::from_xml_element(xml_node)?))),
+            "uLn" => Ok(TextUnderlineLine::Line(Box::new(LineProperties::from_xml_element(
+                xml_node,
+            )?))),
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_TextUnderlineLine").into()),
         }
     }

@@ -43,8 +43,7 @@ impl XmlNode {
         }
     }
 
-    pub fn attribute<T: AsRef<str>>(&self, attr_name: T) -> Option<&String>
-    {
+    pub fn attribute<T: AsRef<str>>(&self, attr_name: T) -> Option<&String> {
         self.attributes.get(attr_name.as_ref())
     }
 
@@ -128,8 +127,7 @@ impl FromStr for XmlNode {
     }
 }
 
-pub fn parse_xml_bool<T: AsRef<str>>(value: T) -> Result<bool, ParseBoolError>
-{
+pub fn parse_xml_bool<T: AsRef<str>>(value: T) -> Result<bool, ParseBoolError> {
     match value.as_ref() {
         "true" | "1" => Ok(true),
         "false" | "0" => Ok(false),

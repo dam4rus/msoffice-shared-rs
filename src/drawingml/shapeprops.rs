@@ -11,10 +11,10 @@ use crate::{
     error::{LimitViolationError, MaxOccurs, MissingAttributeError, MissingChildNodeError, NotGroupMemberError},
     relationship::RelationshipId,
     xml::{parse_xml_bool, XmlNode},
-    xsdtypes::{XsdType, XsdChoice},
+    xsdtypes::{XsdChoice, XsdType},
 };
-use std::error::Error;
 use log::trace;
+use std::error::Error;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn Error>>;
 
@@ -129,11 +129,7 @@ pub struct AlphaModulateFixedEffect {
 
 impl AlphaModulateFixedEffect {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let amount = xml_node
-            .attributes
-            .get("amt")
-            .map(|value| value.parse())
-            .transpose()?;
+        let amount = xml_node.attributes.get("amt").map(|value| value.parse()).transpose()?;
 
         Ok(Self { amount })
     }
@@ -151,11 +147,7 @@ pub struct AlphaOutsetEffect {
 
 impl AlphaOutsetEffect {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let radius = xml_node
-            .attributes
-            .get("rad")
-            .map(|value| value.parse())
-            .transpose()?;
+        let radius = xml_node.attributes.get("rad").map(|value| value.parse()).transpose()?;
 
         Ok(Self { radius })
     }
@@ -291,11 +283,7 @@ pub struct ColorChangeEffect {
 
 impl ColorChangeEffect {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let use_alpha = xml_node
-            .attributes
-            .get("useA")
-            .map(|value| value.parse())
-            .transpose()?;
+        let use_alpha = xml_node.attributes.get("useA").map(|value| value.parse()).transpose()?;
 
         let mut color_from = None;
         let mut color_to = None;
@@ -307,7 +295,6 @@ impl ColorChangeEffect {
                         .iter()
                         .find_map(Color::try_from_xml_element)
                         .transpose()?
-                    
                 }
                 "clrTo" => {
                     color_to = child_node
@@ -389,11 +376,8 @@ pub struct DuotoneEffect {
 
 impl DuotoneEffect {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut iterator = xml_node
-            .child_nodes
-            .iter()
-            .filter_map(Color::try_from_xml_element);
-        
+        let mut iterator = xml_node.child_nodes.iter().filter_map(Color::try_from_xml_element);
+
         let color1 = iterator
             .next()
             .transpose()?
@@ -405,7 +389,9 @@ impl DuotoneEffect {
             .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "EG_Color"))?;
 
         // TODO(dam4rus): Check if node contains more than 2 color?
-        Ok(Self { colors: [ color1, color2 ]})
+        Ok(Self {
+            colors: [color1, color2],
+        })
     }
 }
 
@@ -468,11 +454,7 @@ pub struct GlowEffect {
 
 impl GlowEffect {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let radius = xml_node
-            .attributes
-            .get("rad")
-            .map(|value| value.parse())
-            .transpose()?;
+        let radius = xml_node.attributes.get("rad").map(|value| value.parse()).transpose()?;
 
         let color = xml_node
             .child_nodes
@@ -1098,7 +1080,6 @@ impl XsdChoice for Effect {
     }
 }
 
-
 #[derive(Debug, Clone, PartialEq)]
 pub enum BlipEffect {
     AlphaBiLevel(AlphaBiLevelEffect),
@@ -1387,14 +1368,16 @@ impl GradientFillProperties {
                                     .collect::<Result<Vec<_>>>()?;
 
                                 match gradient_stop_list.len() {
-                                    len if len >=2 => instance.gradient_stop_list = Some(gradient_stop_list),
-                                    len => return Err(Box::<dyn Error>::from(LimitViolationError::new(
-                                        xml_node.name.clone(),
-                                        "gsLst",
-                                        2,
-                                        MaxOccurs::Unbounded,
-                                        len as u32,
-                                    )))
+                                    len if len >= 2 => instance.gradient_stop_list = Some(gradient_stop_list),
+                                    len => {
+                                        return Err(Box::<dyn Error>::from(LimitViolationError::new(
+                                            xml_node.name.clone(),
+                                            "gsLst",
+                                            2,
+                                            MaxOccurs::Unbounded,
+                                            len as u32,
+                                        )))
+                                    }
                                 }
                             }
                             "tileRect" => instance.tile_rect = Some(RelativeRect::from_xml_element(child_node)?),
@@ -1443,13 +1426,12 @@ impl Blip {
                 Ok(instance)
             })
             .and_then(|instance| {
-                let effects = 
-                    xml_node
+                let effects = xml_node
                     .child_nodes
                     .iter()
                     .filter_map(BlipEffect::try_from_xml_element)
                     .collect::<Result<Vec<_>>>()?;
-                
+
                 Ok(Self { effects, ..instance })
             })
     }
@@ -1683,11 +1665,7 @@ pub struct PathShadeProperties {
 
 impl PathShadeProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let path = xml_node
-            .attributes
-            .get("path")
-            .map(|value| value.parse())
-            .transpose()?;
+        let path = xml_node.attributes.get("path").map(|value| value.parse()).transpose()?;
 
         let fill_to_rect = xml_node
             .child_nodes
@@ -1744,16 +1722,14 @@ pub struct PatternFillProperties {
 
 impl PatternFillProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let preset = xml_node
-            .attributes
-            .get("prst")
-            .map(|value| value.parse())
-            .transpose()?;
+        let preset = xml_node.attributes.get("prst").map(|value| value.parse()).transpose()?;
 
-        xml_node
-            .child_nodes
-            .iter()
-            .try_fold(Self { preset, ..Default::default() }, |mut instance, child_node| {
+        xml_node.child_nodes.iter().try_fold(
+            Self {
+                preset,
+                ..Default::default()
+            },
+            |mut instance, child_node| {
                 match child_node.local_name() {
                     "fgClr" => {
                         let fg_color = child_node
@@ -1779,7 +1755,8 @@ impl PatternFillProperties {
                 }
 
                 Ok(instance)
-            })
+            },
+        )
     }
 }
 
@@ -1883,12 +1860,8 @@ impl XsdType for LineJoinProperties {
             "round" => Ok(LineJoinProperties::Round),
             "bevel" => Ok(LineJoinProperties::Bevel),
             "miter" => {
-                let lim = xml_node
-                    .attributes
-                    .get("lim")
-                    .map(|value| value.parse())
-                    .transpose()?;
-                
+                let lim = xml_node.attributes.get("lim").map(|value| value.parse()).transpose()?;
+
                 Ok(LineJoinProperties::Miter(lim))
             }
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_LineJoinProperties").into()),

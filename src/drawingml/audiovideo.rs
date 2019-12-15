@@ -2,7 +2,7 @@ use crate::{
     error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError},
     relationship::RelationshipId,
     xml::XmlNode,
-    xsdtypes::{XsdType, XsdChoice},
+    xsdtypes::{XsdChoice, XsdType},
 };
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
