@@ -61,6 +61,7 @@ impl WholeE2oFormatting {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::str::FromStr;
 
     impl BackgroundFormatting {
         pub fn test_xml(node_name: &'static str) -> String {
@@ -79,7 +80,7 @@ mod tests {
     pub fn test_background_formatting_from_xml() {
         let xml = BackgroundFormatting::test_xml("backgroundFormatting");
         assert_eq!(
-            BackgroundFormatting::from_xml_element(&XmlNode::from_str(xml).unwrap()).unwrap(),
+            BackgroundFormatting::from_xml_element(&XmlNode::from_str(xml.as_str()).unwrap()).unwrap(),
             BackgroundFormatting::test_instance(),
         );
     }
@@ -101,7 +102,7 @@ mod tests {
     pub fn test_whole_e2o_formatting_from_xml() {
         let xml = WholeE2oFormatting::test_xml("wholeE2oFormatting");
         assert_eq!(
-            WholeE2oFormatting::from_xml_element(&XmlNode::from_str(xml).unwrap()).unwrap(),
+            WholeE2oFormatting::from_xml_element(&XmlNode::from_str(xml.as_str()).unwrap()).unwrap(),
             WholeE2oFormatting::test_instance(),
         );
     }

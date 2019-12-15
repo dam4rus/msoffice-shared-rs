@@ -7,6 +7,7 @@ use std::{
     collections::HashMap,
     fmt::{Display, Formatter},
     io::Read,
+    str::FromStr,
 };
 use zip::read::ZipFile;
 
@@ -26,40 +27,13 @@ impl Display for XmlNode {
 }
 
 impl XmlNode {
-    pub fn new<T>(name: T) -> Self
-    where
-        T: Into<String>,
-    {
+    pub fn new<T: Into<String>>(name: T) -> Self {
         Self {
             name: name.into(),
             child_nodes: Vec::new(),
             attributes: HashMap::new(),
             text: None,
         }
-    }
-
-    pub fn from_str<T>(xml_string: T) -> Result<Self, InvalidXmlError>
-    where
-        T: AsRef<str>,
-    {
-        let mut xml_reader = Reader::from_str(xml_string.as_ref());
-        let mut buffer = Vec::new();
-        loop {
-            match xml_reader.read_event(&mut buffer) {
-                Ok(Event::Start(ref element)) => {
-                    let mut root_node = Self::from_quick_xml_element(element).map_err(|_| InvalidXmlError {})?;
-                    root_node.child_nodes = Self::parse_child_elements(&mut root_node, element, &mut xml_reader)
-                        .map_err(|_| InvalidXmlError {})?;
-                    return Ok(root_node);
-                }
-                Ok(Event::Eof) => break,
-                _ => (),
-            }
-
-            buffer.clear();
-        }
-
-        Err(InvalidXmlError {})
     }
 
     pub fn local_name(&self) -> &str {
@@ -69,9 +43,7 @@ impl XmlNode {
         }
     }
 
-    pub fn attribute<T>(&self, attr_name: T) -> Option<&String>
-    where
-        T: AsRef<str>,
+    pub fn attribute<T: AsRef<str>>(&self, attr_name: T) -> Option<&String>
     {
         self.attributes.get(attr_name.as_ref())
     }
@@ -131,9 +103,32 @@ impl XmlNode {
     }
 }
 
-pub fn parse_xml_bool<T>(value: T) -> Result<bool, ParseBoolError>
-where
-    T: AsRef<str>,
+impl FromStr for XmlNode {
+    type Err = InvalidXmlError;
+
+    fn from_str(xml_string: &str) -> Result<Self, Self::Err> {
+        let mut xml_reader = Reader::from_str(xml_string.as_ref());
+        let mut buffer = Vec::new();
+        loop {
+            match xml_reader.read_event(&mut buffer) {
+                Ok(Event::Start(ref element)) => {
+                    let mut root_node = Self::from_quick_xml_element(element).map_err(|_| InvalidXmlError {})?;
+                    root_node.child_nodes = Self::parse_child_elements(&mut root_node, element, &mut xml_reader)
+                        .map_err(|_| InvalidXmlError {})?;
+                    return Ok(root_node);
+                }
+                Ok(Event::Eof) => break,
+                _ => (),
+            }
+
+            buffer.clear();
+        }
+
+        Err(InvalidXmlError {})
+    }
+}
+
+pub fn parse_xml_bool<T: AsRef<str>>(value: T) -> Result<bool, ParseBoolError>
 {
     match value.as_ref() {
         "true" | "1" => Ok(true),
@@ -145,12 +140,13 @@ where
 pub fn zip_file_to_xml_node(zip_file: &mut ZipFile) -> Result<XmlNode, Box<dyn std::error::Error>> {
     let mut xml_string = String::new();
     zip_file.read_to_string(&mut xml_string)?;
-    XmlNode::from_str(xml_string).map_err(Into::into)
+    XmlNode::from_str(xml_string.as_str()).map_err(Into::into)
 }
 
 #[cfg(test)]
 mod tests {
     use super::XmlNode;
+    use std::str::FromStr;
 
     #[test]
     fn test_xml_parser() {

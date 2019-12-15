@@ -11,6 +11,7 @@ use crate::{
 use log::trace;
 use std::io::Read;
 use zip::read::ZipFile;
+use std::str::FromStr;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 

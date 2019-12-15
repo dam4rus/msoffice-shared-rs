@@ -1,5 +1,8 @@
 use crate::xml::XmlNode;
-use std::io::{Read, Seek};
+use std::{
+    io::{Read, Seek},
+    str::FromStr,
+};
 use zip::read::ZipFile;
 
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error>>;
