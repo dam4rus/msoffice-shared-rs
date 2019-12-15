@@ -1116,8 +1116,8 @@ impl PresetGeometry2D {
         let preset = xml_node
             .attributes
             .get("prst")
-            .ok_or_else(|| Box::<dyn Error>::from(MissingAttributeError::new(xml_node.name.clone(), "prst")))
-            .and_then(|value| value.parse().map_err(Into::into))?;
+            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "prst"))?
+            .parse()?;
 
         let adjust_value_list = xml_node
             .child_nodes
@@ -1260,8 +1260,8 @@ impl PresetTextShape {
         let preset = xml_node
             .attributes
             .get("prst")
-            .ok_or_else(|| Box::<dyn Error>::from(MissingAttributeError::new(xml_node.name.clone(), "prst")))
-            .and_then(|value| value.parse().map_err(Into::into))?;
+            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "prst"))?
+            .parse()?;
 
         let adjust_value_list = xml_node
             .child_nodes
@@ -1342,8 +1342,8 @@ impl ConnectionSite {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         let angle = xml_node
             .attribute("ang")
-            .ok_or_else(|| Box::<dyn Error>::from(MissingAttributeError::new(xml_node.name.clone(), "ang")))
-            .and_then(|value| value.parse().map_err(Into::into))?;
+            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "ang"))?
+            .parse()?;
 
         let position = xml_node
             .child_nodes

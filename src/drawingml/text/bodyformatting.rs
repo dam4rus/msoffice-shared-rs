@@ -1,12 +1,15 @@
-use crate::drawingml::{
-    shapedefs::PresetTextShape,
-    simpletypes::{
-        Angle, Coordinate32, PositiveCoordinate32, TextAnchoringType, TextColumnCount, TextFontScalePercent,
-        TextHorizontalOverflowType, TextSpacingPercent, TextVertOverflowType, TextVerticalType, TextWrappingType,
+use crate::{
+    drawingml::{
+        shapedefs::PresetTextShape,
+        simpletypes::{
+            Angle, Coordinate32, PositiveCoordinate32, TextAnchoringType, TextColumnCount, TextFontScalePercent,
+            TextHorizontalOverflowType, TextSpacingPercent, TextVertOverflowType, TextVerticalType, TextWrappingType,
+        },
     },
+    error::NotGroupMemberError,
+    xml::{parse_xml_bool, XmlNode},
+    xsdtypes::{XsdType, XsdChoice},
 };
-use crate::error::NotGroupMemberError;
-use crate::xml::{parse_xml_bool, XmlNode};
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
 
@@ -370,43 +373,51 @@ pub struct TextBodyProperties {
 
 impl TextBodyProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut instance: Self = Default::default();
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, (attr, value)| {
+                match attr.as_ref() {
+                    "rot" => instance.rotate_angle = Some(value.parse()?),
+                    "spcFirstLastPara" => instance.paragraph_spacing = Some(parse_xml_bool(value)?),
+                    "vertOverflow" => instance.vertical_overflow = Some(value.parse()?),
+                    "horzOverflow" => instance.horizontal_overflow = Some(value.parse()?),
+                    "vert" => instance.vertical_type = Some(value.parse()?),
+                    "wrap" => instance.wrap_type = Some(value.parse()?),
+                    "lIns" => instance.left_inset = Some(value.parse()?),
+                    "tIns" => instance.top_inset = Some(value.parse()?),
+                    "rIns" => instance.right_inset = Some(value.parse()?),
+                    "bIns" => instance.bottom_inset = Some(value.parse()?),
+                    "numCol" => instance.column_count = Some(value.parse()?),
+                    "spcCol" => instance.space_between_columns = Some(value.parse()?),
+                    "rtlCol" => instance.rtl_columns = Some(parse_xml_bool(value)?),
+                    "fromWordArt" => instance.is_from_word_art = Some(parse_xml_bool(value)?),
+                    "anchor" => instance.anchor = Some(value.parse()?),
+                    "anchorCtr" => instance.anchor_center = Some(parse_xml_bool(value)?),
+                    "forceAA" => instance.force_antialias = Some(parse_xml_bool(value)?),
+                    "upright" => instance.upright = Some(parse_xml_bool(value)?),
+                    "compatLnSpc" => instance.compatible_line_spacing = Some(parse_xml_bool(value)?),
+                    _ => (),
+                }
 
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "rot" => instance.rotate_angle = Some(value.parse()?),
-                "spcFirstLastPara" => instance.paragraph_spacing = Some(parse_xml_bool(value)?),
-                "vertOverflow" => instance.vertical_overflow = Some(value.parse()?),
-                "horzOverflow" => instance.horizontal_overflow = Some(value.parse()?),
-                "vert" => instance.vertical_type = Some(value.parse()?),
-                "wrap" => instance.wrap_type = Some(value.parse()?),
-                "lIns" => instance.left_inset = Some(value.parse()?),
-                "tIns" => instance.top_inset = Some(value.parse()?),
-                "rIns" => instance.right_inset = Some(value.parse()?),
-                "bIns" => instance.bottom_inset = Some(value.parse()?),
-                "numCol" => instance.column_count = Some(value.parse()?),
-                "spcCol" => instance.space_between_columns = Some(value.parse()?),
-                "rtlCol" => instance.rtl_columns = Some(parse_xml_bool(value)?),
-                "fromWordArt" => instance.is_from_word_art = Some(parse_xml_bool(value)?),
-                "anchor" => instance.anchor = Some(value.parse()?),
-                "anchorCtr" => instance.anchor_center = Some(parse_xml_bool(value)?),
-                "forceAA" => instance.force_antialias = Some(parse_xml_bool(value)?),
-                "upright" => instance.upright = Some(parse_xml_bool(value)?),
-                "compatLnSpc" => instance.compatible_line_spacing = Some(parse_xml_bool(value)?),
-                _ => (),
-            }
-        }
+                Ok(instance)
+            })
+            .and_then(|instance| {
+                xml_node
+                    .child_nodes
+                    .iter()
+                    .try_fold(instance, |mut instance, child_node| {
+                        match child_node.local_name() {
+                            "prstTxWarp" => instance.preset_text_warp = Some(Box::new(PresetTextShape::from_xml_element(child_node)?)),
+                            local_name if TextAutoFit::is_choice_member(local_name) => {
+                                instance.auto_fit_type = Some(TextAutoFit::from_xml_element(child_node)?);
+                            }
+                            _ => (),
+                        }
 
-        for child_node in &xml_node.child_nodes {
-            let child_local_name = child_node.local_name();
-            if TextAutoFit::is_choice_member(child_local_name) {
-                instance.auto_fit_type = Some(TextAutoFit::from_xml_element(child_node)?);
-            } else if child_local_name == "prstTxWarp" {
-                instance.preset_text_warp = Some(Box::new(PresetTextShape::from_xml_element(child_node)?));
-            }
-        }
-
-        Ok(instance)
+                        Ok(instance)
+                    })
+            })
     }
 }
 
@@ -521,15 +532,8 @@ pub enum TextAutoFit {
     ShapeAutoFit,
 }
 
-impl TextAutoFit {
-    pub fn is_choice_member(name: &str) -> bool {
-        match name {
-            "noAutofit" | "normAutofit" | "spAutoFit" => true,
-            _ => false,
-        }
-    }
-
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+impl XsdType for TextAutoFit {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         match xml_node.local_name() {
             "noAutofit" => Ok(TextAutoFit::NoAutoFit),
             "normAutofit" => Ok(TextAutoFit::NormalAutoFit(TextNormalAutoFit::from_xml_element(
@@ -537,6 +541,15 @@ impl TextAutoFit {
             )?)),
             "spAutoFit" => Ok(TextAutoFit::ShapeAutoFit),
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_TextAutofit").into()),
+        }
+    }
+}
+
+impl XsdChoice for TextAutoFit {
+    fn is_choice_member<T: AsRef<str>>(name: T) -> bool {
+        match name.as_ref() {
+            "noAutofit" | "normAutofit" | "spAutoFit" => true,
+            _ => false,
         }
     }
 }

@@ -11,8 +11,9 @@ use crate::{
     xsdtypes::{XsdType, XsdChoice},
 };
 use log::trace;
+use std::error::Error;
 
-pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
+pub type Result<T> = ::std::result::Result<T, Box<dyn Error>>;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct EffectStyleItem {
@@ -28,8 +29,7 @@ impl EffectStyleItem {
         let mut effect_props = None;
 
         for child_node in &xml_node.child_nodes {
-            let child_local_name = child_node.local_name();
-            if EffectProperties::is_choice_member(child_local_name) {
+            if EffectProperties::is_choice_member(child_node.local_name()) {
                 effect_props = Some(EffectProperties::from_xml_element(child_node)?);
             }
         }
@@ -52,15 +52,17 @@ pub struct StyleMatrixReference {
 
 impl StyleMatrixReference {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let idx_attr = xml_node
-            .attribute("idx")
-            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "idx"))?;
-        let index = idx_attr.parse()?;
+        let index = xml_node
+            .attributes
+            .get("idx")
+            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "idx"))?
+            .parse()?;
 
-        let color = match xml_node.child_nodes.get(0) {
-            Some(node) => Some(Color::from_xml_element(node)?),
-            None => None,
-        };
+        let color = xml_node
+            .child_nodes
+            .iter()
+            .find_map(Color::try_from_xml_element)
+            .transpose()?;
 
         Ok(Self { index, color })
     }
@@ -204,76 +206,110 @@ impl StyleMatrix {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         trace!("parsing StyleMatrix '{}'", xml_node.name);
         let name = xml_node.attribute("name").cloned();
-        let mut fill_style_list = Vec::new();
-        let mut line_style_list = Vec::new();
-        let mut effect_style_list = Vec::new();
-        let mut bg_fill_style_list = Vec::new();
+        let mut fill_style_list = None;
+        let mut line_style_list = None;
+        let mut effect_style_list = None;
+        let mut bg_fill_style_list = None;
 
-        for child_node in &xml_node.child_nodes {
+         for child_node in &xml_node.child_nodes {
             match child_node.local_name() {
                 "fillStyleLst" => {
-                    for fill_style_node in &child_node.child_nodes {
-                        fill_style_list.push(FillProperties::from_xml_element(fill_style_node)?);
-                    }
+                    let vec = child_node
+                        .child_nodes
+                        .iter()
+                        .filter_map(FillProperties::try_from_xml_element)
+                        .collect::<Result<Vec<_>>>()?;
+
+                    fill_style_list = match vec.len() {
+                        len if len >= 3 => Some(vec),
+                        len => {
+                            return Err(Box::new(LimitViolationError::new(
+                                String::from("fillStyleLst"),
+                                "EG_FillProperties",
+                                3,
+                                MaxOccurs::Unbounded,
+                                len as u32,
+                            )))
+                        }
+                    };
                 }
                 "lnStyleLst" => {
-                    for line_style_node in &child_node.child_nodes {
-                        line_style_list.push(LineProperties::from_xml_element(line_style_node)?);
-                    }
+                    let vec = child_node
+                        .child_nodes
+                        .iter()
+                        .filter(|child_node| child_node.local_name() == "ln")
+                        .map(LineProperties::from_xml_element)
+                        .collect::<Result<Vec<_>>>()?;
+
+                    line_style_list = match vec.len() {
+                        len if len >= 3 => Some(vec),
+                        len => {
+                            return Err(Box::new(LimitViolationError::new(
+                                String::from("lnStyleLst"),
+                                "ln",
+                                3,
+                                MaxOccurs::Unbounded,
+                                len as u32,
+                            )))
+                        }
+                    };
                 }
                 "effectStyleLst" => {
-                    for effect_style_node in &child_node.child_nodes {
-                        effect_style_list.push(EffectStyleItem::from_xml_element(effect_style_node)?);
-                    }
+                    let vec = child_node
+                        .child_nodes
+                        .iter()
+                        .filter(|child_node| child_node.local_name() == "effectStyle")
+                        .map(EffectStyleItem::from_xml_element)
+                        .collect::<Result<Vec<_>>>()?;
+
+                    effect_style_list = match vec.len() {
+                        len if len >= 3 => Some(vec),
+                        len => {
+                            return Err(Box::new(LimitViolationError::new(
+                                String::from("effectStyleLst"),
+                                "effectStyle",
+                                3,
+                                MaxOccurs::Unbounded,
+                                len as u32,
+                            )))
+                        }
+                    };
                 }
                 "bgFillStyleLst" => {
-                    for bg_fill_style_node in &child_node.child_nodes {
-                        bg_fill_style_list.push(FillProperties::from_xml_element(bg_fill_style_node)?);
-                    }
+                    let vec = child_node
+                        .child_nodes
+                        .iter()
+                        .filter_map(FillProperties::try_from_xml_element)
+                        .collect::<Result<Vec<_>>>()?;
+
+                    bg_fill_style_list = match vec.len() {
+                        len if len >= 3 => Some(vec),
+                        len => {
+                            return Err(Box::new(LimitViolationError::new(
+                                String::from("bgFillStyleLst"),
+                                "EG_FillProperties",
+                                3,
+                                MaxOccurs::Unbounded,
+                                len as u32,
+                            )))
+                        }
+                    };
                 }
                 _ => (),
             }
         }
 
-        if fill_style_list.len() < 3 {
-            return Err(Box::new(LimitViolationError::new(
-                xml_node.name.clone(),
-                "fillStyleLst",
-                3,
-                MaxOccurs::Unbounded,
-                fill_style_list.len() as u32,
-            )));
-        }
+        let fill_style_list =
+            fill_style_list.ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "fillStyleLst"))?;
 
-        if line_style_list.len() < 3 {
-            return Err(Box::new(LimitViolationError::new(
-                xml_node.name.clone(),
-                "lnStyleLst",
-                3,
-                MaxOccurs::Unbounded,
-                line_style_list.len() as u32,
-            )));
-        }
+        let line_style_list = 
+            line_style_list.ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "lnStyleLst"))?;
+        
+        let effect_style_list = 
+            effect_style_list.ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "effectStyleLst"))?;
 
-        if effect_style_list.len() < 3 {
-            return Err(Box::new(LimitViolationError::new(
-                xml_node.name.clone(),
-                "effectStyleLst",
-                3,
-                MaxOccurs::Unbounded,
-                effect_style_list.len() as u32,
-            )));
-        }
-
-        if bg_fill_style_list.len() < 3 {
-            return Err(Box::new(LimitViolationError::new(
-                xml_node.name.clone(),
-                "bgFillStyleLst",
-                3,
-                MaxOccurs::Unbounded,
-                bg_fill_style_list.len() as u32,
-            )));
-        }
+        let bg_fill_style_list =
+            bg_fill_style_list.ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "bgFillStyleLst"))?;
 
         Ok(Self {
             name,
@@ -327,15 +363,17 @@ pub struct FontReference {
 
 impl FontReference {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let index_attr = xml_node
-            .attribute("idx")
-            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "idx"))?;
-        let index = index_attr.parse()?;
+        let index = xml_node
+            .attributes
+            .get("idx")
+            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "idx"))?
+            .parse()?;
 
-        let color = match xml_node.child_nodes.get(0) {
-            Some(clr_node) => Some(Color::from_xml_element(clr_node)?),
-            None => None,
-        };
+        let color = xml_node
+            .child_nodes
+            .iter()
+            .find_map(Color::try_from_xml_element)
+            .transpose()?;
 
         Ok(Self { index, color })
     }
@@ -403,10 +441,11 @@ pub struct FontScheme {
 
 impl FontScheme {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let name_attr = xml_node
+        let name = xml_node
             .attribute("name")
-            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "name"))?;
-        let name = name_attr.clone();
+            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "name"))?
+            .clone();
+
         let mut major_font = None;
         let mut minor_font = None;
 

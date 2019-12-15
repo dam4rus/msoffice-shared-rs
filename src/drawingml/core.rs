@@ -347,7 +347,7 @@ impl NonVisualContentPartProperties {
         let is_comment = xml_node
             .attributes
             .get("isComment")
-            .map(|value| parse_xml_bool(value))
+            .map(parse_xml_bool)
             .transpose()?;
 
         let locking = xml_node

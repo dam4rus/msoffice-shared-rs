@@ -14,7 +14,7 @@ use crate::{
     xsdtypes::{XsdType, XsdChoice},
 };
 use std::error::Error;
-use log::{error, trace};
+use log::trace;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn Error>>;
 
@@ -67,8 +67,8 @@ impl AlphaBiLevelEffect {
         let threshold = xml_node
             .attributes
             .get("thresh")
-            .ok_or_else(|| Box::<dyn Error>::from(MissingAttributeError::new(xml_node.name.clone(), "thresh")))
-            .and_then(|value| value.parse().map_err(Into::into))?;
+            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "thresh"))?
+            .parse()?;
 
         Ok(Self { threshold })
     }
@@ -175,8 +175,8 @@ impl AlphaReplaceEffect {
         let alpha = xml_node
             .attributes
             .get("a")
-            .ok_or_else(|| Box::<dyn Error>::from(MissingAttributeError::new(xml_node.name.clone(), "a")))
-            .and_then(|value| value.parse().map_err(Into::into))?;
+            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "a"))?
+            .parse()?;
 
         Ok(Self { alpha })
     }
@@ -197,8 +197,8 @@ impl BiLevelEffect {
         let threshold = xml_node
             .attributes
             .get("thresh")
-            .ok_or_else(|| Box::<dyn Error>::from(MissingAttributeError::new(xml_node.name.clone(), "thresh")))
-            .and_then(|value| value.parse().map_err(Into::into))?;
+            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "thresh"))?
+            .parse()?;
 
         Ok(Self { threshold })
     }
@@ -218,8 +218,8 @@ impl BlendEffect {
         let blend = xml_node
             .attributes
             .get("blend")
-            .ok_or_else(|| Box::<dyn Error>::from(MissingAttributeError::new(xml_node.name.clone(), "blend")))
-            .and_then(|value| value.parse().map_err(Into::into))?;
+            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "blend"))?
+            .parse()?;
 
         let container = xml_node
             .child_nodes
@@ -442,8 +442,8 @@ impl FillOverlayEffect {
         let blend_mode = xml_node
             .attributes
             .get("blend")
-            .ok_or_else(|| Box::<dyn Error>::from(MissingAttributeError::new(xml_node.name.clone(), "blend")))
-            .and_then(|value| value.parse().map_err(Into::into))?;
+            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "blend"))?
+            .parse()?;
 
         let fill = xml_node
             .child_nodes
@@ -877,8 +877,8 @@ impl SoftEdgesEffect {
         let radius = xml_node
             .attributes
             .get("rad")
-            .ok_or_else(|| Box::<dyn Error>::from(MissingAttributeError::new(xml_node.name.clone(), "rad")))
-            .and_then(|value| value.parse().map_err(Into::into))?;
+            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "rad"))?
+            .parse()?;
 
         Ok(Self { radius })
     }
@@ -1429,33 +1429,29 @@ pub struct Blip {
 
 impl Blip {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut embed_rel_id = None;
-        let mut linked_rel_id = None;
-        let mut compression = None;
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, (attr, value)| {
+                match attr.as_ref() {
+                    "r:embed" => instance.embed_rel_id = Some(value.clone()),
+                    "r:link" => instance.linked_rel_id = Some(value.clone()),
+                    "cstate" => instance.compression = Some(value.parse::<BlipCompression>()?),
+                    _ => (),
+                }
 
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "r:embed" => embed_rel_id = Some(value.clone()),
-                "r:link" => linked_rel_id = Some(value.clone()),
-                "cstate" => compression = Some(value.parse::<BlipCompression>()?),
-                _ => (),
-            }
-        }
-
-        let mut effects = Vec::new();
-
-        for child_node in &xml_node.child_nodes {
-            if BlipEffect::is_choice_member(child_node.local_name()) {
-                effects.push(BlipEffect::from_xml_element(child_node)?);
-            }
-        }
-
-        Ok(Self {
-            embed_rel_id,
-            linked_rel_id,
-            compression,
-            effects,
-        })
+                Ok(instance)
+            })
+            .and_then(|instance| {
+                let effects = 
+                    xml_node
+                    .child_nodes
+                    .iter()
+                    .filter_map(BlipEffect::try_from_xml_element)
+                    .collect::<Result<Vec<_>>>()?;
+                
+                Ok(Self { effects, ..instance })
+            })
     }
 }
 
@@ -1497,42 +1493,35 @@ pub struct BlipFillProperties {
 
 impl BlipFillProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut dpi = None;
-        let mut rotate_with_shape = None;
-
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "dpi" => dpi = Some(value.parse()?),
-                "rotWithShape" => rotate_with_shape = Some(parse_xml_bool(value)?),
-                _ => (),
-            }
-        }
-
-        let mut blip = None;
-        let mut source_rect = None;
-        let mut fill_mode_properties = None;
-
-        for child_node in &xml_node.child_nodes {
-            let child_local_name = child_node.local_name();
-
-            if FillModeProperties::is_choice_member(child_local_name) {
-                fill_mode_properties = Some(FillModeProperties::from_xml_element(child_node)?);
-            } else {
-                match child_local_name {
-                    "blip" => blip = Some(Box::new(Blip::from_xml_element(child_node)?)),
-                    "srcRect" => source_rect = Some(RelativeRect::from_xml_element(child_node)?),
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, (attr, value)| {
+                match attr.as_ref() {
+                    "dpi" => instance.dpi = Some(value.parse()?),
+                    "rotWithShape" => instance.rotate_with_shape = Some(parse_xml_bool(value)?),
                     _ => (),
                 }
-            }
-        }
 
-        Ok(Self {
-            dpi,
-            rotate_with_shape,
-            blip,
-            source_rect,
-            fill_mode_properties,
-        })
+                Ok(instance)
+            })
+            .and_then(|instance| {
+                xml_node
+                    .child_nodes
+                    .iter()
+                    .try_fold(instance, |mut instance, child_node| {
+                        match child_node.local_name() {
+                            "blip" => instance.blip = Some(Box::new(Blip::from_xml_element(child_node)?)),
+                            "srcRect" => instance.source_rect = Some(RelativeRect::from_xml_element(child_node)?),
+                            local_name if FillModeProperties::is_choice_member(local_name) => {
+                                instance.fill_mode_properties = Some(FillModeProperties::from_xml_element(child_node)?)
+                            }
+                            _ => (),
+                        }
+
+                        Ok(instance)
+                    })
+            })
     }
 }
 
@@ -1553,7 +1542,7 @@ impl DashStop {
         let mut opt_space_length = None;
 
         for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
+            match attr.as_ref() {
                 "d" => opt_dash_length = Some(value.parse::<PositivePercentage>()?),
                 "sp" => opt_space_length = Some(value.parse::<PositivePercentage>()?),
                 _ => (),
@@ -1581,20 +1570,19 @@ pub struct GradientStop {
 
 impl GradientStop {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let pos_attr = xml_node
-            .attribute("pos")
-            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "pos"))?;
-        let position = pos_attr.parse::<PositiveFixedPercentage>()?;
+        let position = xml_node
+            .attributes
+            .get("pos")
+            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "pos"))?
+            .parse()?;
 
-        let child_node = xml_node
+        let color = xml_node
             .child_nodes
-            .get(0)
+            .iter()
+            .find_map(Color::try_from_xml_element)
+            .transpose()?
             .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "color"))?;
-        if !Color::is_choice_member(child_node.local_name()) {
-            return Err(NotGroupMemberError::new(child_node.name.clone(), "EG_Color").into());
-        }
 
-        let color = Color::from_xml_element(child_node)?;
         Ok(Self { position, color })
     }
 }
@@ -1613,18 +1601,19 @@ pub struct LineEndProperties {
 
 impl LineEndProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<LineEndProperties> {
-        let mut instance: Self = Default::default();
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, (attr, value)| {
+                match attr.as_ref() {
+                    "type" => instance.end_type = Some(value.parse::<LineEndType>()?),
+                    "width" => instance.width = Some(value.parse::<LineEndWidth>()?),
+                    "length" => instance.length = Some(value.parse::<LineEndLength>()?),
+                    _ => (),
+                }
 
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "type" => instance.end_type = Some(value.parse::<LineEndType>()?),
-                "width" => instance.width = Some(value.parse::<LineEndWidth>()?),
-                "length" => instance.length = Some(value.parse::<LineEndLength>()?),
-                _ => (),
-            }
-        }
-
-        Ok(instance)
+                Ok(instance)
+            })
     }
 }
 
@@ -1648,18 +1637,18 @@ pub struct LinearShadeProperties {
 
 impl LinearShadeProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut angle = None;
-        let mut scaled = None;
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, (attr, value)| {
+                match attr.as_ref() {
+                    "ang" => instance.angle = Some(value.parse::<PositiveFixedAngle>()?),
+                    "scaled" => instance.scaled = Some(parse_xml_bool(value)?),
+                    _ => (),
+                }
 
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "ang" => angle = Some(value.parse::<PositiveFixedAngle>()?),
-                "scaled" => scaled = Some(parse_xml_bool(value)?),
-                _ => (),
-            }
-        }
-
-        Ok(Self { angle, scaled })
+                Ok(instance)
+            })
     }
 }
 
@@ -1694,15 +1683,18 @@ pub struct PathShadeProperties {
 
 impl PathShadeProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let path = match xml_node.attribute("path") {
-            Some(val) => Some(val.parse()?),
-            None => None,
-        };
+        let path = xml_node
+            .attributes
+            .get("path")
+            .map(|value| value.parse())
+            .transpose()?;
 
-        let fill_to_rect = match xml_node.child_nodes.get(0) {
-            Some(node) => Some(RelativeRect::from_xml_element(node)?),
-            None => None,
-        };
+        let fill_to_rect = xml_node
+            .child_nodes
+            .iter()
+            .find(|child_node| child_node.local_name() == "fillToRect")
+            .map(RelativeRect::from_xml_element)
+            .transpose()?;
 
         Ok(Self { path, fill_to_rect })
     }
@@ -1717,21 +1709,23 @@ pub enum ShadeProperties {
     Path(PathShadeProperties),
 }
 
-impl ShadeProperties {
-    pub fn is_choice_member(name: &str) -> bool {
-        match name {
-            "lin" | "path" => true,
-            _ => false,
-        }
-    }
-
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+impl XsdType for ShadeProperties {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         match xml_node.local_name() {
             "lin" => Ok(ShadeProperties::Linear(LinearShadeProperties::from_xml_element(
                 xml_node,
             )?)),
             "path" => Ok(ShadeProperties::Path(PathShadeProperties::from_xml_element(xml_node)?)),
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_ShadeProperties").into()),
+        }
+    }
+}
+
+impl XsdChoice for ShadeProperties {
+    fn is_choice_member<T: AsRef<str>>(name: T) -> bool {
+        match name.as_ref() {
+            "lin" | "path" => true,
+            _ => false,
         }
     }
 }
@@ -1750,34 +1744,42 @@ pub struct PatternFillProperties {
 
 impl PatternFillProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut instance: Self = Default::default();
+        let preset = xml_node
+            .attributes
+            .get("prst")
+            .map(|value| value.parse())
+            .transpose()?;
 
-        instance.preset = match xml_node.attribute("prst") {
-            Some(val) => Some(val.parse()?),
-            None => None,
-        };
+        xml_node
+            .child_nodes
+            .iter()
+            .try_fold(Self { preset, ..Default::default() }, |mut instance, child_node| {
+                match child_node.local_name() {
+                    "fgClr" => {
+                        let fg_color = child_node
+                            .child_nodes
+                            .iter()
+                            .find_map(Color::try_from_xml_element)
+                            .transpose()?
+                            .ok_or_else(|| MissingChildNodeError::new(child_node.name.clone(), "EG_Color"))?;
 
-        for child_node in &xml_node.child_nodes {
-            match child_node.local_name() {
-                "fgClr" => {
-                    let fg_color_node = child_node
-                        .child_nodes
-                        .get(0)
-                        .ok_or_else(|| MissingChildNodeError::new(child_node.name.clone(), "EG_Color"))?;
-                    instance.fg_color = Some(Color::from_xml_element(fg_color_node)?);
+                        instance.fg_color = Some(fg_color);
+                    }
+                    "bgClr" => {
+                        let bg_color = child_node
+                            .child_nodes
+                            .iter()
+                            .find_map(Color::try_from_xml_element)
+                            .transpose()?
+                            .ok_or_else(|| MissingChildNodeError::new(child_node.name.clone(), "EG_Color"))?;
+
+                        instance.bg_color = Some(bg_color);
+                    }
+                    _ => (),
                 }
-                "bgClr" => {
-                    let bg_color_node = child_node
-                        .child_nodes
-                        .get(0)
-                        .ok_or_else(|| MissingChildNodeError::new(child_node.name.clone(), "EG_Color"))?;
-                    instance.bg_color = Some(Color::from_xml_element(bg_color_node)?);
-                }
-                _ => (),
-            }
-        }
 
-        Ok(instance)
+                Ok(instance)
+            })
     }
 }
 
@@ -1825,11 +1827,14 @@ impl XsdType for FillProperties {
         match xml_node.local_name() {
             "noFill" => Ok(FillProperties::NoFill),
             "solidFill" => {
-                let child_node = xml_node
+                let color = xml_node
                     .child_nodes
-                    .get(0)
+                    .iter()
+                    .find_map(Color::try_from_xml_element)
+                    .transpose()?
                     .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "color"))?;
-                Ok(FillProperties::SolidFill(Color::from_xml_element(&child_node)?))
+
+                Ok(FillProperties::SolidFill(color))
             }
             "gradFill" => Ok(FillProperties::GradientFill(Box::new(
                 GradientFillProperties::from_xml_element(xml_node)?,
@@ -1872,26 +1877,30 @@ pub enum LineJoinProperties {
     Miter(Option<PositivePercentage>),
 }
 
-impl LineJoinProperties {
-    pub fn is_choice_member(name: &str) -> bool {
-        match name {
-            "round" | "bevel" | "miter" => true,
-            _ => false,
-        }
-    }
-
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<LineJoinProperties> {
+impl XsdType for LineJoinProperties {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<LineJoinProperties> {
         match xml_node.local_name() {
             "round" => Ok(LineJoinProperties::Round),
             "bevel" => Ok(LineJoinProperties::Bevel),
             "miter" => {
-                let lim = match xml_node.attribute("lim") {
-                    Some(ref attr) => Some(attr.parse::<PositivePercentage>()?),
-                    None => None,
-                };
+                let lim = xml_node
+                    .attributes
+                    .get("lim")
+                    .map(|value| value.parse())
+                    .transpose()?;
+                
                 Ok(LineJoinProperties::Miter(lim))
             }
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_LineJoinProperties").into()),
+        }
+    }
+}
+
+impl XsdChoice for LineJoinProperties {
+    fn is_choice_member<T: AsRef<str>>(name: T) -> bool {
+        match name.as_ref() {
+            "round" | "bevel" | "miter" => true,
+            _ => false,
         }
     }
 }
@@ -1924,10 +1933,12 @@ pub struct StretchInfoProperties {
 
 impl StretchInfoProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let fill_rect = match xml_node.child_nodes.get(0) {
-            Some(rect_node) => Some(RelativeRect::from_xml_element(rect_node)?),
-            None => None,
-        };
+        let fill_rect = xml_node
+            .child_nodes
+            .iter()
+            .find(|child_node| child_node.local_name() == "fillRect")
+            .map(RelativeRect::from_xml_element)
+            .transpose()?;
 
         Ok(Self { fill_rect })
     }
@@ -1958,21 +1969,22 @@ pub struct TileInfoProperties {
 
 impl TileInfoProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut instance: Self = Default::default();
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, (attr, value)| {
+                match attr.as_ref() {
+                    "tx" => instance.translate_x = Some(value.parse()?),
+                    "ty" => instance.translate_y = Some(value.parse()?),
+                    "sx" => instance.scale_x = Some(value.parse()?),
+                    "sy" => instance.scale_y = Some(value.parse()?),
+                    "flip" => instance.flip_mode = Some(value.parse()?),
+                    "algn" => instance.alignment = Some(value.parse()?),
+                    _ => (),
+                }
 
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "tx" => instance.translate_x = Some(value.parse()?),
-                "ty" => instance.translate_y = Some(value.parse()?),
-                "sx" => instance.scale_x = Some(value.parse()?),
-                "sy" => instance.scale_y = Some(value.parse()?),
-                "flip" => instance.flip_mode = Some(value.parse()?),
-                "algn" => instance.alignment = Some(value.parse()?),
-                _ => (),
-            }
-        }
-
-        Ok(instance)
+                Ok(instance)
+            })
     }
 }
 
@@ -1988,15 +2000,8 @@ pub enum FillModeProperties {
     Stretch(Box<StretchInfoProperties>),
 }
 
-impl FillModeProperties {
-    pub fn is_choice_member(name: &str) -> bool {
-        match name {
-            "tile" | "stretch" => true,
-            _ => false,
-        }
-    }
-
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+impl XsdType for FillModeProperties {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         match xml_node.local_name() {
             "tile" => Ok(FillModeProperties::Tile(Box::new(
                 TileInfoProperties::from_xml_element(xml_node)?,
@@ -2005,6 +2010,15 @@ impl FillModeProperties {
                 StretchInfoProperties::from_xml_element(xml_node)?,
             ))),
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_FillModeProperties").into()),
+        }
+    }
+}
+
+impl XsdChoice for FillModeProperties {
+    fn is_choice_member<T: AsRef<str>>(name: T) -> bool {
+        match name.as_ref() {
+            "tile" | "stretch" => true,
+            _ => false,
         }
     }
 }
@@ -2024,28 +2038,19 @@ pub enum LineFillProperties {
     PatternFill(Box<PatternFillProperties>),
 }
 
-impl LineFillProperties {
-    pub fn is_choice_member(name: &str) -> bool {
-        match name {
-            "noFill" | "solidFill" | "gradFill" | "pattFill" => true,
-            _ => false,
-        }
-    }
-
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<LineFillProperties> {
+impl XsdType for LineFillProperties {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<LineFillProperties> {
         match xml_node.local_name() {
             "noFill" => Ok(LineFillProperties::NoFill),
             "solidFill" => {
-                let child_node = xml_node
+                let color = xml_node
                     .child_nodes
-                    .get(0)
+                    .iter()
+                    .find_map(Color::try_from_xml_element)
+                    .transpose()?
                     .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "color"))?;
 
-                if !Color::is_choice_member(child_node.local_name()) {
-                    return Err(NotGroupMemberError::new(child_node.name.clone(), "EG_Color").into());
-                }
-
-                Ok(LineFillProperties::SolidFill(Color::from_xml_element(child_node)?))
+                Ok(LineFillProperties::SolidFill(color))
             }
             "gradFill" => Ok(LineFillProperties::GradientFill(Box::new(
                 GradientFillProperties::from_xml_element(xml_node)?,
@@ -2054,6 +2059,15 @@ impl LineFillProperties {
                 PatternFillProperties::from_xml_element(xml_node)?,
             ))),
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_LineFillProperties").into()),
+        }
+    }
+}
+
+impl XsdChoice for LineFillProperties {
+    fn is_choice_member<T: AsRef<str>>(name: T) -> bool {
+        match name.as_ref() {
+            "noFill" | "solidFill" | "gradFill" | "pattFill" => true,
+            _ => false,
         }
     }
 }
@@ -2068,32 +2082,35 @@ pub enum LineDashProperties {
     CustomDash(Vec<DashStop>),
 }
 
-impl LineDashProperties {
-    pub fn is_choice_member(name: &str) -> bool {
-        match name {
+impl XsdChoice for LineDashProperties {
+    fn is_choice_member<T: AsRef<str>>(name: T) -> bool {
+        match name.as_ref() {
             "prstDash" | "custDash" => true,
             _ => false,
         }
     }
+}
 
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<LineDashProperties> {
+impl XsdType for LineDashProperties {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<LineDashProperties> {
         match xml_node.local_name() {
             "prstDash" => {
-                let val_attr = xml_node
-                    .attribute("val")
+                let val = xml_node
+                    .attributes
+                    .get("val")
+                    .map(|value| value.parse())
+                    .transpose()?
                     .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(LineDashProperties::PresetDash(val_attr.parse()?))
+
+                Ok(LineDashProperties::PresetDash(val))
             }
             "custDash" => {
-                let mut dash_vec = Vec::new();
-                for child_node in &xml_node.child_nodes {
-                    if child_node.local_name() == "ds" {
-                        match DashStop::from_xml_element(child_node) {
-                            Ok(val) => dash_vec.push(val),
-                            Err(err) => error!("Failed to parse 'ds' element: {}", err),
-                        }
-                    }
-                }
+                let dash_vec = xml_node
+                    .child_nodes
+                    .iter()
+                    .filter(|child_node| child_node.local_name() == "ds")
+                    .map(DashStop::from_xml_element)
+                    .collect::<Result<Vec<_>>>()?;
 
                 Ok(LineDashProperties::CustomDash(dash_vec))
             }

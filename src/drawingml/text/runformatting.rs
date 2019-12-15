@@ -7,7 +7,7 @@ use crate::{
     },
     error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError},
     xml::XmlNode,
-    xsdtypes::XsdType,
+    xsdtypes::{XsdType, XsdChoice},
 };
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
@@ -215,15 +215,8 @@ pub enum TextRun {
     TextField(Box<TextField>),
 }
 
-impl TextRun {
-    pub fn is_choice_member(name: &str) -> bool {
-        match name {
-            "r" | "br" | "fld" => true,
-            _ => false,
-        }
-    }
-
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+impl XsdType for TextRun {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         match xml_node.local_name() {
             "r" => Ok(TextRun::RegularTextRun(Box::new(RegularTextRun::from_xml_element(
                 xml_node,
@@ -231,6 +224,15 @@ impl TextRun {
             "br" => Ok(TextRun::LineBreak(Box::new(TextLineBreak::from_xml_element(xml_node)?))),
             "fld" => Ok(TextRun::TextField(Box::new(TextField::from_xml_element(xml_node)?))),
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_TextRun").into()),
+        }
+    }
+}
+
+impl XsdChoice for TextRun {
+    fn is_choice_member<T: AsRef<str>>(name: T) -> bool {
+        match name.as_ref() {
+            "r" | "br" | "fld" => true,
+            _ => false,
         }
     }
 }
@@ -345,25 +347,24 @@ pub enum TextUnderlineLine {
     ///   …
     /// </p:txBody>
     /// ```
-    Line(Option<Box<LineProperties>>),
+    Line(Box<LineProperties>),
 }
 
-impl TextUnderlineLine {
-    pub fn is_choice_member(name: &str) -> bool {
-        match name {
-            "uLnTx" | "uLn" => true,
-            _ => false,
-        }
-    }
-
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
+impl XsdType for TextUnderlineLine {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         match xml_node.local_name() {
             "uLnTx" => Ok(TextUnderlineLine::FollowText),
-            "uLn" => Ok(TextUnderlineLine::Line(match xml_node.child_nodes.get(0) {
-                Some(node) => Some(Box::new(LineProperties::from_xml_element(node)?)),
-                None => None,
-            })),
+            "uLn" => Ok(TextUnderlineLine::Line(Box::new(LineProperties::from_xml_element(xml_node)?))),
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_TextUnderlineLine").into()),
+        }
+    }
+}
+
+impl XsdChoice for TextUnderlineLine {
+    fn is_choice_member<T: AsRef<str>>(name: T) -> bool {
+        match name.as_ref() {
+            "uLnTx" | "uLn" => true,
+            _ => false,
         }
     }
 }
@@ -434,11 +435,14 @@ impl TextUnderlineFill {
         match xml_node.local_name() {
             "uFillTx" => Ok(TextUnderlineFill::FollowText),
             "uFill" => {
-                let fill_node = xml_node
+                let fill_properties = xml_node
                     .child_nodes
-                    .get(0)
+                    .iter()
+                    .find_map(FillProperties::try_from_xml_element)
+                    .transpose()?
                     .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "EG_FillProperties"))?;
-                Ok(TextUnderlineFill::Fill(FillProperties::from_xml_element(fill_node)?))
+
+                Ok(TextUnderlineFill::Fill(fill_properties))
             }
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_TextUnderlineFill").into()),
         }

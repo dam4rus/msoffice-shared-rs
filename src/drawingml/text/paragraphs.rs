@@ -17,8 +17,9 @@ use crate::{
     xml::{parse_xml_bool, XmlNode},
     xsdtypes::{XsdType, XsdChoice},
 };
+use std::error::Error;
 
-pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
+pub type Result<T> = ::std::result::Result<T, Box<dyn Error>>;
 
 #[derive(Default, Debug, Clone, PartialEq)]
 pub struct TextLineBreak {
@@ -27,10 +28,13 @@ pub struct TextLineBreak {
 
 impl TextLineBreak {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let char_properties = match xml_node.child_nodes.get(0) {
-            Some(node) => Some(Box::new(TextCharacterProperties::from_xml_element(node)?)),
-            None => None,
-        };
+        let char_properties = xml_node
+            .child_nodes
+            .iter()
+            .find(|child_node| child_node.local_name() == "rPr")
+            .map(TextCharacterProperties::from_xml_element)
+            .transpose()?
+            .map(Box::new);
 
         Ok(Self { char_properties })
     }
@@ -525,86 +529,103 @@ pub struct TextParagraphProperties {
 
 impl TextParagraphProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<TextParagraphProperties> {
-        let mut instance: Self = Default::default();
-
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "marL" => instance.margin_left = Some(value.parse()?),
-                "marR" => instance.margin_right = Some(value.parse()?),
-                "lvl" => instance.level = Some(value.parse()?),
-                "indent" => instance.indent = Some(value.parse()?),
-                "algn" => instance.align = Some(value.parse()?),
-                "defTabSz" => instance.default_tab_size = Some(value.parse()?),
-                "rtl" => instance.rtl = Some(parse_xml_bool(value)?),
-                "eaLnBrk" => instance.east_asian_line_break = Some(parse_xml_bool(value)?),
-                "fontAlgn" => instance.font_align = Some(value.parse()?),
-                "latinLnBrk" => instance.latin_line_break = Some(parse_xml_bool(value)?),
-                "hangingPunct" => instance.hanging_punctuations = Some(parse_xml_bool(value)?),
-                _ => (),
-            }
-        }
-
-        for child_node in &xml_node.child_nodes {
-            if TextBulletColor::is_choice_member(child_node.local_name()) {
-                instance.bullet_color = Some(TextBulletColor::from_xml_element(child_node)?);
-            } else if TextBulletColor::is_choice_member(child_node.local_name()) {
-                instance.bullet_size = Some(TextBulletSize::from_xml_element(child_node)?);
-            } else if TextBulletTypeface::is_choice_member(child_node.local_name()) {
-                instance.bullet_typeface = Some(TextBulletTypeface::from_xml_element(child_node)?);
-            } else if TextBullet::is_choice_member(child_node.local_name()) {
-                instance.bullet = Some(TextBullet::from_xml_element(child_node)?);
-            } else {
-                match child_node.local_name() {
-                    "lnSpc" => {
-                        let line_spacing_node = child_node
-                            .child_nodes
-                            .get(0)
-                            .ok_or_else(|| MissingChildNodeError::new(child_node.name.clone(), "lnSpc child"))?;
-                        instance.line_spacing = Some(TextSpacing::from_xml_element(line_spacing_node)?);
-                    }
-                    "spcBef" => {
-                        let space_before_node = child_node
-                            .child_nodes
-                            .get(0)
-                            .ok_or_else(|| MissingChildNodeError::new(child_node.name.clone(), "spcBef child"))?;
-                        instance.space_before = Some(TextSpacing::from_xml_element(space_before_node)?);
-                    }
-                    "spcAft" => {
-                        let space_after_node = child_node
-                            .child_nodes
-                            .get(0)
-                            .ok_or_else(|| MissingChildNodeError::new(child_node.name.clone(), "spcAft child"))?;
-                        instance.space_after = Some(TextSpacing::from_xml_element(space_after_node)?);
-                    }
-                    "tabLst" => {
-                        let mut vec = Vec::new();
-
-                        for tab_node in &child_node.child_nodes {
-                            vec.push(TextTabStop::from_xml_element(tab_node)?);
-                        }
-
-                        if vec.len() > 32 {
-                            return Err(Box::new(LimitViolationError::new(
-                                xml_node.name.clone(),
-                                "tabLst",
-                                0,
-                                MaxOccurs::Value(32),
-                                vec.len() as u32,
-                            )));
-                        }
-
-                        instance.tab_stop_list = Some(vec);
-                    }
-                    "defRPr" => {
-                        instance.default_run_properties =
-                            Some(Box::new(TextCharacterProperties::from_xml_element(child_node)?))
-                    }
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, (attr, value)| {
+                match attr.as_ref() {
+                    "marL" => instance.margin_left = Some(value.parse()?),
+                    "marR" => instance.margin_right = Some(value.parse()?),
+                    "lvl" => instance.level = Some(value.parse()?),
+                    "indent" => instance.indent = Some(value.parse()?),
+                    "algn" => instance.align = Some(value.parse()?),
+                    "defTabSz" => instance.default_tab_size = Some(value.parse()?),
+                    "rtl" => instance.rtl = Some(parse_xml_bool(value)?),
+                    "eaLnBrk" => instance.east_asian_line_break = Some(parse_xml_bool(value)?),
+                    "fontAlgn" => instance.font_align = Some(value.parse()?),
+                    "latinLnBrk" => instance.latin_line_break = Some(parse_xml_bool(value)?),
+                    "hangingPunct" => instance.hanging_punctuations = Some(parse_xml_bool(value)?),
                     _ => (),
                 }
-            }
-        }
 
-        Ok(instance)
+                Ok(instance)
+            })
+            .and_then(|instance| {
+                xml_node
+                    .child_nodes
+                    .iter()
+                    .try_fold(instance, |mut instance, child_node| {
+                        match child_node.local_name() {
+                            "lnSpc" => {
+                                instance.line_spacing = Some(child_node
+                                    .child_nodes
+                                    .iter()
+                                    .find_map(TextSpacing::try_from_xml_element)
+                                    .transpose()?
+                                    .ok_or_else(|| MissingChildNodeError::new(child_node.name.clone(), "EG_TextSpacing"))?
+                                );
+                            }
+                            "spcBef" => {
+                                instance.space_before = Some(child_node
+                                    .child_nodes
+                                    .iter()
+                                    .find_map(TextSpacing::try_from_xml_element)
+                                    .transpose()?
+                                    .ok_or_else(|| MissingChildNodeError::new(child_node.name.clone(), "EG_TextSpacing"))?
+                                );
+                            }
+                            "spcAft" => {
+                                instance.space_after = Some(child_node
+                                    .child_nodes
+                                    .iter()
+                                    .find_map(TextSpacing::try_from_xml_element)
+                                    .transpose()?
+                                    .ok_or_else(|| MissingChildNodeError::new(child_node.name.clone(), "EG_TextSpacing"))?
+                                );
+                            }
+                            "tabLst" => {
+                                let vec = child_node
+                                    .child_nodes
+                                    .iter()
+                                    .filter(|tab_stop_node| tab_stop_node.local_name() == "tab")
+                                    .map(TextTabStop::from_xml_element)
+                                    .collect::<Result<Vec<_>>>()?;
+
+                                instance.tab_stop_list = match vec.len() {
+                                    len if len <= 32 => Some(vec),
+                                    len => {
+                                        return Err(Box::<dyn Error>::from(LimitViolationError::new(
+                                            xml_node.name.clone(),
+                                            "tabLst",
+                                            0,
+                                            MaxOccurs::Value(32),
+                                            len as u32,
+                                        )))
+                                    }
+                                };
+                            }
+                            "defRPr" => {
+                                instance.default_run_properties =
+                                    Some(Box::new(TextCharacterProperties::from_xml_element(child_node)?))
+                            }
+                            local_name if TextBulletColor::is_choice_member(local_name) => {
+                                instance.bullet_color = Some(TextBulletColor::from_xml_element(child_node)?);
+                            }
+                            local_name if TextBulletSize::is_choice_member(local_name) => {
+                                instance.bullet_size = Some(TextBulletSize::from_xml_element(child_node)?);
+                            }
+                            local_name if TextBulletTypeface::is_choice_member(local_name) => {
+                                instance.bullet_typeface = Some(TextBulletTypeface::from_xml_element(child_node)?);
+                            }
+                            local_name if TextBulletTypeface::is_choice_member(local_name) => {
+                                instance.bullet = Some(TextBullet::from_xml_element(child_node)?);
+                            }
+                            _ => (),
+                        }
+
+                        Ok(instance)
+                    })
+            })
     }
 }
 
@@ -651,13 +672,10 @@ pub struct TextParagraph {
 
 impl TextParagraph {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut instance: Self = Default::default();
-
-        for child_node in &xml_node.child_nodes {
-            let local_name = child_node.local_name();
-            if TextRun::is_choice_member(local_name) {
-                instance.text_run_list.push(TextRun::from_xml_element(child_node)?);
-            } else {
+        xml_node
+            .child_nodes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, child_node| {
                 match child_node.local_name() {
                     "pPr" => {
                         instance.properties = Some(Box::new(TextParagraphProperties::from_xml_element(child_node)?))
@@ -666,12 +684,14 @@ impl TextParagraph {
                         instance.end_paragraph_char_properties =
                             Some(Box::new(TextCharacterProperties::from_xml_element(child_node)?))
                     }
+                    local_name if TextRun::is_choice_member(local_name) => {
+                        instance.text_run_list.push(TextRun::from_xml_element(child_node)?);
+                    }
                     _ => (),
                 }
-            }
-        }
 
-        Ok(instance)
+                Ok(instance)
+            })
     }
 }
 
@@ -1032,73 +1052,85 @@ pub struct TextCharacterProperties {
 
 impl TextCharacterProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<TextCharacterProperties> {
-        let mut instance: Self = Default::default();
-
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "kumimoji" => instance.kumimoji = Some(parse_xml_bool(value)?),
-                "lang" => instance.language = Some(value.clone()),
-                "altLang" => instance.alternative_language = Some(value.clone()),
-                "sz" => instance.font_size = Some(value.parse()?),
-                "b" => instance.bold = Some(parse_xml_bool(value)?),
-                "i" => instance.italic = Some(parse_xml_bool(value)?),
-                "u" => instance.underline = Some(value.parse()?),
-                "strike" => instance.strikethrough = Some(value.parse()?),
-                "kern" => instance.kerning = Some(value.parse()?),
-                "cap" => instance.capitalization = Some(value.parse()?),
-                "spc" => instance.spacing = Some(value.parse()?),
-                "normalizeH" => instance.normalize_heights = Some(parse_xml_bool(value)?),
-                "baseline" => instance.baseline = Some(value.parse()?),
-                "noProof" => instance.no_proofing = Some(parse_xml_bool(value)?),
-                "dirty" => instance.dirty = Some(parse_xml_bool(value)?),
-                "err" => instance.spelling_error = Some(parse_xml_bool(value)?),
-                "smtClean" => instance.smarttag_clean = Some(parse_xml_bool(value)?),
-                "smtId" => instance.smarttag_id = Some(value.parse()?),
-                "bmk" => instance.bookmark_link_target = Some(value.clone()),
-                _ => (),
-            }
-        }
-
-        for child_node in &xml_node.child_nodes {
-            let child_local_name = child_node.local_name();
-            if FillProperties::is_choice_member(child_local_name) {
-                instance.fill_properties = Some(FillProperties::from_xml_element(child_node)?);
-            } else if EffectProperties::is_choice_member(child_local_name) {
-                instance.effect_properties = Some(EffectProperties::from_xml_element(child_node)?);
-            } else if TextUnderlineLine::is_choice_member(child_local_name) {
-                instance.text_underline_line = Some(TextUnderlineLine::from_xml_element(child_node)?);
-            } else if TextUnderlineFill::is_choice_member(child_local_name) {
-                instance.text_underline_fill = Some(TextUnderlineFill::from_xml_element(child_node)?);
-            } else {
-                match child_local_name {
-                    "ln" => instance.line_properties = Some(Box::new(LineProperties::from_xml_element(child_node)?)),
-                    "highlight" => {
-                        let color_node = child_node
-                            .child_nodes
-                            .get(0)
-                            .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "CT_Color"))?;
-                        instance.highlight_color = Some(Color::from_xml_element(color_node)?);
-                    }
-                    "latin" => instance.latin_font = Some(TextFont::from_xml_element(child_node)?),
-                    "ea" => instance.east_asian_font = Some(TextFont::from_xml_element(child_node)?),
-                    "cs" => instance.complex_script_font = Some(TextFont::from_xml_element(child_node)?),
-                    "sym" => instance.symbol_font = Some(TextFont::from_xml_element(child_node)?),
-                    "hlinkClick" => instance.hyperlink_click = Some(Box::new(Hyperlink::from_xml_element(child_node)?)),
-                    "hlinkMouseOver" => {
-                        instance.hyperlink_mouse_over = Some(Box::new(Hyperlink::from_xml_element(child_node)?))
-                    }
-                    "rtl" => {
-                        instance.rtl = match child_node.text {
-                            Some(ref s) => Some(parse_xml_bool(s)?),
-                            None => None,
-                        }
-                    }
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, (attr, value)| {
+                match attr.as_ref() {
+                    "kumimoji" => instance.kumimoji = Some(parse_xml_bool(value)?),
+                    "lang" => instance.language = Some(value.clone()),
+                    "altLang" => instance.alternative_language = Some(value.clone()),
+                    "sz" => instance.font_size = Some(value.parse()?),
+                    "b" => instance.bold = Some(parse_xml_bool(value)?),
+                    "i" => instance.italic = Some(parse_xml_bool(value)?),
+                    "u" => instance.underline = Some(value.parse()?),
+                    "strike" => instance.strikethrough = Some(value.parse()?),
+                    "kern" => instance.kerning = Some(value.parse()?),
+                    "cap" => instance.capitalization = Some(value.parse()?),
+                    "spc" => instance.spacing = Some(value.parse()?),
+                    "normalizeH" => instance.normalize_heights = Some(parse_xml_bool(value)?),
+                    "baseline" => instance.baseline = Some(value.parse()?),
+                    "noProof" => instance.no_proofing = Some(parse_xml_bool(value)?),
+                    "dirty" => instance.dirty = Some(parse_xml_bool(value)?),
+                    "err" => instance.spelling_error = Some(parse_xml_bool(value)?),
+                    "smtClean" => instance.smarttag_clean = Some(parse_xml_bool(value)?),
+                    "smtId" => instance.smarttag_id = Some(value.parse()?),
+                    "bmk" => instance.bookmark_link_target = Some(value.clone()),
                     _ => (),
                 }
-            }
-        }
 
-        Ok(instance)
+                Ok(instance)
+            })
+            .and_then(|instance| {
+                xml_node
+                    .child_nodes
+                    .iter()
+                    .try_fold(instance, |mut instance, child_node| {
+                        match child_node.local_name() {
+                            "ln" => instance.line_properties = Some(Box::new(LineProperties::from_xml_element(child_node)?)),
+                            "highlight" => {
+                                let color = child_node
+                                    .child_nodes
+                                    .iter()
+                                    .find_map(Color::try_from_xml_element)
+                                    .transpose()?
+                                    .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "CT_Color"))?;
+
+                                instance.highlight_color = Some(color);
+                            }
+                            "latin" => instance.latin_font = Some(TextFont::from_xml_element(child_node)?),
+                            "ea" => instance.east_asian_font = Some(TextFont::from_xml_element(child_node)?),
+                            "cs" => instance.complex_script_font = Some(TextFont::from_xml_element(child_node)?),
+                            "sym" => instance.symbol_font = Some(TextFont::from_xml_element(child_node)?),
+                            "hlinkClick" => instance.hyperlink_click = Some(Box::new(Hyperlink::from_xml_element(child_node)?)),
+                            "hlinkMouseOver" => {
+                                instance.hyperlink_mouse_over = Some(Box::new(Hyperlink::from_xml_element(child_node)?))
+                            }
+                            "rtl" => {
+                                instance.rtl = child_node
+                                    .text
+                                    .as_ref()
+                                    .map(parse_xml_bool)
+                                    .transpose()?;
+                            }
+                            local_name if FillProperties::is_choice_member(local_name) => {
+                                instance.fill_properties = Some(FillProperties::from_xml_element(child_node)?);
+                            }
+                            local_name if EffectProperties::is_choice_member(local_name) => {
+                                instance.effect_properties = Some(EffectProperties::from_xml_element(child_node)?);
+                            }
+                            local_name if TextUnderlineLine::is_choice_member(local_name) => {
+                                instance.text_underline_line = Some(TextUnderlineLine::from_xml_element(child_node)?);
+                            }
+                            local_name if TextUnderlineFill::is_choice_member(local_name) => {
+                                instance.text_underline_fill = Some(TextUnderlineFill::from_xml_element(child_node)?);
+                            }
+                            _ => (),
+                        }
+
+                        Ok(instance)
+                    })
+            })
     }
 }
 
@@ -1161,8 +1193,8 @@ pub enum TextSpacing {
     Point(TextSpacingPoint),
 }
 
-impl TextSpacing {
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<TextSpacing> {
+impl XsdType for TextSpacing {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<TextSpacing> {
         match xml_node.local_name() {
             "spcPct" => {
                 let val_attr = xml_node
@@ -1177,6 +1209,15 @@ impl TextSpacing {
                 Ok(TextSpacing::Point(val_attr.parse::<TextSpacingPoint>()?))
             }
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_TextSpacing").into()),
+        }
+    }
+}
+
+impl XsdChoice for TextSpacing {
+    fn is_choice_member<T: AsRef<str>>(name: T) -> bool {
+        match name.as_ref() {
+            "spcPct" | "spcPts" => true,
+            _ => false,
         }
     }
 }
@@ -1223,16 +1264,17 @@ pub struct TextTabStop {
 
 impl TextTabStop {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<TextTabStop> {
-        let mut instance: Self = Default::default();
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, (attr, value)| {
+                match attr.as_ref() {
+                    "pos" => instance.position = Some(value.parse::<Coordinate32>()?),
+                    "algn" => instance.alignment = Some(value.parse::<TextTabAlignType>()?),
+                    _ => (),
+                }
 
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "pos" => instance.position = Some(value.parse::<Coordinate32>()?),
-                "algn" => instance.alignment = Some(value.parse::<TextTabAlignType>()?),
-                _ => (),
-            }
-        }
-
-        Ok(instance)
+                Ok(instance)
+            })
     }
 }

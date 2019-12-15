@@ -7,10 +7,11 @@ use crate::{
     },
     error::{MissingAttributeError, MissingChildNodeError, NotGroupMemberError},
     xml::XmlNode,
-    xsdtypes::XsdType,
+    xsdtypes::{XsdType, XsdChoice},
 };
+use std::error::Error;
 
-pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
+pub type Result<T> = ::std::result::Result<T, Box<dyn Error>>;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum TextBulletColor {
@@ -65,25 +66,30 @@ pub enum TextBulletColor {
     Color(Color),
 }
 
-impl TextBulletColor {
-    pub fn is_choice_member(name: &str) -> bool {
-        match name {
-            "buClrTx" | "buClr" => true,
-            _ => false,
-        }
-    }
-
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<TextBulletColor> {
+impl XsdType for TextBulletColor {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<TextBulletColor> {
         match xml_node.local_name() {
             "buClrTx" => Ok(TextBulletColor::FollowText),
             "buClr" => {
-                let child_node = xml_node
+                let color = xml_node
                     .child_nodes
-                    .get(0)
+                    .iter()
+                    .find_map(Color::try_from_xml_element)
+                    .transpose()?
                     .ok_or_else(|| MissingChildNodeError::new(xml_node.name.clone(), "color"))?;
-                Ok(TextBulletColor::Color(Color::from_xml_element(child_node)?))
+
+                Ok(TextBulletColor::Color(color))
             }
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_TextBulletColor").into()),
+        }
+    }
+}
+
+impl XsdChoice for TextBulletColor {
+    fn is_choice_member<T: AsRef<str>>(name: T) -> bool {
+        match name.as_ref() {
+            "buClrTx" | "buClr" => true,
+            _ => false,
         }
     }
 }
@@ -166,30 +172,38 @@ pub enum TextBulletSize {
     Point(TextFontSize),
 }
 
-impl TextBulletSize {
-    pub fn is_choice_member(name: &str) -> bool {
-        match name {
-            "buSzTx" | "buSzPct" | "buSzPts" => true,
-            _ => false,
-        }
-    }
-
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<TextBulletSize> {
+impl XsdType for TextBulletSize {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<TextBulletSize> {
         match xml_node.local_name() {
             "buSzTx" => Ok(TextBulletSize::FollowText),
             "buSzPct" => {
-                let val_attr = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(TextBulletSize::Percent(val_attr.parse::<TextBulletSizePercent>()?))
+                let val = xml_node
+                    .attributes
+                    .get("val")
+                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?
+                    .parse()?;
+                    
+                Ok(TextBulletSize::Percent(val))
             }
             "buSzPts" => {
-                let val_attr = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(TextBulletSize::Point(val_attr.parse::<TextFontSize>()?))
+                let val = xml_node
+                    .attributes
+                    .get("val")
+                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?
+                    .parse()?;
+
+                Ok(TextBulletSize::Point(val))
             }
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_TextBulletSize").into()),
+        }
+    }
+}
+
+impl XsdChoice for TextBulletSize {
+    fn is_choice_member<T: AsRef<str>>(name: T) -> bool {
+        match name.as_ref() {
+            "buSzTx" | "buSzPct" | "buSzPts" => true,
+            _ => false,
         }
     }
 }
@@ -246,19 +260,21 @@ pub enum TextBulletTypeface {
     Font(TextFont),
 }
 
-impl TextBulletTypeface {
-    pub fn is_choice_member(name: &str) -> bool {
-        match name {
-            "buFontTx" | "buFont" => true,
-            _ => false,
-        }
-    }
-
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<TextBulletTypeface> {
+impl XsdType for TextBulletTypeface {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<TextBulletTypeface> {
         match xml_node.local_name() {
             "buFontTx" => Ok(TextBulletTypeface::FollowText),
             "buFont" => Ok(TextBulletTypeface::Font(TextFont::from_xml_element(xml_node)?)),
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_TextBulletTypeface").into()),
+        }
+    }
+}
+
+impl XsdChoice for TextBulletTypeface {
+    fn is_choice_member<T: AsRef<str>>(name: T) -> bool {
+        match name.as_ref() {
+            "buFontTx" | "buFont" => true,
+            _ => false,
         }
     }
 }
@@ -424,31 +440,42 @@ pub enum TextBullet {
     Picture(Box<Blip>),
 }
 
-impl TextBullet {
-    pub fn is_choice_member(name: &str) -> bool {
-        match name {
-            "buNone" | "buAutoNum" | "buChar" | "buBlip" => true,
-            _ => false,
-        }
-    }
-
-    pub fn from_xml_element(xml_node: &XmlNode) -> Result<TextBullet> {
+impl XsdType for TextBullet {
+    fn from_xml_element(xml_node: &XmlNode) -> Result<TextBullet> {
         match xml_node.local_name() {
             "buNone" => Ok(TextBullet::None),
             "buAutoNum" => Ok(TextBullet::AutoNumbered(TextAutonumberedBullet::from_xml_element(
                 xml_node,
             )?)),
             "buChar" => {
-                let char_attr = xml_node
-                    .attribute("char")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "char"))?;
-                Ok(TextBullet::Character(char_attr.clone()))
+                let character = xml_node
+                    .attributes
+                    .get("char")
+                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "char"))?
+                    .clone();
+
+                Ok(TextBullet::Character(character))
             }
-            "buBlip" => match xml_node.child_nodes.get(0) {
-                Some(child_node) => Ok(TextBullet::Picture(Box::new(Blip::from_xml_element(child_node)?))),
-                None => Err(MissingChildNodeError::new(xml_node.name.clone(), "EG_TextBullet").into()),
-            },
+            "buBlip" => {
+                let blip = xml_node
+                    .child_nodes
+                    .iter()
+                    .find(|child_node| child_node.local_name() == "blip")
+                    .ok_or_else(|| Box::<dyn Error>::from(MissingChildNodeError::new(xml_node.name.clone(), "EG_TextBullet")))
+                    .and_then(Blip::from_xml_element)?;
+                
+                Ok(TextBullet::Picture(Box::new(blip)))
+            }
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_TextBullet").into()),
+        }
+    }
+}
+
+impl XsdChoice for TextBullet {
+    fn is_choice_member<T: AsRef<str>>(name: T) -> bool {
+        match name.as_ref() {
+            "buNone" | "buAutoNum" | "buChar" | "buBlip" => true,
+            _ => false,
         }
     }
 }
@@ -581,54 +608,55 @@ pub struct TextListStyle {
 
 impl TextListStyle {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut instance: Self = Default::default();
+        xml_node
+            .child_nodes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, child_node| {
+                match child_node.local_name() {
+                    "defPPr" => {
+                        instance.def_paragraph_props =
+                            Some(Box::new(TextParagraphProperties::from_xml_element(child_node)?))
+                    }
+                    "lvl1pPr" => {
+                        instance.lvl1_paragraph_props =
+                            Some(Box::new(TextParagraphProperties::from_xml_element(child_node)?))
+                    }
+                    "lvl2pPr" => {
+                        instance.lvl2_paragraph_props =
+                            Some(Box::new(TextParagraphProperties::from_xml_element(child_node)?))
+                    }
+                    "lvl3pPr" => {
+                        instance.lvl3_paragraph_props =
+                            Some(Box::new(TextParagraphProperties::from_xml_element(child_node)?))
+                    }
+                    "lvl4pPr" => {
+                        instance.lvl4_paragraph_props =
+                            Some(Box::new(TextParagraphProperties::from_xml_element(child_node)?))
+                    }
+                    "lvl5pPr" => {
+                        instance.lvl5_paragraph_props =
+                            Some(Box::new(TextParagraphProperties::from_xml_element(child_node)?))
+                    }
+                    "lvl6pPr" => {
+                        instance.lvl6_paragraph_props =
+                            Some(Box::new(TextParagraphProperties::from_xml_element(child_node)?))
+                    }
+                    "lvl7pPr" => {
+                        instance.lvl7_paragraph_props =
+                            Some(Box::new(TextParagraphProperties::from_xml_element(child_node)?))
+                    }
+                    "lvl8pPr" => {
+                        instance.lvl8_paragraph_props =
+                            Some(Box::new(TextParagraphProperties::from_xml_element(child_node)?))
+                    }
+                    "lvl9pPr" => {
+                        instance.lvl9_paragraph_props =
+                            Some(Box::new(TextParagraphProperties::from_xml_element(child_node)?))
+                    }
+                    _ => (),
+                }
 
-        for child_node in &xml_node.child_nodes {
-            match child_node.local_name() {
-                "defPPr" => {
-                    instance.def_paragraph_props =
-                        Some(Box::new(TextParagraphProperties::from_xml_element(child_node)?))
-                }
-                "lvl1pPr" => {
-                    instance.lvl1_paragraph_props =
-                        Some(Box::new(TextParagraphProperties::from_xml_element(child_node)?))
-                }
-                "lvl2pPr" => {
-                    instance.lvl2_paragraph_props =
-                        Some(Box::new(TextParagraphProperties::from_xml_element(child_node)?))
-                }
-                "lvl3pPr" => {
-                    instance.lvl3_paragraph_props =
-                        Some(Box::new(TextParagraphProperties::from_xml_element(child_node)?))
-                }
-                "lvl4pPr" => {
-                    instance.lvl4_paragraph_props =
-                        Some(Box::new(TextParagraphProperties::from_xml_element(child_node)?))
-                }
-                "lvl5pPr" => {
-                    instance.lvl5_paragraph_props =
-                        Some(Box::new(TextParagraphProperties::from_xml_element(child_node)?))
-                }
-                "lvl6pPr" => {
-                    instance.lvl6_paragraph_props =
-                        Some(Box::new(TextParagraphProperties::from_xml_element(child_node)?))
-                }
-                "lvl7pPr" => {
-                    instance.lvl7_paragraph_props =
-                        Some(Box::new(TextParagraphProperties::from_xml_element(child_node)?))
-                }
-                "lvl8pPr" => {
-                    instance.lvl8_paragraph_props =
-                        Some(Box::new(TextParagraphProperties::from_xml_element(child_node)?))
-                }
-                "lvl9pPr" => {
-                    instance.lvl9_paragraph_props =
-                        Some(Box::new(TextParagraphProperties::from_xml_element(child_node)?))
-                }
-                _ => (),
-            }
-        }
-
-        Ok(instance)
+                Ok(instance)
+            })
     }
 }

@@ -6,7 +6,7 @@ use crate::{
     },
     error::{MissingAttributeError, MissingChildNodeError},
     xml::XmlNode,
-    xsdtypes::XsdType,
+    xsdtypes::XsdChoice,
 };
 use log::trace;
 use std::io::Read;
@@ -173,10 +173,11 @@ pub struct ColorScheme {
 
 impl ColorScheme {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let name_attr = xml_node
-            .attribute("name")
-            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "name"))?;
-        let name = name_attr.clone();
+        let name = xml_node
+            .attributes
+            .get("name")
+            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "name"))?
+            .clone();
 
         let mut dk1 = None;
         let mut lt1 = None;
@@ -192,24 +193,26 @@ impl ColorScheme {
         let mut follow_hyperlink = None;
 
         for child_node in &xml_node.child_nodes {
-            let scheme_node = child_node
+            let color = child_node
                 .child_nodes
-                .get(0)
-                .ok_or_else(|| MissingChildNodeError::new(child_node.name.clone(), "scheme color value"))?;
+                .iter()
+                .find_map(Color::try_from_xml_element)
+                .transpose()?
+                .ok_or_else(|| MissingChildNodeError::new(child_node.name.clone(), "EG_Color"))?;
 
             match child_node.local_name() {
-                "dk1" => dk1 = Some(Color::from_xml_element(&scheme_node)?),
-                "lt1" => lt1 = Some(Color::from_xml_element(&scheme_node)?),
-                "dk2" => dk2 = Some(Color::from_xml_element(&scheme_node)?),
-                "lt2" => lt2 = Some(Color::from_xml_element(&scheme_node)?),
-                "accent1" => accent1 = Some(Color::from_xml_element(&scheme_node)?),
-                "accent2" => accent2 = Some(Color::from_xml_element(&scheme_node)?),
-                "accent3" => accent3 = Some(Color::from_xml_element(&scheme_node)?),
-                "accent4" => accent4 = Some(Color::from_xml_element(&scheme_node)?),
-                "accent5" => accent5 = Some(Color::from_xml_element(&scheme_node)?),
-                "accent6" => accent6 = Some(Color::from_xml_element(&scheme_node)?),
-                "hlink" => hyperlink = Some(Color::from_xml_element(&scheme_node)?),
-                "folHlink" => follow_hyperlink = Some(Color::from_xml_element(&scheme_node)?),
+                "dk1" => dk1 = Some(color),
+                "lt1" => lt1 = Some(color),
+                "dk2" => dk2 = Some(color),
+                "lt2" => lt2 = Some(color),
+                "accent1" => accent1 = Some(color),
+                "accent2" => accent2 = Some(color),
+                "accent3" => accent3 = Some(color),
+                "accent4" => accent4 = Some(color),
+                "accent5" => accent5 = Some(color),
+                "accent6" => accent6 = Some(color),
+                "hlink" => hyperlink = Some(color),
+                "folHlink" => follow_hyperlink = Some(color),
                 _ => (),
             }
         }
@@ -466,24 +469,25 @@ pub struct ObjectStyleDefaults {
 
 impl ObjectStyleDefaults {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut instance: Self = Default::default();
+        xml_node
+            .child_nodes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, child_node| {
+                match child_node.local_name() {
+                    "spDef" => {
+                        instance.shape_definition = Some(Box::new(DefaultShapeDefinition::from_xml_element(child_node)?))
+                    }
+                    "lnDef" => {
+                        instance.line_definition = Some(Box::new(DefaultShapeDefinition::from_xml_element(child_node)?))
+                    }
+                    "txDef" => {
+                        instance.text_definition = Some(Box::new(DefaultShapeDefinition::from_xml_element(child_node)?))
+                    }
+                    _ => (),
+                }
 
-        for child_node in &xml_node.child_nodes {
-            match child_node.local_name() {
-                "spDef" => {
-                    instance.shape_definition = Some(Box::new(DefaultShapeDefinition::from_xml_element(child_node)?))
-                }
-                "lnDef" => {
-                    instance.line_definition = Some(Box::new(DefaultShapeDefinition::from_xml_element(child_node)?))
-                }
-                "txDef" => {
-                    instance.text_definition = Some(Box::new(DefaultShapeDefinition::from_xml_element(child_node)?))
-                }
-                _ => (),
-            }
-        }
-
-        Ok(instance)
+                Ok(instance)
+            })
     }
 }
 
@@ -585,11 +589,11 @@ pub struct OfficeStyleSheet {
     ///     accent6="accent6" hlink="hlink" folHlink="folHlink"/>
     /// </extraClrScheme>
     /// ```
-    pub extra_color_scheme_list: Vec<ColorSchemeAndMapping>,
+    pub extra_color_scheme_list: Option<Vec<ColorSchemeAndMapping>>,
 
     /// This element allows for a custom color palette to be created and which shows up alongside other color schemes.
     /// This can be very useful, for example, when someone would like to maintain a corporate color palette.
-    pub custom_color_list: Vec<CustomColor>,
+    pub custom_color_list: Option<Vec<CustomColor>>,
 }
 
 impl OfficeStyleSheet {
@@ -603,25 +607,37 @@ impl OfficeStyleSheet {
 
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         trace!("parsing OfficeStyleSheet '{}'", xml_node.name);
-        let name = xml_node.attribute("name").cloned();
+        let name = xml_node
+            .attributes
+            .get("name")
+            .cloned();
+
         let mut theme_elements = None;
         let mut object_defaults = None;
-        let mut extra_color_scheme_list = Vec::new();
-        let mut custom_color_list = Vec::new();
+        let mut extra_color_scheme_list = None;
+        let mut custom_color_list = None;
 
         for child_node in &xml_node.child_nodes {
             match child_node.local_name() {
                 "themeElements" => theme_elements = Some(Box::new(BaseStyles::from_xml_element(child_node)?)),
                 "objectDefaults" => object_defaults = Some(ObjectStyleDefaults::from_xml_element(child_node)?),
                 "extraClrSchemeLst" => {
-                    for extra_color_scheme_node in &child_node.child_nodes {
-                        extra_color_scheme_list.push(ColorSchemeAndMapping::from_xml_element(extra_color_scheme_node)?);
-                    }
+                    extra_color_scheme_list = Some(child_node
+                        .child_nodes
+                        .iter()
+                        .filter(|child_node| child_node.local_name() == "extraClrScheme")
+                        .map(ColorSchemeAndMapping::from_xml_element)
+                        .collect::<Result<Vec<_>>>()?
+                    );
                 }
                 "custClrLst" => {
-                    for cust_color_node in &child_node.child_nodes {
-                        custom_color_list.push(CustomColor::from_xml_element(cust_color_node)?);
-                    }
+                    custom_color_list = Some(child_node
+                        .child_nodes
+                        .iter()
+                        .filter(|child_node| child_node.local_name() == "custClr")
+                        .map(CustomColor::from_xml_element)
+                        .collect::<Result<Vec<_>>>()?
+                    )
                 }
                 _ => (),
             }
