@@ -12,6 +12,7 @@ use crate::{
             TextIndentLevelType, TextLanguageID, TextMargin, TextNonNegativePoint, TextPoint, TextSpacingPercent,
             TextSpacingPoint, TextStrikeType, TextTabAlignType, TextUnderlineType,
         },
+        util::XmlNodeExt,
     },
     error::{LimitViolationError, MaxOccurs, MissingAttributeError, MissingChildNodeError, NotGroupMemberError},
     xml::{parse_xml_bool, XmlNode},
@@ -1205,18 +1206,8 @@ pub enum TextSpacing {
 impl XsdType for TextSpacing {
     fn from_xml_element(xml_node: &XmlNode) -> Result<TextSpacing> {
         match xml_node.local_name() {
-            "spcPct" => {
-                let val_attr = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(TextSpacing::Percent(val_attr.parse::<TextSpacingPercent>()?))
-            }
-            "spcPts" => {
-                let val_attr = xml_node
-                    .attribute("val")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-                Ok(TextSpacing::Point(val_attr.parse::<TextSpacingPoint>()?))
-            }
+            "spcPct" => Ok(TextSpacing::Percent(xml_node.get_val_attribute()?.parse()?)),
+            "spcPts" => Ok(TextSpacing::Point(xml_node.get_val_attribute()?.parse()?)),
             _ => Err(NotGroupMemberError::new(xml_node.name.clone(), "EG_TextSpacing").into()),
         }
     }

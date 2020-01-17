@@ -205,7 +205,7 @@ pub struct StyleMatrix {
 impl StyleMatrix {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         trace!("parsing StyleMatrix '{}'", xml_node.name);
-        let name = xml_node.attribute("name").cloned();
+        let name = xml_node.attributes.get("name").cloned();
         let mut fill_style_list = None;
         let mut line_style_list = None;
         let mut effect_style_list = None;
@@ -442,7 +442,8 @@ pub struct FontScheme {
 impl FontScheme {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         let name = xml_node
-            .attribute("name")
+            .attributes
+            .get("name")
             .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "name"))?
             .clone();
 

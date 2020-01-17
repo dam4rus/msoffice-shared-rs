@@ -364,10 +364,12 @@ pub struct NonVisualGroupDrawingShapeProps {
 
 impl NonVisualGroupDrawingShapeProps {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let locks = match xml_node.child_nodes.get(0) {
-            Some(node) => Some(GroupLocking::from_xml_element(node)?),
-            None => None,
-        };
+        let locks = xml_node
+            .child_nodes
+            .iter()
+            .find(|child_node| child_node.local_name() == "grpSpLocks")
+            .map(GroupLocking::from_xml_element)
+            .transpose()?;
 
         Ok(Self { locks })
     }
@@ -397,15 +399,18 @@ pub struct NonVisualPictureProperties {
 
 impl NonVisualPictureProperties {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let prefer_relative_resize = match xml_node.attribute("preferRelativeResize") {
-            Some(attr) => Some(parse_xml_bool(attr)?),
-            None => None,
-        };
+        let prefer_relative_resize = xml_node
+            .attributes
+            .get("preferRelativeResize")
+            .map(parse_xml_bool)
+            .transpose()?;
 
-        let picture_locks = match xml_node.child_nodes.get(0) {
-            Some(node) => Some(PictureLocking::from_xml_element(node)?),
-            None => None,
-        };
+        let picture_locks = xml_node
+            .child_nodes
+            .iter()
+            .find(|child_node| child_node.local_name() == "picLocks")
+            .map(PictureLocking::from_xml_element)
+            .transpose()?;
 
         Ok(Self {
             prefer_relative_resize,
@@ -767,22 +772,23 @@ pub struct GroupLocking {
 
 impl GroupLocking {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut instance: Self = Default::default();
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, (attr, value)| {
+                match attr.as_ref() {
+                    "noGrp" => instance.no_grouping = Some(parse_xml_bool(value)?),
+                    "noUngrp" => instance.no_ungrouping = Some(parse_xml_bool(value)?),
+                    "noSelect" => instance.no_select = Some(parse_xml_bool(value)?),
+                    "noRot" => instance.no_rotate = Some(parse_xml_bool(value)?),
+                    "noChangeAspect" => instance.no_change_aspect_ratio = Some(parse_xml_bool(value)?),
+                    "noMove" => instance.no_move = Some(parse_xml_bool(value)?),
+                    "noResize" => instance.no_resize = Some(parse_xml_bool(value)?),
+                    _ => (),
+                }
 
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "noGrp" => instance.no_grouping = Some(parse_xml_bool(value)?),
-                "noUngrp" => instance.no_ungrouping = Some(parse_xml_bool(value)?),
-                "noSelect" => instance.no_select = Some(parse_xml_bool(value)?),
-                "noRot" => instance.no_rotate = Some(parse_xml_bool(value)?),
-                "noChangeAspect" => instance.no_change_aspect_ratio = Some(parse_xml_bool(value)?),
-                "noMove" => instance.no_move = Some(parse_xml_bool(value)?),
-                "noResize" => instance.no_resize = Some(parse_xml_bool(value)?),
-                _ => (),
-            }
-        }
-
-        Ok(instance)
+                Ok(instance)
+            })
     }
 }
 
@@ -840,21 +846,22 @@ pub struct GraphicalObjectFrameLocking {
 
 impl GraphicalObjectFrameLocking {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let mut instance: Self = Default::default();
+        xml_node
+            .attributes
+            .iter()
+            .try_fold(Default::default(), |mut instance: Self, (attr, value)| {
+                match attr.as_ref() {
+                    "noGrp" => instance.no_grouping = Some(parse_xml_bool(value)?),
+                    "noDrilldown" => instance.no_drilldown = Some(parse_xml_bool(value)?),
+                    "noSelect" => instance.no_select = Some(parse_xml_bool(value)?),
+                    "noChangeAspect" => instance.no_change_aspect = Some(parse_xml_bool(value)?),
+                    "noMove" => instance.no_move = Some(parse_xml_bool(value)?),
+                    "noResize" => instance.no_resize = Some(parse_xml_bool(value)?),
+                    _ => (),
+                }
 
-        for (attr, value) in &xml_node.attributes {
-            match attr.as_str() {
-                "noGrp" => instance.no_grouping = Some(parse_xml_bool(value)?),
-                "noDrilldown" => instance.no_drilldown = Some(parse_xml_bool(value)?),
-                "noSelect" => instance.no_select = Some(parse_xml_bool(value)?),
-                "noChangeAspect" => instance.no_change_aspect = Some(parse_xml_bool(value)?),
-                "noMove" => instance.no_move = Some(parse_xml_bool(value)?),
-                "noResize" => instance.no_resize = Some(parse_xml_bool(value)?),
-                _ => (),
-            }
-        }
-
-        Ok(instance)
+                Ok(instance)
+            })
     }
 }
 

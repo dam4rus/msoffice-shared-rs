@@ -687,10 +687,11 @@ pub struct SchemeColor {
 
 impl SchemeColor {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<SchemeColor> {
-        let attr_val = xml_node
-            .attribute("val")
-            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?;
-        let value = attr_val.parse::<SchemeColorVal>()?;
+        let value = xml_node
+            .attributes
+            .get("val")
+            .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "val"))?
+            .parse()?;
 
         let color_transforms = xml_node
             .child_nodes
@@ -829,7 +830,7 @@ pub struct CustomColor {
 
 impl CustomColor {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
-        let name = xml_node.attribute("name").cloned();
+        let name = xml_node.attributes.get("name").cloned();
         let color = xml_node
             .child_nodes
             .iter()

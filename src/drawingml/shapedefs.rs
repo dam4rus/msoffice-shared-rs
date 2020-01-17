@@ -1336,7 +1336,8 @@ pub struct ConnectionSite {
 impl ConnectionSite {
     pub fn from_xml_element(xml_node: &XmlNode) -> Result<Self> {
         let angle = xml_node
-            .attribute("ang")
+            .attributes
+            .get("ang")
             .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "ang"))?
             .parse()?;
 

@@ -43,10 +43,6 @@ impl XmlNode {
         }
     }
 
-    pub fn attribute<T: AsRef<str>>(&self, attr_name: T) -> Option<&String> {
-        self.attributes.get(attr_name.as_ref())
-    }
-
     fn from_quick_xml_element(xml_element: &BytesStart<'_>) -> Result<Self, ::std::str::Utf8Error> {
         let name = ::std::str::from_utf8(xml_element.name())?;
         let mut node = Self::new(name);
@@ -163,7 +159,7 @@ mod tests {
         let root_node = XmlNode::from_str(file_content.as_str()).expect("Couldn't create XmlNode from string");
         assert_eq!(root_node.name, "p:presentation");
         assert_eq!(
-            root_node.attribute("xmlns:a").unwrap(),
+            root_node.attributes.get("xmlns:a").unwrap(),
             "http://schemas.openxmlformats.org/drawingml/2006/main"
         );
 
@@ -177,13 +173,13 @@ mod tests {
 
         let slide_id_0_node = &root_node.child_nodes[1].child_nodes[0];
         assert_eq!(slide_id_0_node.name, "p:sldId");
-        assert_eq!(slide_id_0_node.attribute("id").unwrap(), "256");
-        assert_eq!(slide_id_0_node.attribute("r:id").unwrap(), "rId2");
+        assert_eq!(slide_id_0_node.attributes.get("id").unwrap(), "256");
+        assert_eq!(slide_id_0_node.attributes.get("r:id").unwrap(), "rId2");
 
         assert_eq!(root_node.child_nodes[1].child_nodes[1].name, "p:sldId");
 
         let lvl1_ppr_defrpr_node = &root_node.child_nodes[5].child_nodes[1].child_nodes[0];
-        assert_eq!(lvl1_ppr_defrpr_node.attribute("sz").unwrap(), "1800");
-        assert_eq!(lvl1_ppr_defrpr_node.attribute("kern").unwrap(), "1200");
+        assert_eq!(lvl1_ppr_defrpr_node.attributes.get("sz").unwrap(), "1800");
+        assert_eq!(lvl1_ppr_defrpr_node.attributes.get("kern").unwrap(), "1200");
     }
 }

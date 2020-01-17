@@ -1023,10 +1023,12 @@ impl XsdType for Effect {
         match xml_node.local_name() {
             "cont" => Ok(Effect::Container(EffectContainer::from_xml_element(xml_node)?)),
             "effect" => {
-                let ref_attr = xml_node
-                    .attribute("ref")
-                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "ref"))?;
-                Ok(Effect::EffectReference(ref_attr.clone()))
+                let reference = xml_node
+                    .attributes
+                    .get("ref")
+                    .ok_or_else(|| MissingAttributeError::new(xml_node.name.clone(), "ref"))?
+                    .clone();
+                Ok(Effect::EffectReference(reference))
             }
             "alphaBiLevel" => Ok(Effect::AlphaBiLevel(AlphaBiLevelEffect::from_xml_element(xml_node)?)),
             "alphaCeiling" => Ok(Effect::AlphaCeiling),
