@@ -9,10 +9,7 @@ use crate::{
     xsdtypes::XsdChoice,
 };
 use log::trace;
-use std::{
-    io::Read,
-    str::FromStr,
-};
+use std::{io::Read, str::FromStr};
 use zip::read::ZipFile;
 
 pub type Result<T> = ::std::result::Result<T, Box<dyn (::std::error::Error)>>;
